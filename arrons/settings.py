@@ -82,11 +82,11 @@ WSGI_APPLICATION = 'arrons.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'proyecto_arron_django',
-        'USER': 'root',
-        'PASSWORD': '123456789*',
-        'HOST': 'localhost',
-        'PORT': '3307',
+        'NAME': os.getenv('proyecto_arron_django'),
+        'USER': os.getenv('root'),
+        'PASSWORD': os.getenv('123456789*'),
+        'HOST': os.getenv('localhost'),
+        'PORT': os.getenv('3307'),
     }
 }
 
