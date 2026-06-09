@@ -6,7 +6,9 @@ charset-normalizer==3.4.6
 cryptography==46.0.6
 cssselect2==0.9.0
 distlib==0.4.0
-Django==6.0.3
+Django==6.0.5
+gunicorn==26.0.0
+python-dotenv==1.2.2
 django-mathfilters==1.0.0
 et_xmlfile==2.0.0
 filelock==3.25.2
