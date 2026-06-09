@@ -1,0 +1,206 @@
+/* SECCION */
+.productos-section{
+padding:140px 20px 100px;
+background:var(--bg-dark);
+}
+
+.productos-section .container{
+max-width:1300px;
+margin:auto;
+}
+
+
+/* GRID */
+.productos-section .productos-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+gap:30px;
+margin-top:40px;
+}
+
+
+/* CARD */
+.productos-section .producto-card{
+background:var(--bg-card);
+border:1px solid var(--border);
+transition:var(--transition);
+border-radius:10px;
+overflow:hidden;
+height:100%;
+}
+
+.productos-section .producto-card form{
+display:flex;
+flex-direction:column;
+height:100%;
+}
+
+.productos-section .producto-card:hover{
+border-color:var(--accent);
+transform:translateY(-6px);
+}
+
+
+/* IMAGEN */
+.productos-section .producto-img{
+height:220px;
+overflow:hidden;
+background:#000;
+}
+
+.productos-section .producto-img img{
+width:100%;
+height:100%;
+object-fit:cover;
+opacity:.85;
+transition:var(--transition);
+}
+
+.productos-section .producto-card:hover .producto-img img{
+opacity:1;
+transform:scale(1.05);
+}
+
+
+/* BODY */
+.productos-section .producto-body{
+padding:22px;
+display:flex;
+flex-direction:column;
+flex-grow:1;
+text-align:center;
+}
+
+
+/* TITULO */
+.productos-section .producto-body h3{
+font-size:1.1rem;
+margin-bottom:10px;
+color:var(--text-main);
+}
+
+
+/* DESCRIPCION */
+.productos-section .descripcion{
+font-size:.85rem;
+color:var(--text-muted);
+margin-bottom:15px;
+line-height:1.4;
+
+display:-webkit-box;
+-webkit-line-clamp:2;
+line-clamp:2;
+-webkit-box-orient:vertical;
+overflow:hidden;
+}
+
+
+/* PRECIO */
+.productos-section .precio{
+font-size:1.5rem;
+color:var(--accent);
+font-weight:800;
+margin-bottom:18px;
+}
+
+
+/* CONTROL CANTIDAD */
+.productos-section .cantidad-control{
+display:flex;
+justify-content:center;
+align-items:center;
+gap:10px;
+margin-bottom:18px;
+}
+
+
+/* BOTONES + - */
+.productos-section .quantity-btn{
+background:transparent;
+border:1px solid var(--border);
+color:white;
+width:35px;
+height:35px;
+cursor:pointer;
+font-size:18px;
+border-radius:6px;
+transition:var(--transition);
+}
+
+.productos-section .quantity-btn:hover{
+border-color:var(--accent);
+color:var(--accent);
+}
+
+
+/* INPUT */
+.productos-section .quantity-input{
+width:55px;
+text-align:center;
+background:transparent;
+border:1px solid var(--border);
+color:white;
+padding:5px;
+border-radius:6px;
+}
+
+
+/* BOTON ALQUILAR */
+.productos-section .btn-alquilar{
+width:100%;
+padding:12px;
+background:var(--accent);
+color:black;
+border:none;
+font-weight:700;
+text-transform:uppercase;
+letter-spacing:1px;
+cursor:pointer;
+transition:var(--transition);
+margin-top:auto;
+border-radius:6px;
+}
+
+.productos-section .btn-alquilar:hover{
+background:#f1d279;
+}
+
+
+/* ALERTA SIN PRODUCTOS */
+.productos-section .alert-info-custom{
+background:var(--bg-card);
+border:1px solid var(--border);
+padding:40px;
+border-radius:10px;
+color:var(--text-muted);
+}
+
+
+/* PAGINACION */
+.productos-section .paginacion{
+display:flex;
+justify-content:center;
+align-items:center;
+gap:10px;
+margin-top:60px;
+}
+
+.productos-section .page-btn{
+padding:8px 14px;
+border:1px solid var(--border);
+color:var(--text-muted);
+text-decoration:none;
+font-size:.9rem;
+transition:var(--transition);
+}
+
+.productos-section .page-btn:hover{
+border-color:var(--accent);
+color:var(--accent);
+}
+
+.productos-section .page-btn.active{
+background:var(--accent);
+color:black;
+border-color:var(--accent);
+}

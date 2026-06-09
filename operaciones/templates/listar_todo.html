@@ -1,0 +1,139 @@
+{% extends "base2.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-10">
+    
+    <div class="text-center mb-10">
+        <span class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-600 mb-2 block">Administración de Activos</span>
+        <h1 class="text-4xl font-black tracking-tighter text-gray-900 uppercase">Configuración de <span class="text-blue-600">Catálogos</span></h1>
+    </div>
+
+    <div class="flex justify-center mb-12">
+        <div class="inline-flex p-1.5 bg-gray-100 rounded-[2rem] shadow-inner">
+            <button onclick="showTab('servicios')" id="btn-servicios" class="tab-btn px-8 py-3 rounded-[1.5rem] text-[10px] font-black uppercase transition-all bg-white shadow-sm text-blue-600">Servicios</button>
+            <button onclick="showTab('menus')" id="btn-menus" class="tab-btn px-8 py-3 rounded-[1.5rem] text-[10px] font-black uppercase transition-all text-gray-500">Menús de Comida</button>
+            <button onclick="showTab('lugares')" id="btn-lugares" class="tab-btn px-8 py-3 rounded-[1.5rem] text-[10px] font-black uppercase transition-all text-gray-500">Locaciones</button>
+        </div>
+    </div>
+
+    <div id="tab-servicios" class="tab-content animate-in">
+        <div class="flex justify-between items-center mb-6 px-4">
+            <h2 class="text-xl font-black italic">Servicios Adicionales</h2>
+            <a href="{% url 'mostrar_registro_servicio' %}" class="bg-blue-600 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase hover:bg-blue-700 transition shadow-lg shadow-blue-200">Añadir Servicio</a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for s in servicios %}
+            <div class="premium-card p-6 bg-white flex justify-between items-center group {% if s.estado == 'I' %}opacity-50 grayscale{% endif %}">
+                <div>
+                    <p class="font-black text-gray-800 group-hover:text-blue-600 transition-colors">
+                        {{ s.nombre }} 
+                        {% if s.estado == 'I' %}<span class="text-[7px] bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded ml-1 font-black">INACTIVO</span>{% endif %}
+                    </p>
+                    <p class="text-xs text-gray-400 font-bold">${{ s.precio|floatformat:0|intcomma }}</p>
+                </div>
+                <div class="flex gap-4">
+                    <a href="{% url 'pre_editar_servicio' s.id %}" title="Editar">
+                        <i class="fa-solid fa-pen text-gray-300 hover:text-blue-500 cursor-pointer text-xs transition-colors"></i>
+                    </a>
+                    <a href="{% url 'cambiar_estado_catalogo' 'servicio' s.id %}" title="Cambiar Estado">
+                        <i class="fa-solid {% if s.estado == 'A' %}fa-toggle-on text-blue-500{% else %}fa-toggle-off text-gray-300{% endif %} cursor-pointer text-sm transition-colors"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="tab-menus" class="tab-content hidden animate-in">
+        <div class="flex justify-between items-center mb-6 px-4">
+            <h2 class="text-xl font-black italic text-amber-600">Propuestas Gastronómicas</h2>
+            <a href="{% url 'mostrar_registro_menu' %}" class="bg-amber-500 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase shadow-lg shadow-amber-100">Nuevo Menú</a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {% for m in menus %}
+            <div class="premium-card p-8 bg-white border-t-8 {% if m.estado == 'A' %}border-amber-500{% else %}border-gray-300 opacity-60{% endif %} group relative overflow-hidden">
+                <div class="relative z-10">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-2xl font-black text-gray-900 {% if m.estado == 'I' %}line-through text-gray-400{% endif %}">{{ m.nombre }}</h3>
+                        <div class="flex gap-3 bg-white/80 backdrop-blur p-2 rounded-xl border border-gray-100 shadow-sm">
+                            <a href="{% url 'pre_editar_menu' m.id %}"><i class="fa-solid fa-pen text-gray-400 hover:text-amber-500 text-xs"></i></a>
+                            <a href="{% url 'cambiar_estado_catalogo' 'menu' m.id %}">
+                                <i class="fa-solid {% if m.estado == 'A' %}fa-eye text-amber-500{% else %}fa-eye-slash text-gray-300{% endif %} text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500 leading-relaxed mb-6">{{ m.descripcion }}</p>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-2xl font-black text-gray-800">${{ m.precio_por_persona|floatformat:0|intcomma }}</span>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">por persona</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="tab-lugares" class="tab-content hidden animate-in">
+        <div class="flex justify-between items-center mb-6 px-4">
+            <h2 class="text-xl font-black italic text-emerald-600">Sedes de Arron Eventos</h2>
+            <a href="{% url 'mostrar_registro_lugar' %}" class="bg-emerald-600 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase shadow-lg shadow-emerald-100">Registrar Lugar</a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {% for l in lugares %}
+            <div class="premium-card overflow-hidden bg-white group border-none shadow-xl relative {% if l.estado == 'I' %}opacity-50 grayscale{% endif %}">
+                <div class="absolute top-4 right-4 z-20 flex gap-2">
+                    <a href="{% url 'pre_editar_lugar' l.id %}" class="w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center text-gray-400 hover:text-emerald-500 shadow-sm transition-all">
+                        <i class="fa-solid fa-pen text-[10px]"></i>
+                    </a>
+                    <a href="{% url 'cambiar_estado_catalogo' 'lugar' l.id %}" class="w-8 h-8 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-sm transition-all {% if l.estado == 'A' %}text-emerald-500{% else %}text-red-500{% endif %}">
+                        <i class="fa-solid {% if l.estado == 'A' %}fa-check-circle{% else %}fa-circle-xmark{% endif %} text-[10px]"></i>
+                    </a>
+                </div>
+
+                <div class="h-48 bg-slate-900 relative overflow-hidden">
+                    {% if l.imagen %}
+                        <img src="{{ l.imagen.url }}" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center">
+                            <i class="fa-solid fa-mountain-city text-4xl text-slate-700"></i>
+                        </div>
+                    {% endif %}
+                    <div class="absolute top-4 left-4 {% if l.estado == 'A' %}bg-emerald-500{% else %}bg-gray-500{% endif %} text-white px-3 py-1 rounded-lg text-[10px] font-black uppercase">
+                        {% if l.estado == 'A' %}Capacidad: {{ l.capacidad_maxima }}{% else %}Fuera de Servicio{% endif %}
+                    </div>
+                </div>
+                <div class="p-6">
+                    <h3 class="font-black text-gray-800 text-lg mb-1">{{ l.nombre }}</h3>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase mb-4"><i class="fa-solid fa-location-dot me-1"></i> {{ l.direccion }}</p>
+                    <div class="pt-4 border-t border-gray-50 flex justify-between items-center">
+                        <span class="text-xs font-black text-emerald-600 tracking-tighter">Renta: ${{ l.precio_renta|floatformat:0|intcomma }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function showTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(el => {
+            el.classList.remove('bg-white', 'shadow-sm', 'text-blue-600', 'text-amber-600', 'text-emerald-600');
+            el.classList.add('text-gray-500');
+        });
+
+        const activeTab = document.getElementById('tab-' + tabId);
+        const activeBtn = document.getElementById('btn-' + tabId);
+        
+        activeTab.classList.remove('hidden');
+        activeBtn.classList.add('bg-white', 'shadow-sm');
+        activeBtn.classList.remove('text-gray-500');
+
+        if(tabId === 'servicios') activeBtn.classList.add('text-blue-600');
+        if(tabId === 'menus') activeBtn.classList.add('text-amber-600');
+        if(tabId === 'lugares') activeBtn.classList.add('text-emerald-600');
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,271 @@
+{% extends 'base2.html' %}
+
+{% block content %}
+<style>
+    .pkg-container {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+        margin-bottom: 3rem;
+    }
+    .pkg-header { background: #541E12; padding: 2.5rem; color: white; text-align: center; }
+    .section-card { padding: 2rem; border-bottom: 1px solid #f1f5f9; }
+    .section-title {
+        display: flex; align-items: center; gap: 10px; font-size: 1.1rem;
+        font-weight: 800; color: #1e293b; margin-bottom: 1.5rem;
+        text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .form-grid-layout {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.5rem;
+    }
+    .input-group { display: flex; flex-direction: column; gap: 8px; }
+    .label-style { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+    .input-pkg { padding: 0.8rem 1rem; border: 2px solid #e2e8f0; border-radius: 12px; transition: all 0.3s; }
+    .input-pkg:focus { border-color: #541E12; outline: none; box-shadow: 0 0 0 4px rgba(84, 30, 18, 0.1); }
+    .selection-table { width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+    .selection-table thead { background: #f8fafc; }
+    .selection-table th { padding: 12px; font-size: 0.7rem; text-align: left; color: #94a3b8; }
+    .selection-table td { padding: 12px; border-top: 1px solid #f1f5f9; vertical-align: middle; }
+    .checkbox-wrapper { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 8px; border-radius: 8px; transition: 0.2s; }
+    .checkbox-wrapper:hover { background: #fffaf0; }
+    input[type="checkbox"] { width: 18px; height: 18px; accent-color: #541E12; }
+    .btn-save-pkg { background: #541E12; color: white; padding: 1rem 2.5rem; border-radius: 12px; font-weight: 700; transition: 0.3s; }
+    .btn-save-pkg:hover { transform: translateY(-2px); box-shadow: 0 10px 15px rgba(84, 30, 18, 0.2); }
+    .contenedor-main { background: transparent !important; box-shadow: none !important; }
+</style>
+
+<div class="max-w-5xl mx-auto px-4 py-8">
+    <div class="pkg-container">
+        <div class="pkg-header">
+            <i class="fa-solid fa-box-open text-4xl mb-3 opacity-50"></i>
+            <h1 class="text-3xl font-black">Registrar Nuevo Paquete</h1>
+            <p class="text-white/60">Crea una oferta combinada de productos y servicios</p>
+        </div>
+
+        <form action="{% url 'registrar_paquete' %}" method="POST" id="formPaquete">
+            {% csrf_token %}
+            
+            <div id="contenedor-alerta">
+                {% if error %}
+                <div class="mx-8 mt-6 p-4 bg-red-50 border-l-4 border-red-600 rounded-r-xl shadow-sm flex items-center gap-3">
+                    <i class="fa-solid fa-circle-exclamation text-red-600 text-xl"></i>
+                    <div>
+                        <h4 class="text-xs font-black text-red-800 uppercase tracking-wider">No se pudo crear el paquete</h4>
+                        <p class="text-xs font-bold text-red-700 mt-0.5">{{ error }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="section-card">
+                <h2 class="section-title">
+                    <i class="fa-solid fa-file-invoice text-[#541E12]"></i>
+                    Información General
+                </h2>
+                <div class="form-grid-layout">
+                    <div class="input-group">
+                        <label class="label-style">Nombre del paquete</label>
+                        <input type="text" name="txt_nombre" class="input-pkg style-name" placeholder="Ej: Paquete Diamante Arron" value="{{ datos.nombre|default:'' }}" minlength="15" maxlength="60" pattern="^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*$" required>
+                    </div>
+                    <div class="input-group md:col-span-2">
+                        <label class="label-style">Descripción breve</label>
+                        <textarea name="txt_descripcion" class="input-pkg" rows="2" placeholder="Resumen de lo que incluye..." minlength="20" maxlength="250" required>{{ datos.descripcion|default:'' }}</textarea>
+                    </div>
+                </div>
+
+                <div class="form-grid-layout mt-6">
+                    <div class="input-group">
+                        <label class="label-style">Duración (Horas)</label>
+                        <input type="number" name="txt_duracion_horas" class="input-pkg input-positivo" min="2" max="15" placeholder="5" value="{{ datos.duracion|default:'' }}" required>
+                    </div>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-white border rounded-xl">
+                        <p class="text-xs text-slate-500 font-bold">PRECIO DEL PAQUETE</p>
+                        <p id="precio_total" class="text-2xl font-black text-[#541E12]">$0</p>
+                    </div>
+                    <div class="p-4 bg-white border rounded-xl">
+                        <p class="text-xs text-slate-500 font-bold">DEPÓSITO (15%)</p>
+                        <p id="deposito_total" class="text-2xl font-black text-green-600">$0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card bg-slate-50/50">
+                <h2 class="section-title">
+                    <i class="fa-solid fa-chair text-[#541E12]"></i>
+                    Inventario Incluido
+                </h2>
+                <div class="selection-table bg-white">
+                    <table class="w-full">
+                        <thead>
+                            <tr>
+                                <th>Seleccionar Producto</th>
+                                <th width="200">Cantidad para el Paquete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in productos %}
+                            <tr>
+                                <td>
+                                    <label class="checkbox-wrapper">
+                                        <input type="checkbox" name="productosIds" value="{{ p.id }}" data-precio="{{ p.precio_alquiler }}"
+                                               {% if p.id|stringformat:"i" in seleccionados_prod %}checked{% endif %}>
+                                        <span class="text-sm font-medium text-slate-700">{{ p.nombre_producto }}</span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <input type="number" name="cantidades_prod_{{ p.id }}" class="input-pkg py-1 text-sm w-full input-positivo" min="1" placeholder="Cant."
+                                        {% if p.id|stringformat:"i" in seleccionados_prod %}
+                                            value="{{ p.cantidad_temporal }}"
+                                        {% else %}
+                                            disabled
+                                        {% endif %}>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2 class="section-title">
+                    <i class="fa-solid fa-hand-sparkles text-[#541E12]"></i>
+                    Servicios Añadidos
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for s in servicios %}
+                    <div class="checkbox-wrapper border border-slate-100 p-3 rounded-xl hover:border-[#541E12]/30">
+                        <input type="checkbox" name="serviciosIds" id="s{{ s.id }}" value="{{ s.id }}" data-precio="{{ s.precio }}"
+                               {% if s.id|stringformat:"i" in seleccionados_serv %}checked{% endif %}>
+                        <label for="s{{ s.id }}" class="text-sm font-semibold text-slate-600 cursor-pointer">{{ s.nombre }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-6 flex justify-end gap-4">
+                <a href="{% url 'listar_paquetes' %}" class="px-6 py-2.5 text-slate-400 font-bold hover:text-slate-600 transition">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn-save-pkg">
+                    <i class="fa-solid fa-cloud-arrow-up mr-2"></i> Crear Paquete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const precioDisplay = document.getElementById("precio_total");
+    const depositoDisplay = document.getElementById("deposito_total");
+    const formPaquete = document.getElementById("formPaquete");
+    const contenedorAlerta = document.getElementById("contenedor-alerta");
+
+    function calcularTotal() {
+        let total = 0;
+
+        // PRODUCTOS
+        document.querySelectorAll("input[name='productosIds']:checked").forEach(cb => {
+            let precio = parseFloat(cb.dataset.precio);
+            let id = cb.value;
+            let cantidadInput = document.querySelector(`input[name='cantidades_prod_${id}']`);
+            let cantidad = parseInt(cantidadInput.value) || 0;
+            total += precio * cantidad;
+        });
+
+        // SERVICIOS
+        document.querySelectorAll("input[name='serviciosIds']:checked").forEach(cb => {
+            let precio = parseFloat(cb.dataset.precio);
+            total += precio;
+        });
+
+        let deposito = total * 0.15;
+        precioDisplay.textContent = "$" + total.toLocaleString();
+        depositoDisplay.textContent = "$" + deposito.toLocaleString();
+    }
+
+    // EVENTOS DE CALCULO
+    document.querySelectorAll("input").forEach(input => {
+        input.addEventListener("change", calcularTotal);
+        input.addEventListener("keyup", calcularTotal);
+    });
+
+    // ACTIVACIÓN DE CANTIDADES
+    document.querySelectorAll("input[name='productosIds']").forEach(cb => {
+        cb.addEventListener("change", function () {
+            let id = this.value;
+            let inputCantidad = document.querySelector(`input[name='cantidades_prod_${id}']`);
+            inputCantidad.disabled = !this.checked;
+            if (!this.checked) {
+                inputCantidad.value = "";
+            } else {
+                inputCantidad.value = "1";
+            }
+            calcularTotal();
+        });
+    });
+
+    // Ejecutar cálculo al iniciar por si hay elementos de un error previo
+    calcularTotal();
+
+    // ===========================================
+    // 🆕 INTERCEPCIÓN DEL SUBMIT PARA PRODUCTOS EMPALMADOS
+    // ===========================================
+    formPaquete.addEventListener("submit", function (e) {
+        const productosMarcados = document.querySelectorAll("input[name='productosIds']:checked");
+        
+        if (productosMarcados.length === 0) {
+            e.preventDefault(); // Bloquea el envío del formulario
+            
+            // Inyecta dinámicamente la alerta con los mismos estilos de Tailwind
+            contenedorAlerta.innerHTML = `
+                <div class="mx-8 mt-6 p-4 bg-red-50 border-l-4 border-red-600 rounded-r-xl shadow-sm flex items-center gap-3">
+                    <i class="fa-solid fa-circle-exclamation text-red-600 text-xl"></i>
+                    <div>
+                        <h4 class="text-xs font-black text-red-800 uppercase tracking-wider">Error de validación</h4>
+                        <p class="text-xs font-bold text-red-700 mt-0.5">Debes seleccionar al menos un producto del inventario para poder crear el paquete.</p>
+                    </div>
+                </div>
+            `;
+            
+            // Sube el scroll suavemente para que el usuario vea la alerta
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+
+    // ===========================================
+    // CONTROL ESTRICTO DE ESCRITURA EN CAMPOS
+    // ===========================================
+    const positivos = document.querySelectorAll('.input-positivo');
+    positivos.forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            if (['-', '+', 'e', 'E', '.'].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+        input.addEventListener('input', function() {
+            if (this.value !== "" && this.value < 0) this.value = 0;
+        });
+    });
+
+    const nameInput = document.querySelector('.style-name');
+    nameInput.addEventListener('keydown', function(e) {
+        const isValidKey = /^[a-zA-ZÁÉÍÓÚÑáéíóúñ\s]$/.test(e.key) || 
+                           ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key);
+        if (!isValidKey) e.preventDefault();
+    });
+
+    nameInput.addEventListener('blur', function() {
+        this.value = this.value.trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    });
+});
+</script>
+{% endblock %}

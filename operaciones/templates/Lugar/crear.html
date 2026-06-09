@@ -1,0 +1,241 @@
+{% extends 'base2.html' %}
+
+{% block content %}
+<style>
+    /* Estética basada en el Catálogo de Locaciones (Sedes) */
+    .venue-form-card {
+        background: white;
+        border-radius: 2rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f1f5f9;
+        max-width: 700px;
+        margin: 2rem auto;
+        overflow: hidden;
+    }
+
+    .form-header {
+        background: #059669; /* Verde esmeralda de las sedes */
+        padding: 2.5rem 2rem;
+        text-align: center;
+        color: white;
+        position: relative;
+    }
+
+    .form-content {
+        padding: 2.5rem;
+    }
+
+    .label-style {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 900;
+        color: #64748b;
+        text-transform: uppercase;
+        margin-bottom: 0.6rem;
+        letter-spacing: 0.1em;
+    }
+
+    .input-style {
+        width: 100%;
+        padding: 0.9rem 1.2rem;
+        border: 2px solid #f1f5f9;
+        border-radius: 1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        color: #1e293b;
+        background: #f8fafc;
+    }
+
+    .input-style:focus {
+        outline: none;
+        border-color: #059669;
+        background-color: white;
+        box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1);
+    }
+
+    /* Feedback visual de error */
+    .input-style:user-invalid {
+        border-color: #ef4444;
+        background-color: #fef2f2;
+    }
+
+    /* Estilo especial para el input de archivo */
+    .file-input-wrapper {
+        border: 2px dashed #e2e8f0;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+        background: #f8fafc;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .file-input-wrapper:hover {
+        border-color: #059669;
+        background: #f0fdf4;
+    }
+
+    .icon-input-wrapper { position: relative; }
+    .icon-input-wrapper i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+    }
+    .icon-input-wrapper .input-style { padding-left: 2.8rem; }
+
+    /* Botonera */
+    .btn-save {
+        background: #059669;
+        color: white;
+        padding: 1rem 2.2rem;
+        border-radius: 9999px;
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        transition: all 0.3s;
+        box-shadow: 0 10px 15px -3px rgba(5, 150, 105, 0.2);
+    }
+
+    .btn-save:hover {
+        background: #047857;
+        transform: translateY(-2px);
+    }
+
+    .contenedor-main { background: transparent !important; box-shadow: none !important; }
+</style>
+
+<div class="max-w-4xl mx-auto px-4 py-8">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-xl {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-emerald-50 text-emerald-700 border border-emerald-200{% endif %} text-sm font-bold shadow-sm">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="venue-form-card">
+        <div class="form-header">
+            <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/30 shadow-xl">
+                <i class="fa-solid fa-camera-retro text-2xl text-white"></i>
+            </div>
+            <h1 class="text-2xl font-black tracking-tighter uppercase italic">
+                Nueva <span class="opacity-80">Locación</span>
+            </h1>
+            <p class="text-emerald-100 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">Sube la mejor foto para el catálogo</p>
+        </div>
+
+        <form action="{% url 'registrar_lugar' %}" method="post" enctype="multipart/form-data" class="form-content">
+            {% csrf_token %}
+            
+            <div class="mb-6">
+                <label class="label-style">Nombre de la Sede</label>
+                <input type="text" 
+                       name="txt_nombre" 
+                       value="{{ valores_previos.nombre|default:'' }}"
+                       class="input-style" 
+                       placeholder="Ej: Salón Cristal Premium"
+                       minlength="3"
+                       maxlength="60"
+                       pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ0-9\s]+$"
+                       title="El nombre debe ser alfanumérico y tener entre 3 y 60 caracteres."
+                       required>
+            </div>
+
+            <div class="mb-6">
+                <label class="label-style">Fotografía de la Sede</label>
+                <div class="file-input-wrapper" onclick="document.getElementById('foto').click()">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-emerald-500 mb-2"></i>
+                    <p class="text-xs font-bold text-slate-500 uppercase">Haz clic para subir imagen</p>
+                    <input type="file" 
+                           id="foto" 
+                           name="txt_imagen" 
+                           accept="image/png, image/jpeg, image/jpg, image/webp" 
+                           class="hidden" 
+                           onchange="updateFileName(this)" 
+                           required>
+                    <p id="file-name" class="text-[10px] text-emerald-600 mt-2 font-mono truncate"></p>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="label-style">Dirección / Ubicación</label>
+                <div class="icon-input-wrapper">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <input type="text" 
+                           name="txt_direccion" 
+                           value="{{ valores_previos.direccion|default:'' }}"
+                           class="input-style" 
+                           placeholder="Ej: Calle 145 # 91-30, Suba"
+                           minlength="10"
+                           maxlength="150"
+                           required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div>
+                    <label class="label-style">Capacidad Máxima (Personas)</label>
+                    <div class="icon-input-wrapper">
+                        <i class="fa-solid fa-users"></i>
+                        <input type="number" 
+                               min="1"
+                               step="1"
+                               name="txt_capacidad_maxima" 
+                               value="{{ valores_previos.capacidad_maxima|default:'' }}"
+                               class="input-style" 
+                               placeholder="Ej: 150" 
+                               onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                               required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="label-style">Costo de Renta</label>
+                    <div class="icon-input-wrapper">
+                        <i class="fa-solid fa-dollar-sign"></i>
+                        <input type="number" 
+                               min="1"
+                               step="1"
+                               name="txt_precio_renta" 
+                               value="{{ valores_previos.precio_renta|default:'' }}"
+                               class="input-style" 
+                               placeholder="Ej: 1200000" 
+                               onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                               required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group flex justify-end gap-6 pt-6 border-t border-slate-100">
+                <a href="{% url 'gestionar_catalogos' %}" class="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-4 hover:text-slate-600">Cancelar</a>
+                <button type="submit" class="btn-save flex items-center gap-3">
+                    <span>Registrar Lugar</span>
+                    <i class="fa-solid fa-check text-[8px]"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function updateFileName(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const maxSize = 5 * 1024 * 1024; // Límite de 5 Megabytes
+            
+            if (file.size > maxSize) {
+                alert("La imagen seleccionada supera el límite permitido de 5MB. Por favor elige una más liviana.");
+                input.value = ""; // Resetea el input
+                document.getElementById('file-name').textContent = "";
+                return;
+            }
+            
+            document.getElementById('file-name').textContent = "Seleccionado: " + file.name;
+        }
+    }
+</script>
+{% endblock %}

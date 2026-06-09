@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Paquetes - Arron{% endblock %}
+
+{% block content %}
+<section class="paquetes-section">
+
+<div class="container">
+
+<div class="section-header">
+<span class="hero-subtitle" style="text-align:center; display:block;">
+Planes Exclusivos 
+</span>
+
+<h2 class="section-title">Nuestros Paquetes</h2>
+
+<div class="divider"></div>
+</div>
+
+
+<div class="paquetes-grid">
+
+{% for paquete in paquetes %}
+
+<div class="paquete-card">
+
+
+<div class="paquete-body">
+
+<div class="paquete-header">
+
+<h3>{{ paquete.nombre }}</h3>
+
+{% if paquete.personalizable %}
+<span class="paquete-badge">
+Personalizable
+</span>
+{% endif %}
+
+</div>
+
+
+<p class="paquete-desc">
+{{ paquete.descripcion }}
+</p>
+
+
+<ul class="paquete-features">
+
+<li>
+    <i class="fa-solid fa-users"></i>
+    Hasta {{ paquete.capacidad_base }} personas
+</li>
+<li>
+    <i class="fa-solid fa-clock"></i>
+    {{ paquete.duracion_horas }} horas
+</li>
+
+</ul>
+
+
+<div class="paquete-incluye">
+
+<h4>Incluye:</h4>
+
+<ul>
+
+{% for item in paquete.paqueteproducto_set.all %}
+<li>
+<i class="fa-solid fa-check"></i>
+{{ item.producto.nombre_producto }}
+</li>
+{% endfor %}
+
+{% for servicio in paquete.paqueteservicio_set.all %}
+<li>
+<i class="fa-solid fa-check"></i>
+{{ servicio.servicio.nombre }}
+</li>
+{% endfor %}
+
+</ul>
+
+</div>
+
+
+<div class="paquete-footer">
+
+<p class="precio">
+    <span class="moneda">$</span>
+    <span class="valor">
+        {{ paquete.precio|floatformat:0|intcomma}}
+    </span>
+</p>
+
+{% if request.session.usuario_id %}
+    <a href="{% url 'crear_reserva_cliente' paquete.id %}" class="btn-paquete">
+        <i class="fa-solid fa-calendar-check"></i> Reservar ahora
+    </a>
+{% else %}
+    <a href="{% url 'iniciar_sesion' %}" class="btn-paquete btn-secondary">
+        <i class="fa-solid fa-user"></i> Reservar ahora
+    </a>
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+</section>
+{% endblock %}

@@ -1,0 +1,364 @@
+{% extends 'base2.html' %}
+
+{% block content %}
+<style>
+    /* Contenedor de Edición */
+    .edit-pkg-wrapper {
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 15px 50px rgba(0,0,0,0.06);
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+        margin-bottom: 3rem; 
+    }
+
+    .edit-pkg-header {
+        background: linear-gradient(135deg, #541E12 0%, #3d150d 100%);
+        padding: 3rem 2rem;
+        color: white;
+        text-align: center;
+    }
+
+    .edit-icon-badge {
+        background: rgba(255, 255, 255, 0.15);
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 18px;
+        margin: 0 auto 1.5rem;
+        font-size: 1.5rem;
+        backdrop-filter: blur(5px);
+    }
+
+    /* Secciones del Formulario */
+    .form-section {
+        padding: 2.5rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: #1e293b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .dot { width: 8px; height: 8px; background: #541E12; border-radius: 50%; }
+
+    /* Estilos de Input */
+    .edit-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .input-box { display: flex; flex-direction: column; gap: 8px; }
+
+    .label-text { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+
+    .form-input-custom {
+        padding: 0.8rem 1rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-weight: 500;
+        transition: 0.3s;
+        background: #f8fafc;
+    }
+
+    .form-input-custom:focus {
+        background: white;
+        border-color: #541E12;
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(84, 30, 18, 0.1);
+    }
+
+    /* Tabla de Selección Mejorada */
+    .selection-list-container {
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .item-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        transition: 0.2s;
+    }
+
+    .item-row:hover { background: #fffcfb; }
+    .item-row:last-child { border-bottom: none; }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        font-weight: 600;
+        color: #334155;
+    }
+
+    input[type="checkbox"] {
+        width: 20px; height: 20px; accent-color: #541E12; cursor: pointer;
+    }
+
+    /* Footer con botones */
+    .form-actions {
+        background: #f8fafc;
+        padding: 1.5rem 2.5rem;
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+
+    .btn-update-pkg {
+        background: #541E12;
+        color: white;
+        padding: 0.8rem 2rem;
+        border-radius: 12px;
+        font-weight: 700;
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-update-pkg:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(84, 30, 18, 0.2);
+    }
+
+    .contenedor-main { background: transparent !important; box-shadow: none !important; }
+</style>
+
+<div class="max-w-5xl mx-auto px-4 py-10">
+    <div class="edit-pkg-wrapper">
+        
+        <div class="edit-pkg-header">
+            <div class="edit-icon-badge">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </div>
+            <h1 class="text-3xl font-black italic">Actualizar Paquete</h1>
+            <p class="text-white/60 text-sm">Modifica la estructura y el precio de tu oferta</p>
+        </div>
+
+        <form action="{% url 'editar_paquete' paquete.id %}" method="POST" id="formEditarPaquete">
+            {% csrf_token %}
+            
+            <input type="hidden" name="txt_id" value="{{ paquete.id }}"/>
+
+            <div id="contenedor-alerta">
+                {% if error %}
+                <div class="mx-8 mt-6 p-4 bg-red-50 border-l-4 border-red-600 rounded-r-xl shadow-sm flex items-center gap-3">
+                    <i class="fa-solid fa-circle-exclamation text-red-600 text-xl"></i>
+                    <div>
+                        <h4 class="text-xs font-black text-red-800 uppercase tracking-wider">No se pudo actualizar el paquete</h4>
+                        <p class="text-xs font-bold text-red-700 mt-0.5">{{ error }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="dot"></div>
+                    <h2>Configuración Principal</h2>
+                </div>
+
+                <div class="edit-grid">
+                    <div class="input-box">
+                        <label class="label-text">Nombre del Paquete</label>
+                        <input type="text" name="txt_nombre" value="{{ datos_editados.nombre|default:paquete.nombre }}" class="form-input-custom style-name" minlength="15" maxlength="60" required>
+                    </div>
+
+                    <div class="input-box md:col-span-2">
+                        <label class="label-text">Descripción</label>
+                        <textarea name="txt_descripcion" class="form-input-custom" rows="3" minlength="20" maxlength="250" required>{{ datos_editados.descripcion|default:paquete.descripcion }}</textarea>
+                    </div>
+
+                    <div class="input-box">
+                        <label class="label-text">Duración (Horas)</label>
+                        <input type="number" name="txt_duracion_horas" value="{{ datos_editados.duracion_horas|default:paquete.duracion_horas }}" class="form-input-custom input-positivo" min="2" max="15" required>
+                    </div>
+
+                    <div class="input-box">
+                        <label class="label-text">Depósito ($)</label>
+                        <input type="number" id="deposito_total" value="{{ paquete.deposito_garantia|stringformat:'.2f' }}" readonly class="form-input-custom bg-slate-100">
+                    </div>
+
+                    <div class="input-box">
+                        <label class="label-text">Precio Total</label>
+                        <input type="number" id="precio_total" value="{{ paquete.precio|stringformat:'.2f' }}" readonly class="form-input-custom bg-slate-100">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section bg-slate-50/30">
+                <div class="section-header">
+                    <div class="dot"></div>
+                    <h2>Productos e Inventario</h2>
+                </div>
+
+                <div class="selection-list-container bg-white">
+                    {% for p in productos %}
+                    <div class="item-row">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="productos_ids" value="{{ p.id }}" data-precio="{{ p.precio_alquiler }}" {% if p.seleccionado %}checked{% endif %}>
+                            <span>{{ p.nombre_producto }}</span>
+                        </label>
+                        <div class="w-32">
+                            <input type="number" 
+                                name="cantidades_productos_{{ p.id }}" 
+                                class="form-input-custom py-1.5 text-center text-sm w-full input-positivo" 
+                                min="1" 
+                                value="{{ p.cantidad }}" 
+                                {% if not p.seleccionado %}disabled{% endif %} 
+                                placeholder="Cant.">
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="dot"></div>
+                    <h2>Servicios Incluidos</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for s in servicios %}
+                    <div class="p-4 border-2 border-slate-100 rounded-2xl flex items-center gap-3 hover:border-[#541E12]/20 transition cursor-pointer">
+                        <input type="checkbox" name="servicios_ids" id="srv-{{ s.id }}" value="{{ s.id }}" data-precio="{{ s.precio }}" {% if s.seleccionado %}checked{% endif %}>
+                        <label for="srv-{{ s.id }}" class="text-sm font-bold text-slate-700 cursor-pointer">
+                            {{ s.nombre }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'listar_paquetes' %}" class="px-6 py-2.5 text-slate-400 font-bold hover:text-slate-600 transition">
+                    Descartar cambios
+                </a>
+                <button type="submit" class="btn-update-pkg">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const precioTotalInput = document.getElementById('precio_total');
+    const depositoTotalInput = document.getElementById('deposito_total');
+    const formEditarPaquete = document.getElementById('formEditarPaquete');
+    const contenedorAlerta = document.getElementById('contenedor-alerta');
+
+    function calcularTotal() {
+        let total = 0;
+
+        // PRODUCTOS
+        document.querySelectorAll('input[name="productos_ids"]:checked').forEach(cb => {
+            let precio = parseFloat(cb.dataset.precio);
+            let id = cb.value;
+            let cantidadInput = document.querySelector(`[name="cantidades_productos_${id}"]`);
+            let cantidad = parseInt(cantidadInput.value) || 0;
+            total += precio * cantidad;
+        });
+
+        // SERVICIOS
+        document.querySelectorAll('input[name="servicios_ids"]:checked').forEach(cb => {
+            let precio = parseFloat(cb.dataset.precio);
+            total += precio;
+        });
+
+        let deposito = total * 0.15;
+        precioTotalInput.value = total.toFixed(2);
+        depositoTotalInput.value = deposito.toFixed(2);
+    }
+
+    // EVENTOS DE CAMBIO DINÁMICO
+    document.querySelectorAll('input[name="productos_ids"]').forEach(cb => {
+        cb.addEventListener('change', function() {
+            let id = this.value;
+            let cantidadInput = document.querySelector(`[name="cantidades_productos_${id}"]`);
+            cantidadInput.disabled = !this.checked;
+            if (!this.checked) {
+                cantidadInput.value = "";
+            } else {
+                cantidadInput.value = "1";
+            }
+            calcularTotal();
+        });
+    });
+
+    document.querySelectorAll('input[name^="cantidades_productos_"]').forEach(input => {
+        input.addEventListener('input', calcularTotal);
+        input.addEventListener('keyup', calcularTotal);
+    });
+
+    document.querySelectorAll('input[name="servicios_ids"]').forEach(cb => {
+        cb.addEventListener('change', calcularTotal);
+    });
+
+    // INTERCEPCIÓN EN SUBMIT (FRONTEND VALIDATION)
+    formEditarPaquete.addEventListener("submit", function (e) {
+        const productosMarcados = document.querySelectorAll("input[name='productos_ids']:checked");
+        
+        if (productosMarcados.length === 0) {
+            e.preventDefault();
+            
+            contenedorAlerta.innerHTML = `
+                <div class="mx-8 mt-6 p-4 bg-red-50 border-l-4 border-red-600 rounded-r-xl shadow-sm flex items-center gap-3">
+                    <i class="fa-solid fa-circle-exclamation text-red-600 text-xl"></i>
+                    <div>
+                        <h4 class="text-xs font-black text-red-800 uppercase tracking-wider">Error de Validación</h4>
+                        <p class="text-xs font-bold text-red-700 mt-0.5">Debes seleccionar al menos un producto del inventario para poder actualizar el paquete.</p>
+                    </div>
+                </div>
+            `;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+
+    // CONTROL DE ESCRITURA ESTRICTO
+    const positivos = document.querySelectorAll('.input-positivo');
+    positivos.forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            if (['-', '+', 'e', 'E', '.'].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+        input.addEventListener('input', function() {
+            if (this.value !== "" && this.value < 0) this.value = 0;
+        });
+    });
+
+    const nameInput = document.querySelector('.style-name');
+    nameInput.addEventListener('keydown', function(e) {
+        const isValidKey = /^[a-zA-ZÁÉÍÓÚÑáéíóúñ\s]$/.test(e.key) || 
+                           ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key);
+        if (!isValidKey) e.preventDefault();
+    });
+
+    nameInput.addEventListener('blur', function() {
+        this.value = this.value.trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    });
+});
+</script>
+{% endblock %}

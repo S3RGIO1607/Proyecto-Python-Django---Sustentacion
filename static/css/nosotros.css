@@ -1,0 +1,127 @@
+/* ============================= */
+/* NOSOTROS */
+/* ============================= */
+
+main{
+margin-top:120px;
+}
+
+.nosotros-section{
+padding:120px 20px;
+background:var(--bg-dark);
+position:relative;
+}
+
+.nosotros-content{
+display:grid;
+grid-template-columns:1.2fr 1fr;
+gap:80px;
+align-items:center;
+}
+
+/* TEXTO */
+
+.nosotros-texto h2{
+font-size:2.5rem;
+font-weight:700;
+margin-bottom:10px;
+}
+
+.nosotros-texto p{
+color:var(--text-muted);
+font-size:1rem;
+line-height:1.7;
+margin-bottom:20px;
+max-width:550px;
+}
+
+/* Divider alineado izquierda */
+
+.divider-left{
+width:70px;
+height:2px;
+background:var(--accent);
+margin:15px 0 30px 0;
+}
+
+/* ============================= */
+/* CARDS DE DATOS */
+/* ============================= */
+
+.nosotros-datos{
+display:grid;
+grid-template-columns:1fr;
+gap:25px;
+}
+
+.dato-card{
+background:var(--bg-card);
+border:1px solid var(--border);
+padding:35px;
+text-align:center;
+transition:var(--transition);
+position:relative;
+overflow:hidden;
+}
+
+/* línea dorada animada */
+
+.dato-card::before{
+content:"";
+position:absolute;
+left:0;
+top:0;
+width:4px;
+height:100%;
+background:var(--accent);
+transform:scaleY(0);
+transform-origin:top;
+transition:var(--transition);
+}
+
+.dato-card:hover::before{
+transform:scaleY(1);
+}
+
+.dato-card:hover{
+transform:translateY(-6px);
+border-color:var(--accent);
+}
+
+.dato-card h3{
+font-size:2.5rem;
+font-weight:800;
+color:var(--accent);
+margin-bottom:5px;
+}
+
+.dato-card span{
+font-size:.9rem;
+color:var(--text-muted);
+letter-spacing:.5px;
+}
+
+/* ============================= */
+/* RESPONSIVE */
+/* ============================= */
+
+@media (max-width:900px){
+
+.nosotros-content{
+grid-template-columns:1fr;
+gap:50px;
+}
+
+.nosotros-texto{
+text-align:center;
+}
+
+.divider-left{
+margin:20px auto;
+}
+
+.nosotros-texto p{
+margin:auto;
+}
+
+}

@@ -1,0 +1,356 @@
+{% extends 'base2.html' %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    :root {
+        --arron-bg: #fdfaf6;
+        --arron-card-bg: #ffffff;
+        --arron-dark-panel: #1a1a1a; 
+        --arron-gold: #b45309; 
+        --arron-vinotinto: #541E12; 
+        --arron-border: #ede9e3;
+        --red-premium: #dc2626;
+        --green-premium: #16a34a;
+    }
+
+    .main-wrapper {
+        background-color: var(--arron-bg);
+        min-height: 100vh;
+        padding-bottom: 80px;
+        font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    .content-container {
+        padding: 2.5rem 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Header Estilo "Expediente Maestro" */
+    .expediente-header {
+        background: var(--arron-dark-panel);
+        color: white;
+        border-radius: 32px; 
+        padding: 3rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.25);
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Panel de Trabajo */
+    .work-panel {
+        background: var(--arron-card-bg);
+        border-radius: 28px;
+        border: 1px solid var(--arron-border);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+        overflow: hidden;
+    }
+
+    .table-premium {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: collapse;
+    }
+
+    .table-premium thead th {
+        background: #fafaf9;
+        color: var(--arron-vinotinto);
+        font-weight: 900;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        padding: 1.25rem 1rem;
+        border-bottom: 2px solid var(--arron-border);
+        white-space: nowrap;
+    }
+
+    .product-row td {
+        padding: 1.5rem 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--arron-border);
+    }
+
+    .col-info { width: 45%; text-align: left; }
+    .col-qty { width: 15%; text-align: center; }
+    .col-input { width: 20%; text-align: center; }
+
+    .input-count {
+        width: 90px;
+        height: 50px;
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: 800;
+        border-radius: 14px;
+        border: 2px solid var(--arron-border);
+        transition: all 0.3s ease;
+    }
+
+    .input-damaged { background: #fff1f2; color: var(--red-premium); border-color: #fecdd3; }
+    .input-success { background: #f0fdf4; color: var(--green-premium); border-color: #bbf7d0; cursor: default; }
+
+    .badge-qty-premium {
+        display: inline-block;
+        background: var(--arron-dark-panel);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+
+    .icon-box-item {
+        width: 48px;
+        height: 48px;
+        background: var(--arron-bg);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--arron-gold);
+        border: 1px solid var(--arron-border);
+        flex-shrink: 0;
+    }
+
+    .info-banner {
+        background: #fffbeb;
+        border-left: 5px solid var(--arron-gold);
+        padding: 1.5rem;
+        margin: 1.5rem;
+        border-radius: 16px;
+    }
+
+    .btn-arron-submit {
+        background: var(--arron-vinotinto);
+        color: white;
+        border: none;
+        padding: 1rem 2.5rem;
+        border-radius: 16px;
+        font-weight: 800;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-arron-submit:hover {
+        background: #000;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        color: white;
+    }
+
+    .btn-arron-cancel {
+        color: #64748b !important;
+        background: transparent;
+        border: 1px solid var(--arron-border);
+        padding: 1rem 2rem;
+        border-radius: 16px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-arron-cancel:hover {
+        background: #f1f5f9;
+        color: var(--arron-dark-panel) !important;
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+    }
+
+    .actions-footer {
+        padding: 1.5rem 3rem;
+        background: #fafaf9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid var(--arron-border);
+    }
+</style>
+
+<div class="main-wrapper">
+    <div class="content-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %} alert-dismissible fade show mb-4" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div id="frontend-error-banner" class="alert alert-danger d-none mb-4 fw-bold" role="alert">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i> <span id="error-message-text"></span>
+        </div>
+
+        <form method="POST" action="{% url 'registrar_retorno' alquiler.id %}" id="form-retorno">
+            {% csrf_token %}
+
+            <div class="expediente-header">
+                <div class="row align-items-center">
+                    <div class="col-md-7">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <span class="badge px-3 py-2 rounded-pill" style="background: var(--arron-gold); font-size: 0.7rem; font-weight: 900;">PASO FINAL</span>
+                            <span class="text-white-50 small fw-bold">ID TRANSACCIÓN: #{{ alquiler.id }}</span>
+                        </div>
+                        <h1 class="fw-black italic text-uppercase mb-2" style="font-size: 2.8rem; letter-spacing: -1px;">Control de <span style="color: var(--arron-gold);">Retorno</span></h1>
+                        <p class="mb-0 text-white-50 fs-5">Cliente: <span class="text-white fw-bold">{{ alquiler.usuario.nombre|upper }}</span></p>
+                    </div>
+                    <div class="col-md-5 text-md-end mt-4 mt-md-0">
+                        <div class="d-inline-flex flex-column align-items-end p-3 px-4 rounded-4" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                            <small class="opacity-50 text-uppercase fw-bold mb-1" style="font-size: 0.7rem;">Garantía a Liquidar</small>
+                            <span class="fs-2 fw-black text-white">${{ alquiler.deposito_garantia|floatformat:0|intcomma }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="work-panel">
+                <div class="table-responsive">
+                    <table class="table table-premium">
+                        <thead>
+                            <tr>
+                                <th class="ps-5 col-info">Mobiliario / Equipo</th>
+                                <th class="col-qty">En Salida</th>
+                                <th class="col-input">Dañados / Perdidos</th>
+                                <th class="col-input">Vuelven a Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in productos_alquilados %}
+                            <tr class="product-row" data-item-id="{{ item.id }}">
+                                <td class="ps-5">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="icon-box-item">
+                                            <i class="fa-solid fa-couch"></i>
+                                        </div>
+                                        <div>
+                                            <span class="fw-bold text-dark d-block fs-6" id="nombre_{{ item.id }}">{{ item.producto.nombre_producto }}</span>
+                                            <span class="text-muted small fw-medium">Silla Plastica Rep.: ${{ item.producto.precio_compra|floatformat:0|intcomma }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge-qty-premium" id="total_{{ item.id }}">{{ item.cantidad_contratada }}</span>
+                                </td>
+                                <td>
+                                    <input type="number" name="malo_{{ item.id }}" id="malo_{{ item.id }}"
+                                           value="0" min="0" max="{{ item.cantidad_contratada }}" required
+                                           oninput="actualizarCuenta('{{ item.id }}')"
+                                           class="input-count input-damaged mx-auto">
+                                </td>
+                                <td>
+                                    <input type="number" name="bueno_{{ item.id }}" id="bueno_{{ item.id }}"
+                                           value="{{ item.cantidad_contratada }}" min="0" max="{{ item.cantidad_contratada }}"
+                                           class="input-count input-success mx-auto" readonly>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-banner">
+                    <div class="d-flex gap-3 align-items-center">
+                        <i class="fa-solid fa-triangle-exclamation text-warning fs-4"></i>
+                        <div class="small text-dark fw-medium">
+                            Al confirmar, el sistema restará el costo de reposición de los productos dañados del saldo del cliente y habilitará automáticamente el stock de los productos en buen estado.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions-footer">
+                    <a href="{% url 'mostrar_detalle_alquiler' alquiler.id %}" class="btn-arron-cancel">
+                        <i class="fa-solid fa-arrow-left-long"></i> Volver al Detalle
+                    </a>
+
+                    <button type="submit" class="btn-arron-submit">
+                        Procesar y Finalizar <i class="fa-solid fa-circle-check"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function actualizarCuenta(id) {
+    const totalElement = document.getElementById('total_' + id);
+    const total = parseInt(totalElement.innerText) || 0;
+    let malosInput = document.getElementById('malo_' + id);
+    const buenosInput = document.getElementById('bueno_' + id);
+    const errorBanner = document.getElementById('frontend-error-banner');
+
+    // Ocultar banner de error al empezar a corregir
+    errorBanner.classList.add('d-none');
+
+    // 1. VALIDACIÓN: Si borran todo el número (dejan vacío), se asume temporalmente cero
+    let malos = malosInput.value === "" ? 0 : parseInt(malosInput.value);
+
+    // 2. VALIDACIÓN: Control estricto de números negativos
+    if (malos < 0) {
+        malos = 0;
+        malosInput.value = 0;
+    }
+
+    // 3. VALIDACIÓN: No permitir más dañados de lo contratado originalmente
+    if (malos > total) {
+        malos = total;
+        malosInput.value = total;
+    }
+    
+    // 4. CÁLCULO: Deducción limpia para la columna en buen estado
+    buenosInput.value = total - malos;
+
+    // Estilización visual dinámica de advertencia
+    if (malos > 0) {
+        malosInput.style.borderColor = "var(--red-premium)";
+        malosInput.style.boxShadow = "0 0 10px rgba(220, 38, 38, 0.1)";
+    } else {
+        malosInput.style.borderColor = "var(--arron-border)";
+        malosInput.style.boxShadow = "none";
+    }
+}
+
+// 5. VALIDACIÓN GLOBAL ANTES DEL SUBMIT (Blindaje del Formulario)
+document.getElementById('form-retorno').addEventListener('submit', function(e) {
+    const rows = document.querySelectorAll('.product-row');
+    const errorBanner = document.getElementById('frontend-error-banner');
+    const errorText = document.getElementById('error-message-text');
+    
+    for (let row of rows) {
+        const id = row.getAttribute('data-item-id');
+        const total = parseInt(document.getElementById('total_' + id).innerText) || 0;
+        const malosValue = document.getElementById('malo_' + id).value;
+        const nombreProducto = document.getElementById('nombre_' + id).innerText;
+
+        // Comprobar si hay un campo vacío al enviar
+        if (malosValue === "") {
+            e.preventDefault();
+            errorText.textContent = `El campo de dañados para "${nombreProducto}" no puede estar vacío.`;
+            errorBanner.classList.remove('d-none');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
+        const malos = parseInt(malosValue);
+        const buenos = parseInt(document.getElementById('bueno_' + id).value) || 0;
+
+        // Comprobación de integridad matemática exacta
+        if (malos < 0 || malos > total || (buenos + malos) !== total) {
+            e.preventDefault();
+            errorText.textContent = `Inconsistencia en cantidades para el producto: ${nombreProducto}. Verifique los datos.`;
+            errorBanner.classList.remove('d-none');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+    }
+});
+</script>
+{% endblock %}

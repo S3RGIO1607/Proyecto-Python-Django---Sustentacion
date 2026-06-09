@@ -1,0 +1,289 @@
+{% extends 'base2.html' %}
+
+{% block content %}
+<style>
+    /* Contenedor Principal de Edición */
+    .edit-service-container {
+        background: white;
+        border-radius: 2rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+        margin-top: 2rem;
+    }
+
+    /* Cabecera Azul (Coincide con pestaña Servicios) */
+    .edit-service-header {
+        background: #2563eb;
+        padding: 3rem 2rem;
+        color: white;
+        text-align: center;
+        position: relative;
+    }
+
+    .edit-badge {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+        padding: 6px 16px;
+        border-radius: 99px;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        font-weight: 900;
+        letter-spacing: 2px;
+        display: inline-block;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* Formulario */
+    .edit-form-body {
+        padding: 2.5rem;
+    }
+
+    .field-group {
+        margin-bottom: 1.8rem;
+    }
+
+    .label-edit {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.7rem;
+        font-weight: 900;
+        color: #64748b;
+        text-transform: uppercase;
+        margin-bottom: 0.6rem;
+        letter-spacing: 0.1em;
+    }
+
+    .input-edit-style {
+        width: 100%;
+        padding: 0.9rem 1.2rem;
+        border: 2px solid #f1f5f9;
+        border-radius: 1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s;
+        color: #1e293b;
+        background: #f8fafc;
+    }
+
+    .input-edit-style:focus {
+        outline: none;
+        border-color: #2563eb;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.06);
+    }
+
+    /* Pseudo-clase nativa para feedback visual en errores */
+    .input-edit-style:user-invalid {
+        border-color: #ef4444;
+        background-color: #fef2f2;
+    }
+
+    /* Input de Precio Especial */
+    .price-input-container {
+        position: relative;
+        max-width: 250px;
+    }
+
+    .price-symbol {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: 900;
+        color: #94a3b8;
+    }
+
+    .price-input-container input {
+        padding-left: 2.5rem;
+    }
+
+    /* Pie de Formulario */
+    .edit-form-footer {
+        background: #f8fafc;
+        padding: 1.5rem 2.5rem;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 1.5rem;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .btn-update {
+        background: #2563eb;
+        color: white;
+        padding: 0.9rem 2.2rem;
+        border-radius: 9999px;
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2);
+    }
+
+    .btn-update:hover {
+        background: #1d4ed8;
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-cancel-edit {
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #94a3b8;
+        transition: 0.2s;
+    }
+
+    .btn-cancel-edit:hover {
+        color: #64748b;
+    }
+
+    .char-counter {
+        font-size: 0.65rem;
+        color: #94a3b8;
+        font-weight: bold;
+        text-transform: none;
+        letter-spacing: normal;
+    }
+
+    .contenedor-main { background: transparent !important; box-shadow: none !important; }
+</style>
+
+<div class="max-w-3xl mx-auto pb-12 px-4">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-xl {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %} text-sm font-bold shadow-sm">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="edit-service-container animate-in">
+        
+        <div class="edit-service-header">
+            <span class="edit-badge">Editor de Catálogo</span>
+            <h1 class="text-3xl font-black uppercase tracking-tighter italic">Editar Servicio</h1>
+            <div class="mt-4 flex justify-center items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-blue-100">
+                <span class="opacity-60">ID Interno:</span>
+                <span class="bg-white/10 px-2 py-1 rounded-md">{{ servicio.id }}</span>
+            </div>
+        </div>
+
+        <form action="{% url 'editar_servicio' %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="txt_id" value="{{ servicio.id }}">
+
+            <div class="edit-form-body">
+                
+                <div class="field-group">
+                    <label class="label-edit">
+                        <span><i class="fa-solid fa-signature mr-2 text-blue-500"></i> Nombre del Servicio</span>
+                    </label>
+                    <input type="text" 
+                           id="nombre"
+                           name="txt_nombre" 
+                           value="{{ servicio.nombre }}"
+                           class="input-edit-style" 
+                           placeholder="Ej: Catering Master"
+                           minlength="2"
+                           maxlength="50"
+                           pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$"
+                           title="El nombre solo puede contener letras y espacios (entre 2 y 50 caracteres)."
+                           required>
+                </div>
+
+                <div class="field-group">
+                    <label class="label-edit">
+                        <span><i class="fa-solid fa-align-left mr-2 text-blue-500"></i> Descripción detallada</span>
+                        <span id="counter-descripcion" class="char-counter">0 / 250</span>
+                    </label>
+                    <textarea id="descripcion"
+                              name="txt_descripcion" 
+                              class="input-edit-style" 
+                              rows="4" 
+                              placeholder="Describe los alcances del servicio..."
+                              minlength="20"
+                              maxlength="250"
+                              required>{{ servicio.descripcion }}</textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="field-group">
+                        <label class="label-edit">
+                            <span><i class="fa-solid fa-tag mr-2 text-blue-500"></i> Tarifa Actual</span>
+                        </label>
+                        <div class="price-input-container">
+                            <span class="price-symbol">$</span>
+                            <input type="number" 
+                                   step="1" 
+                                   min="0"
+                                   id="precio"
+                                   name="txt_precio" 
+                                   value="{{ servicio.precio|stringformat:'d' }}"
+                                   class="input-edit-style" 
+                                   title="Ingrese un valor entero sin decimales ni símbolos negativos."
+                                   onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                                   required>
+                        </div>
+                        <p class="text-[9px] text-slate-400 mt-3 font-bold uppercase tracking-tight">El precio se actualizará en el catálogo público</p>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="label-edit">
+                            <span><i class="fa-solid fa-toggle-on mr-2 text-blue-500"></i> Estado de Disponibilidad</span>
+                        </label>
+                        <select id="estado"
+                                name="txt_estado"
+                                class="input-edit-style font-bold text-blue-600"
+                                required>
+                            <option value="A" {% if servicio.estado == 'A' %}selected{% endif %}>🟢 Activo / Visible</option>
+                            <option value="I" {% if servicio.estado == 'I' %}selected{% endif %}>🔴 Inactivo / Oculto</option>
+                        </select>
+                        <p class="text-[9px] text-slate-400 mt-3 font-bold uppercase tracking-tight">Controla si los clientes pueden ver este servicio</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="edit-form-footer">
+                <a href="{% url 'gestionar_catalogos' %}" class="btn-cancel-edit">
+                    Descartar Cambios
+                </a>
+                <button type="submit" class="btn-update">
+                    <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+                    <span>Actualizar Registro</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const textarea = document.getElementById('descripcion');
+        const counter = document.getElementById('counter-descripcion');
+
+        function actualizarContador() {
+            const longitud = textarea.value.length;
+            counter.textContent = `${longitud} / 250`;
+            
+            if (longitud < 20 && longitud > 0) {
+                counter.style.color = '#ef4444'; // Alerta visual roja
+            } else {
+                counter.style.color = '#94a3b8'; // Estado normal
+            }
+        }
+
+        textarea.addEventListener('input', actualizarContador);
+        actualizarContador(); // Inicialización con los datos cargados desde la Base de Datos
+    });
+</script>
+{% endblock %}

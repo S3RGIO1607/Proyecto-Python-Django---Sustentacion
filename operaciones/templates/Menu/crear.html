@@ -1,0 +1,256 @@
+{% extends 'base2.html' %}
+
+{% block content %}
+<style>
+    /* Estética basada en el Catálogo de Menús */
+    .menu-form-card {
+        background: white;
+        border-radius: 2rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f1f5f9;
+        max-width: 650px;
+        margin: 2rem auto;
+        overflow: hidden;
+    }
+
+    .form-header {
+        background: #f59e0b; /* El naranja de "Menús de Comida" */
+        padding: 2.5rem 2rem;
+        text-align: center;
+        color: white;
+        position: relative;
+    }
+
+    .form-header::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: rgba(0,0,0,0.1);
+    }
+
+    .form-content {
+        padding: 2.5rem;
+    }
+
+    /* Labels y Estilos de Input */
+    .label-style {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.7rem;
+        font-weight: 900;
+        color: #64748b;
+        text-transform: uppercase;
+        margin-bottom: 0.6rem;
+        letter-spacing: 0.1em;
+    }
+
+    .input-style {
+        width: 100%;
+        padding: 0.9rem 1.2rem;
+        border: 2px solid #f1f5f9;
+        border-radius: 1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        color: #1e293b;
+        background: #f8fafc;
+    }
+
+    .input-style:focus {
+        outline: none;
+        border-color: #f59e0b;
+        background-color: white;
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+    }
+
+    /* Alerta visual nativa si no cumple los requisitos */
+    .input-style:user-invalid {
+        border-color: #ef4444;
+        background-color: #fef2f2;
+    }
+
+    /* Contenedor de Precio por Persona */
+    .price-container {
+        position: relative;
+        max-width: 280px;
+    }
+
+    .price-container::before {
+        content: '$';
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-weight: 900;
+    }
+
+    .price-container input {
+        padding-left: 2.5rem;
+    }
+
+    /* Botonera */
+    .button-group {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 1.5rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .btn-cancel {
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #94a3b8;
+        transition: 0.2s;
+    }
+
+    .btn-cancel:hover {
+        color: #4b5563;
+    }
+
+    .btn-save {
+        background: #f59e0b;
+        color: white;
+        padding: 1rem 2.2rem;
+        border-radius: 9999px;
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        transition: all 0.3s;
+        box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.2);
+    }
+
+    .btn-save:hover {
+        background: #d97706;
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(245, 158, 11, 0.3);
+    }
+
+    .char-counter {
+        font-size: 0.65rem;
+        color: #94a3b8;
+        font-weight: bold;
+        text-transform: none;
+        letter-spacing: normal;
+    }
+
+    .contenedor-main { background: transparent !important; box-shadow: none !important; }
+</style>
+
+<div class="max-w-4xl mx-auto px-4 py-8">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-xl {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-amber-50 text-amber-700 border border-amber-200{% endif %} text-sm font-bold shadow-sm">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="menu-form-card">
+        <div class="form-header">
+            <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/30 shadow-xl">
+                <i class="fa-solid fa-utensils text-2xl text-white"></i>
+            </div>
+            <h1 class="text-2xl font-black tracking-tighter uppercase italic">
+                Nueva Propuesta <span class="opacity-80">Gastronómica</span>
+            </h1>
+            <p class="text-orange-100 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">Definición de menú por persona</p>
+        </div>
+
+        <form action="{% url 'registrar_menu' %}" method="post" class="form-content">
+            {% csrf_token %}
+            
+            <div class="mb-6">
+                <label class="label-style">
+                    <span><i class="fa-solid fa-file-signature mr-2 text-orange-500"></i> Nombre del Menú</span>
+                </label>
+                <input type="text" 
+                       name="txt_nombre" 
+                       value="{{ valores_previos.nombre|default:'' }}"
+                       class="input-style" 
+                       placeholder="Ej: Gala Arron Premium"
+                       minlength="2"
+                       maxlength="50"
+                       pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$"
+                       title="El nombre del menú solo debe contener letras y espacios (entre 2 y 50 caracteres)."
+                       required>
+            </div>
+
+            <div class="mb-6">
+                <label class="label-style">
+                    <span><i class="fa-solid fa-list-check mr-2 text-orange-500"></i> Descripción del Menú (Platos)</span>
+                    <span id="counter-descripcion" class="char-counter">0 / 250</span>
+                </label>
+                <textarea name="txt_descripcion" 
+                          id="txt_descripcion"
+                          class="input-style" 
+                          rows="4" 
+                          placeholder="Entrada de..., plato fuerte de..., incluye postre..."
+                          minlength="20"
+                          maxlength="250"
+                          required>{{ valores_previos.descripcion|default:'' }}</textarea>
+                <p class="text-[9px] text-slate-400 mt-2 font-bold uppercase italic">Separa los platos con comas para una mejor lectura</p>
+            </div>
+
+            <div class="mb-8">
+                <label class="label-style">
+                    <span><i class="fa-solid fa-users mr-2 text-orange-500"></i> Precio por Persona</span>
+                </label>
+                <div class="price-container">
+                    <input type="number" 
+                           step="1" 
+                           min="0"
+                           name="txt_precio_por_persona" 
+                           value="{{ valores_previos.precio_por_persona|default:'' }}"
+                           class="input-style" 
+                           placeholder="0"
+                           title="Ingrese un valor entero sin decimales y mayor o igual a 0"
+                           onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                           required>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <a href="{% url 'gestionar_catalogos' %}" class="btn-cancel">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn-save flex items-center gap-3">
+                    <span>Crear Menú</span>
+                    <i class="fa-solid fa-chevron-right text-[8px]"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const textarea = document.getElementById('txt_descripcion');
+        const counter = document.getElementById('counter-descripcion');
+
+        function actualizarContador() {
+            const longitud = textarea.value.length;
+            counter.textContent = `${longitud} / 250`;
+            
+            if (longitud < 20 && longitud > 0) {
+                counter.style.color = '#ef4444'; // Rojo si no llega al mínimo
+            } else {
+                counter.style.color = '#94a3b8'; // Color gris suave de la plantilla
+            }
+        }
+
+        textarea.addEventListener('input', actualizarContador);
+        actualizarContador();
+    });
+</script>
+{% endblock %}

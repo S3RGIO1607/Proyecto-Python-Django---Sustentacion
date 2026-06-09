@@ -1,0 +1,257 @@
+{% extends 'base2.html' %}
+
+{% block content %}
+<style>
+    /* Contenedor de Edición de Sede */
+    .edit-venue-container {
+        background: white;
+        border-radius: 2rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+        margin-top: 2rem;
+    }
+
+    /* Cabecera Verde (Catálogo Sedes) */
+    .edit-venue-header {
+        background: #059669;
+        padding: 3rem 2rem;
+        color: white;
+        text-align: center;
+        position: relative;
+    }
+
+    .edit-badge {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+        padding: 6px 16px;
+        border-radius: 99px;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        font-weight: 900;
+        letter-spacing: 2px;
+        display: inline-block;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .edit-form-body {
+        padding: 2.5rem;
+    }
+
+    .field-group {
+        margin-bottom: 1.8rem;
+    }
+
+    .label-edit {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 900;
+        color: #64748b;
+        text-transform: uppercase;
+        margin-bottom: 0.6rem;
+        letter-spacing: 0.1em;
+    }
+
+    .input-edit-style {
+        width: 100%;
+        padding: 0.9rem 1.2rem;
+        border: 2px solid #f1f5f9;
+        border-radius: 1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s;
+        color: #1e293b;
+        background: #f8fafc;
+    }
+
+    .input-edit-style:focus {
+        outline: none;
+        border-color: #059669;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.06);
+    }
+
+    /* Feedback visual de errores nativos en navegador */
+    .input-edit-style:user-invalid {
+        border-color: #ef4444;
+        background-color: #fef2f2;
+    }
+
+    /* Iconos dentro de inputs */
+    .icon-wrapper {
+        position: relative;
+    }
+
+    .icon-wrapper i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 0.9rem;
+    }
+
+    .icon-wrapper .input-edit-style {
+        padding-left: 2.8rem;
+    }
+
+    /* Footer y Botones */
+    .edit-form-footer {
+        background: #f8fafc;
+        padding: 1.5rem 2.5rem;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 1.5rem;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .btn-update {
+        background: #059669;
+        color: white;
+        padding: 0.9rem 2.2rem;
+        border-radius: 9999px;
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 10px 15px -3px rgba(5, 150, 105, 0.2);
+    }
+
+    .btn-update:hover {
+        background: #047857;
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(5, 150, 105, 0.3);
+    }
+
+    .btn-cancel-edit {
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #94a3b8;
+        transition: 0.2s;
+    }
+
+    .btn-cancel-edit:hover {
+        color: #64748b;
+    }
+
+    .contenedor-main { background: transparent !important; box-shadow: none !important; }
+</style>
+
+<div class="max-w-4xl mx-auto pb-12 px-4">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-xl {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-emerald-50 text-emerald-700 border border-emerald-200{% endif %} text-sm font-bold shadow-sm">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="edit-venue-container">
+        
+        <div class="edit-venue-header">
+            <span class="edit-badge">Gestión de Espacios</span>
+            <h1 class="text-3xl font-black uppercase tracking-tighter italic">Editar Locación</h1>
+            <div class="mt-4 flex justify-center items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-emerald-100">
+                <span class="opacity-60">Sede ID:</span>
+                <span class="bg-white/10 px-2 py-1 rounded-md">{{ lugar.id }}</span>
+            </div>
+        </div>
+
+        <form action="{% url 'editar_lugar' %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="txt_id" value="{{ lugar.id }}">
+
+            <div class="edit-form-body">
+                
+                <div class="field-group">
+                    <label class="label-edit">Nombre de la Sede</label>
+                    <input type="text" 
+                           name="txt_nombre" 
+                           value="{{ lugar.nombre }}"
+                           class="input-edit-style" 
+                           minlength="3"
+                           maxlength="60"
+                           pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ0-9\s]+$"
+                           title="El nombre debe ser alfanumérico y tener entre 3 y 60 caracteres."
+                           required>
+                </div>
+
+                <div class="field-group">
+                    <label class="label-edit">Ubicación Geográfica</label>
+                    <div class="icon-wrapper">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <input type="text" 
+                               name="txt_direccion" 
+                               value="{{ lugar.direccion }}"
+                               class="input-edit-style" 
+                               minlength="10"
+                               maxlength="150"
+                               required>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="field-group">
+                        <label class="label-edit">Capacidad</label>
+                        <div class="icon-wrapper">
+                            <i class="fa-solid fa-users"></i>
+                            <input type="number" 
+                                   min="1"
+                                   step="1"
+                                   name="txt_capacidad_maxima" 
+                                   value="{{ lugar.capacidad_maxima }}"
+                                   class="input-edit-style" 
+                                   onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="label-edit">Costo Renta</label>
+                        <div class="icon-wrapper">
+                            <i class="fa-solid fa-dollar-sign"></i>
+                            <input type="number" 
+                                   min="1"
+                                   step="1"
+                                   name="txt_precio_renta" 
+                                   value="{{ lugar.precio_renta|stringformat:'d' }}"
+                                   class="input-edit-style" 
+                                   onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="label-edit">Disponibilidad</label>
+                        <select name="txt_estado"
+                                class="input-edit-style font-bold text-emerald-600"
+                                required>
+                            <option value="A" {% if lugar.estado == 'A' %}selected{% endif %}>🟢 Activa</option>
+                            <option value="I" {% if lugar.estado == 'I' %}selected{% endif %}>🔴 Mantenimiento</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="edit-form-footer">
+                <a href="{% url 'gestionar_catalogos' %}" class="btn-cancel-edit">
+                    Descartar
+                </a>
+                <button type="submit" class="btn-update">
+                    <i class="fa-solid fa-floppy-disk text-[10px]"></i>
+                    <span>Guardar Cambios</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

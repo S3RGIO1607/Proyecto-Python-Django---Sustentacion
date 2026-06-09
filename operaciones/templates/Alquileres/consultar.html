@@ -1,0 +1,326 @@
+{% extends 'base2.html' %}
+{% load humanize %}
+
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg:#f7f9fc;
+    --card:#ffffff;
+    --text:#0f172a;
+    --soft:#64748b;
+    --border:#e5e7eb;
+    --accent:#541E12;
+    --success:#10b981;
+    --danger:#ef4444;
+    --warning:#f59e0b;
+}
+
+body { font-family: 'Inter', sans-serif; background:var(--bg); }
+
+.container-pro {
+    max-width:1200px;
+    margin:auto;
+    padding:30px 20px;
+}
+
+/* HEADER */
+.header {
+    background:var(--card);
+    padding:20px;
+    border-radius:16px;
+    border:1px solid var(--border);
+    margin-bottom:20px;
+}
+
+.header-top {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.status {
+    background:#111827;
+    color:white;
+    padding:6px 14px;
+    border-radius:50px;
+    font-size:0.75rem;
+}
+
+/* ALERTAS */
+.alert {
+    margin-top:10px;
+    padding:10px;
+    border-radius:10px;
+    font-size:0.85rem;
+}
+
+.alert-warning { background:#fff7ed; color:#9a3412; }
+.alert-danger { background:#fef2f2; color:#991b1b; }
+
+/* GRID */
+.layout {
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:20px;
+}
+
+@media(max-width:1000px){
+    .layout { grid-template-columns:1fr; }
+}
+
+/* CARD */
+.card {
+    background:var(--card);
+    border-radius:16px;
+    padding:20px;
+    border:1px solid var(--border);
+    margin-bottom:15px;
+}
+
+/* ROW */
+.row-line {
+    display:flex;
+    justify-content:space-between;
+    padding:10px 0;
+    border-bottom:1px solid var(--border);
+}
+
+/* INVENTARIO */
+.inv-header, .inv-row {
+    display:flex;
+    justify-content:space-between;
+    padding:10px 0;
+}
+
+.inv-header {
+    font-size:0.7rem;
+    color:var(--soft);
+    border-bottom:1px solid var(--border);
+}
+
+.inv-row {
+    border-bottom:1px solid var(--border);
+}
+
+/* SIDEBAR */
+.sidebar {
+    position:sticky;
+    top:20px;
+}
+
+.total-box {
+    background:#0f172a;
+    color:white;
+    padding:20px;
+    border-radius:12px;
+    text-align:center;
+}
+
+/* BTN */
+.btn {
+    display:block;
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    text-align:center;
+    font-weight:600;
+    text-decoration:none;
+    margin-top:10px;
+    background:var(--accent);
+    color:white;
+}
+
+.back {
+    text-align:center;
+    display:block;
+    margin-top:10px;
+    color:var(--soft);
+    text-decoration:none;
+}
+</style>
+
+<div class="container-pro">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-top">
+            <div>
+                <h2>Alquiler #{{ alquiler.id }}</h2>
+                <small>{{ alquiler.usuario.nombre }}</small>
+            </div>
+            <div class="status">{{ alquiler.estado }}</div>
+        </div>
+
+        <div class="mt-2">
+            <strong>Fecha Entrega:</strong> {{ alquiler.fecha_inicio|date:"d M Y" }} |
+            <strong>Fecha límite:</strong> {{ alquiler.fecha_limite|date:"d M Y" }}
+        </div>
+
+        <!-- ALERTAS -->
+        {% if alquiler.estado == 'Reservado' %}
+            <div class="alert alert-warning">⚠️ Pendiente de despacho</div>
+        {% elif alquiler.estado == 'En Curso' %}
+            <div class="alert alert-warning">⚠️ En curso - pendiente retorno</div>
+        {% elif alquiler.estado == 'Devuelto' %}
+            <div class="alert alert-danger">⚠️ Pendiente liquidación</div>
+        {% endif %}
+    </div>
+
+    <div class="layout">
+
+        <!-- MAIN -->
+        <div>
+
+            <!-- FECHAS -->
+            <div class="card">
+                <strong>Fechas del alquiler</strong>
+
+                <div class="row-line">
+                    <span>Entrega</span>
+                    <strong>{{ alquiler.fecha_inicio|date:"d/m/Y" }}</strong>
+                </div>
+
+                <div class="row-line">
+                    <span>Fecha Límite</span>
+                    <strong>{{ alquiler.fecha_limite|date:"d/m/Y" }}</strong>
+                </div>
+
+
+                {% if alquiler.estado == 'Devuelto' or alquiler.estado == 'Finalizado' %}
+                <div class="row-line">
+                    <span>Devolución real</span>
+                    <strong>{{ alquiler.fecha_devolucion|date:"d/m/Y" }}</strong>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- INVENTARIO -->
+            <div class="card">
+                <strong>Inventario del pedido</strong>
+
+                <!-- MÉTRICAS -->
+                <div class="row-line">
+                    <span>Total productos</span>
+                    <strong>{{ productos_alquilados.count }}</strong>
+                </div>
+
+                <!-- HEADER -->
+                <div class="inv-header">
+                    <span style="width:40%">Producto</span>
+                    <span style="width:15%; text-align:center;">Cant.</span>
+                    <span style="width:25%; text-align:center;">Estado</span>
+                    <span style="width:20%; text-align:right;">Precio</span>
+                </div>
+
+                {% for item in productos_alquilados %}
+                <div class="inv-row">
+
+                    <div style="width:40%">
+                        <strong>{{ item.producto.nombre_producto }}</strong><br>
+                        <small>ID {{ item.producto.id }}</small>
+                    </div>
+
+                    <div style="width:15%; text-align:center;">
+                        {{ item.cantidad_contratada }}
+                    </div>
+
+                    <div style="width:25%; text-align:center;">
+                        {% if alquiler.estado == 'Devuelto' or alquiler.estado == 'Finalizado' %}
+                            <span style="color:var(--success); font-weight:600;">
+                                OK: {{ item.cantidad_retornada_ok }}
+                            </span>
+
+                            {% if item.cantidad_danada > 0 %}
+                                <br>
+                                <span style="color:var(--danger); font-weight:600;">
+                                    {{ item.cantidad_danada }} dañados
+                                </span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">Pendiente</span>
+                        {% endif %}
+                    </div>
+
+                    <div style="width:20%; text-align:right;">
+                        ${{ item.precio_alquiler_fijado|intcomma }}
+                    </div>
+
+                </div>
+                {% endfor %}
+            </div>
+
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+
+            <div class="card">
+                <strong>Resumen financiero</strong>
+
+                <div class="row-line">
+                    <span>Subtotal</span>
+                    <strong>${{ alquiler.valor_alquiler|intcomma }}</strong>
+                </div>
+
+                {% if alquiler.costo_transporte > 0 %}
+                <div class="row-line">
+                    <span>Transporte</span>
+                    <strong>${{ alquiler.costo_transporte|intcomma }}</strong>
+                </div>
+                {% endif %}
+
+                <div class="row-line">
+                    <span>Garantía</span>
+                    <strong>${{ alquiler.deposito_garantia|intcomma }}</strong>
+                </div>
+
+                {% if alquiler.valor_danos > 0 %}
+                <div class="row-line" style="color:var(--danger);">
+                    <span>Daños</span>
+                    <strong>- ${{ alquiler.valor_danos|intcomma }}</strong>
+                </div>
+                {% endif %}
+
+                {% if alquiler.valor_mora > 0 %}
+                    <div class="row-line" style="color:var(--warning);">
+                        <span>Mora por retraso</span>
+                        <strong>+ ${{ alquiler.valor_mora|intcomma }}</strong>
+                    </div>
+                {% endif %}
+
+                <div class="total-box">
+                    <small>Total final</small>
+                    <h2>${{ alquiler.total_final|intcomma }}</h2>
+                </div>
+
+                <!-- ACCIONES -->
+                {% if alquiler.estado == 'Confirmado' or alquiler.estado == 'Reservado' %}
+                    <a href="{% url 'despachar_alquiler' alquiler.id %}" class="btn">
+                        Despachar
+                    </a>
+                {% elif alquiler.estado == 'En Curso' %}
+                    <a href="{% url 'registrar_retorno' alquiler.id %}" class="btn" style="background:var(--success);">
+                        Registrar retorno
+                    </a>
+                {% elif alquiler.estado == 'Devuelto' %}
+                    <a href="{% url 'liquidar_alquiler' alquiler.id %}" class="btn" style="background:#334155;">
+                        Liquidar
+                    </a>
+                {% endif %}
+
+                <a href="{% url 'listar_alquileres' %}" class="back">
+                    ← Volver
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

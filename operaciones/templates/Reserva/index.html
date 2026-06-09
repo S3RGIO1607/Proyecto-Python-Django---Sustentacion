@@ -1,0 +1,305 @@
+{% extends "base2.html" %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+    /* Forzamos el fondo para que Tailwind no lo pinte de gris claro */
+    #arron-panel-wrapper {
+        background-color: #d1d3d5 !important; 
+        min-height: 100vh;
+        padding: 40px 0 60px;
+        color: #1e293b;
+        font-family: sans-serif;
+    }
+
+    .inventory-card { 
+        background: white !important; 
+        border-radius: 16px !important; 
+        padding: 1.25rem 1.5rem !important; 
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important; 
+        border: 1px solid #e2e8f0 !important; 
+        margin-bottom: 15px !important; 
+        display: block !important;
+    }
+
+    .summary-label { font-size: 0.65rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block; }
+    .summary-count { font-size: 2.2rem; font-weight: 900; color: #1e293b; line-height: 1; margin-top: 5px; }
+
+    .date-badge {
+        background: #f1f5f9;
+        color: #1e293b;
+        padding: 10px;
+        border-radius: 12px;
+        font-weight: 800;
+        text-align: center;
+        min-width: 65px;
+        border: 1px solid #cbd5e1;
+    }
+    .date-badge small { font-size: 0.7rem; text-transform: uppercase; display: block; border-top: 1px solid #cbd5e1; margin-top: 5px; }
+
+    .badge-status { 
+        padding: 4px 10px; 
+        border-radius: 6px; 
+        font-size: 0.65rem; 
+        font-weight: 800; 
+        text-transform: uppercase; 
+        display: inline-block;
+        margin-bottom: 5px;
+    }
+    .status-activo { background: #dbeafe; color: #2563eb; }    
+    .status-confirmado { background: #dcfce7; color: #16a34a; } 
+    .status-evaluacion { background: #fee2e2; color: #dc2626; }
+
+    .btn-arron {
+        background-color: #541E12 !important;
+        color: white !important;
+        border: none !important;
+        padding: 10px 20px !important;
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        transition: 0.3s !important;
+    }
+    .btn-arron:hover { background-color: #3d160d !important; transform: translateY(-2px); }
+
+    .btn-info-evento {
+        border: 1px solid #cbd5e1 !important;
+        background: transparent !important;
+        color: #64748b !important;
+        padding: 10px 15px !important;
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        transition: 0.3s !important;
+        text-decoration: none !important;
+    }
+    .btn-info-evento:hover { background: #f1f5f9 !important; color: #1e293b !important; }
+
+    .section-title {
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: #475569;
+        margin: 25px 0 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Nuevo estilo para las horas */
+    .time-badge-info {
+        font-size: 0.75rem;
+        background: #f8fafc;
+        padding: 2px 8px;
+        border-radius: 6px;
+        color: #475569;
+        border: 1px solid #e2e8f0;
+        display: inline-flex;
+        align-items: center;
+        margin-top: 4px;
+    }
+</style>
+
+<div id="arron-panel-wrapper">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="sticky-top" style="top: 20px;">
+                    <h2 class="fw-bold mb-0" style="color: #1e293b;">Logística</h2>
+                    <h2 class="fw-bold mb-4" style="color: #541E12;">Eventos</h2>
+                    
+                    <div class="inventory-card">
+                        <span class="summary-label">Eventos Activos</span>
+                        <div class="summary-count">{{ eventos_activos.count }}</div>
+                    </div>
+
+                    <div class="inventory-card" style="border-left: 5px solid #dc2626 !important;">
+                        <span class="summary-label text-danger">Por Evaluar</span>
+                        <div class="summary-count text-danger">{{ por_evaluar.count }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                
+                {% if por_evaluar or por_liquidar %}
+                <h6 class="section-title text-danger"><i class="fa-solid fa-circle-exclamation me-2"></i>Acción Requerida</h6>
+
+                {# 1. EVENTOS QUE FALTAN POR EVALUAR DAÑOS #}
+                {% for ev in por_evaluar %}
+                <div class="inventory-card" style="border-right: 5px solid #dc2626 !important;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="date-badge">{{ ev.fecha_evento|date:"d" }}<small>{{ ev.fecha_evento|date:"M" }}</small></div>
+                            <div>
+                                <span class="badge-status status-evaluacion">Esperando Retorno</span>
+                                <h5 class="mb-0 fw-bold">{{ ev.paquete.nombre }}</h5>
+                                <p class="text-muted small mb-0">Cliente: {{ ev.usuario.nombre }}</p>
+                                <div class="time-badge-info">
+                                    <i class="fa-regular fa-clock me-1"></i> {{ ev.hora_inicio|time:"H:i" }} - {{ ev.hora_fin_limpieza|time:"H:i" }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'mostrar_detalle_reserva' ev.id %}" class="btn-info-evento">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                            <a href="{% url 'evaluar_evento_inventario' ev.id %}" class="btn-arron">
+                                <i class="fa-solid fa-clipboard-check me-2"></i>Evaluar Daños
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {# 2. EVENTOS YA EVALUADOS QUE FALTAN POR CERRAR DINERO #}
+                {% for ev in por_liquidar %}
+                <div class="inventory-card" style="border-right: 5px solid #16a34a !important;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="date-badge" style="background: #dcfce7;">{{ ev.fecha_evento|date:"d" }}<small>{{ ev.fecha_evento|date:"M" }}</small></div>
+                            <div>
+                                <span class="badge-status" style="background: #dcfce7; color: #16a34a;">Daños Reportados</span>
+                                <h5 class="mb-0 fw-bold">{{ ev.paquete.nombre }}</h5>
+                                <p class="text-muted small mb-0">Saldo pendiente por devolver</p>
+                                <div class="time-badge-info">
+                                    <i class="fa-regular fa-clock me-1"></i> Finalizó: {{ ev.hora_fin_limpieza|time:"H:i" }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'mostrar_detalle_reserva' ev.id %}" class="btn-info-evento">
+                                <i class="fa-solid fa-eye"></i>
+                            </a>
+                            <a href="{% url 'liquidar_deposito' ev.id %}" class="btn btn-success fw-bold px-4" style="border-radius: 12px; display: flex; align-items: center;">
+                                <i class="fa-solid fa-hand-holding-dollar me-2"></i>Liquidar Depósito
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                {% if eventos_activos %}
+                <h6 class="section-title text-primary"><i class="fa-solid fa-truck-fast me-2"></i>En Transcurso</h6>
+                {% for ev in eventos_activos %}
+                <div class="inventory-card" style="border-left: 5px solid #2563eb !important;">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="date-badge" style="background: #e0f2fe; border-color: #7dd3fc;">
+                                {{ ev.fecha_evento|date:"d" }}
+                                <small>{{ ev.fecha_evento|date:"M" }}</small>
+                            </div>
+                            <div>
+                                <span class="badge-status status-activo">Evento en sitio</span>
+                                <h5 class="mb-0 fw-bold">{{ ev.paquete.nombre }}</h5>
+                                <p class="text-muted small mb-0">Ubicación: {{ ev.lugar.nombre|default:"Bogotá" }}</p>
+                                <div class="time-badge-info" style="background: #eff6ff; color: #2563eb;">
+                                    <i class="fa-solid fa-stopwatch me-1"></i> {{ ev.hora_inicio|time:"H:i" }} a {{ ev.hora_fin_limpieza|time:"H:i" }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'mostrar_detalle_reserva' ev.id %}" class="btn-info-evento">
+                                <i class="fa-solid fa-circle-info me-1"></i> Info
+                            </a>
+                            <a href="{% url 'cambiar_estado' ev.id 'Evaluacion' %}" class="btn btn-warning fw-bold px-4 py-2" style="border-radius: 12px; display: flex; align-items: center;">
+                                <i class="fa-solid fa-rotate-left me-1"></i> Recibir
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <h6 class="section-title"><i class="fa-solid fa-calendar me-2"></i>Cronograma Próximo</h6>
+                {% for ev in reservas_confirmadas %}
+                <div class="inventory-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="date-badge">
+                                {{ ev.fecha_evento|date:"d" }}
+                                <small>{{ ev.fecha_evento|date:"M" }}</small>
+                            </div>
+                            <div>
+                                <span class="badge-status status-confirmado">Confirmado</span>
+                                <h5 class="mb-0 fw-bold">{{ ev.paquete.nombre }}</h5>
+                                <p class="text-muted small mb-0">Cliente: {{ ev.usuario.nombre }}</p>
+                                <div class="time-badge-info">
+                                    <i class="fa-regular fa-clock me-1"></i> Programa: {{ ev.hora_inicio|time:"H:i" }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'mostrar_detalle_reserva' ev.id %}" class="btn-info-evento">
+                                <i class="fa-solid fa-circle-info"></i>
+                            </a>
+                            <a href="{% url 'cambiar_estado' ev.id 'Evento Activo' %}" class="btn btn-outline-primary fw-bold px-4 py-2" style="border-radius: 12px; display: flex; align-items: center;">
+                                <i class="fa-solid fa-truck-ramp-box me-1"></i> Despachar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="inventory-card text-center py-5">
+                    <i class="fa-solid fa-calendar-check fa-2x text-muted mb-3"></i>
+                    <p class="text-muted mb-0">No hay operaciones pendientes para hoy.</p>
+                </div>
+                {% endfor %}
+
+
+                <h6 class="section-title text-muted mt-5">
+                    <i class="fa-solid fa-clock-rotate-left me-2"></i>Historial Reciente (Finalizados)
+                </h6>
+
+                {% if finalizados %}
+                <div class="table-responsive inventory-card p-0 overflow-hidden" style="border-radius: 12px !important;">
+                    <table class="table table-hover mb-0" style="font-size: 0.85rem;">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4 py-3 border-0 text-muted">FECHA</th>
+                                <th class="py-3 border-0 text-muted">CLIENTE / PAQUETE</th>
+                                <th class="py-3 border-0 text-muted">HORARIO</th>
+                                <th class="py-3 border-0 text-muted">DEPÓSITO</th>
+                                <th class="py-3 border-0 text-muted text-center">ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ev in finalizados %}
+                            <tr class="align-middle">
+                                <td class="ps-4">
+                                    <span class="fw-bold">{{ ev.fecha_evento|date:"d M" }}</span>
+                                    <small class="d-block text-muted">{{ ev.fecha_evento|date:"Y" }}</small>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-dark">{{ ev.paquete.nombre }}</span>
+                                    <small class="d-block text-muted">{{ ev.usuario.nombre }}</small>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ ev.hora_inicio|time:"H:i" }} - {{ ev.hora_fin_limpieza|time:"H:i" }}</small>
+                                </td>
+                                <td>
+                                    {% if ev.estado_deposito == 'Devuelto' %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2">Devuelto</span>
+                                    {% else %}
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2">{{ ev.estado_deposito }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <a href="{% url 'mostrar_detalle_reserva' ev.id %}" class="btn btn-sm btn-outline-secondary border-0">
+                                        <i class="fa-solid fa-eye"></i> Ver Resumen
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="inventory-card text-center py-4 border-dashed">
+                    <p class="text-muted mb-0 small">No hay eventos finalizados aún.</p>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

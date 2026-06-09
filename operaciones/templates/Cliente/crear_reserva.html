@@ -1,0 +1,450 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+
+<style>
+    :root {
+        --primary-color: #541E12;
+        --primary-hover: #3d140d;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --bg-soft: #f8fafc;
+        --border-color: #e2e8f0;
+        --accent-gold: #c5a059;
+    }
+
+    .reserva-container {
+        max-width: 1100px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    .reserva-card {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        background: #fff;
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+
+    .paquete-info {
+        background: var(--bg-soft);
+        padding: 30px;
+        border-right: 1px solid var(--border-color);
+        position: sticky;
+        top: 0;
+        height: fit-content;
+    }
+
+    .paquete-precio {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin: 10px 0;
+    }
+
+    .paquete-desc {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .reserva-form-section {
+        padding: 40px;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--bg-soft);
+    }
+
+    .form-group label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: 700;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: 2px solid var(--border-color);
+        outline: none;
+        transition: 0.2s;
+    }
+
+    .form-group input:focus {
+        border-color: var(--primary-color);
+    }
+
+    .row-inputs {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .lugar-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .lugar-card {
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    /* Clase para deshabilitar lugares con baja capacidad */
+    .lugar-card.lugar-bloqueado {
+        opacity: 0.4;
+        cursor: not-allowed;
+        background: #f1f5f9;
+        pointer-events: none;
+    }
+
+    .lugar-card img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+    }
+
+    .lugar-card-body {
+        padding: 12px;
+    }
+
+    .lugar-card input {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        accent-color: var(--primary-color);
+    }
+
+    .lugar-card:has(input:checked) {
+        border-color: var(--primary-color);
+        background: #fff9f8;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(84, 30, 18, 0.1);
+    }
+
+    .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 12px;
+    }
+
+    .menu-item {
+        display: flex;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .menu-item:has(input:checked) {
+        background: var(--primary-color);
+        color: #fff;
+        border-color: var(--primary-color);
+    }
+
+    .menu-item:has(input:checked) small {
+        color: #e2e8f0;
+    }
+
+    .servicio-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid var(--border-color);
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        cursor: pointer;
+    }
+
+    .btn-confirmar {
+        width: 100%;
+        padding: 18px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        background: var(--primary-color);
+        color: #fff;
+        margin-top: 20px;
+        transition: 0.2s;
+    }
+
+    .btn-confirmar:hover { background: var(--primary-hover); }
+    .btn-cancelar { display: block; text-align: center; margin-top: 10px; color: var(--text-muted); text-decoration: none; font-weight: 600; }
+</style>
+
+<div class="reserva-container">
+    <div class="reserva-card">
+        
+        <div class="paquete-info">
+            <span class="text-xs uppercase tracking-wider text-slate-400 font-bold">Paquete seleccionado</span>
+            <h2 class="text-2xl font-black mt-1 text-slate-800">{{ paquete.nombre }}</h2>
+            <div class="paquete-precio" id="precio-display">${{ paquete.precio|floatformat:0|intcomma }}</div>
+            <p class="paquete-desc">{{ paquete.descripcion }}</p>
+            
+            <hr style="margin: 25px 0; border: 0; border-top: 1px solid var(--border-color);">
+            
+            <div class="detalles-inclusion">
+                <h4 class="font-black text-slate-700 tracking-wide">INCLUYE BASE:</h4>
+                <ul class="mt-2">
+                    {% for ps in paquete.servicios_activos %}
+                    <li><i class="fa-solid fa-check text-emerald-500 mr-2"></i>{{ ps.servicio.nombre }}</li>
+                    {% endfor %}
+                    {% for pp in paquete.productos_activos %}
+                    <li><i class="fa-solid fa-check text-emerald-500 mr-2"></i>{{ pp.cantidad }}x {{ pp.producto.nombre_producto }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="reserva-form-section">
+            
+            <div id="alerta-reserva">
+                {% if error %}
+                <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #fecaca; font-weight: bold;">
+                    <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+                </div>
+                {% endif %}
+            </div>
+
+            <form method="POST" action="{% url 'crear_reserva_cliente' paquete.id %}" id="formReserva">
+                {% csrf_token %}
+
+                <div class="section-title"><i class="fa-solid fa-calendar-check text-[#541E12]"></i> Datos del Evento</div>
+                <div class="row-inputs">
+                    <div class="form-group">
+                        <label>Fecha del evento</label>
+                        <input type="date" name="fecha_evento" id="fecha" min="{{ hoy }}" value="{{ datos_enviados.fecha_evento|default:hoy }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Hora de inicio</label>
+                        <input type="time" name="hora_inicio" id="hora_inicio" value="{{ datos_enviados.hora_inicio }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Invitados (Mínimo: {{ paquete.capacidad_base }})</label>
+                        <input type="number" name="asistentes" id="asistentes" min="{{ paquete.capacidad_base }}" value="{{ datos_enviados.asistentes|default:paquete.capacidad_base }}" class="no-negativos" required>
+                    </div>
+                </div>
+
+                <div class="section-title"><i class="fa-solid fa-map-location-dot text-[#541E12]"></i> Selecciona el Lugar</div>
+                <div class="lugar-grid" id="lugarGrid">
+                    {% for lugar in lugares %}
+                    <label class="lugar-card" id="card-lugar-{{ lugar.id }}" data-lugar-id="{{ lugar.id }}">
+                        <input type="radio" name="lugar_id" value="{{ lugar.id }}" 
+                               data-precio="{{ lugar.precio_renta }}" 
+                               data-capacidad="{{ lugar.capacidad_maxima }}"
+                               {% if datos_enviados.lugar_id == lugar.id|stringformat:"i" %}checked{% endif %} required>
+                        {% if lugar.imagen %}
+                            <img src="{{ lugar.imagen.url }}" alt="{{ lugar.nombre }}">
+                        {% else %}
+                            <div style="height: 120px; background: #e2e8f0; display: flex; align-items: center; justify-content: center;">
+                                <i class="fa-solid fa-image text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <div class="lugar-card-body">
+                            <strong class="text-slate-800 text-sm block">{{ lugar.nombre }}</strong>
+                            <div class="text-xs text-slate-400 font-semibold">Cap: {{ lugar.capacidad_maxima }} pax</div>
+                            <div class="lugar-precio">+ ${{ lugar.precio_renta|floatformat:0|intcomma }}</div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <div class="section-title"><i class="fa-solid fa-utensils text-[#541E12]"></i> Menú de Comida</div>
+                <div class="menu-grid">
+                    <label class="menu-item">
+                        <input type="radio" name="menu_id" value="" data-precio="0" {% if not datos_enviados.menu_id %}checked{% endif %}>
+                        <div>
+                            <strong>Sin comida</strong>
+                            <small>No incluir servicio</small>
+                        </div>
+                    </label>
+                    {% for menu in menus %}
+                    <label class="menu-item">
+                        <input type="radio" name="menu_id" value="{{ menu.id }}" data-precio="{{ menu.precio_por_persona }}" {% if datos_enviados.menu_id == menu.id|stringformat:"i" %}checked{% endif %}>
+                        <div>
+                            <strong>{{ menu.nombre }}</strong>
+                            <small>${{ menu.precio_por_persona|floatformat:0|intcomma }} / persona</small>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <div class="section-title style-margin" style="margin-top: 30px;"><i class="fa-solid fa-plus-circle text-[#541E12]"></i> Servicios Adicionales</div>
+                <div class="row-inputs" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px;">
+                    {% for servicio in servicios %}
+                    <label class="servicio-item">
+                        <span class="font-semibold text-slate-700">{{ servicio.nombre }} (<strong>${{ servicio.precio|floatformat:0|intcomma }}</strong>)</span>
+                        <input type="checkbox" name="servicios" value="{{ servicio.id }}" data-precio="{{ servicio.precio }}">
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn-confirmar">Confirmar Reserva</button>
+                <a href="{% url 'paquetes_catalogo' %}" class="btn-cancelar">Cancelar y volver</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const inputAsistentes = document.getElementById('asistentes');
+    const checkboxesServicios = document.querySelectorAll('input[name="servicios"]');
+    const precioDisplay = document.getElementById('precio-display');
+    const radioMenus = document.querySelectorAll('input[name="menu_id"]');
+    const radioLugares = document.querySelectorAll('input[name="lugar_id"]');
+    const formReserva = document.getElementById('formReserva');
+    const alertaReserva = document.getElementById('alerta-reserva');
+
+    const precioBasePaquete = parseFloat("{{ paquete.precio }}") || 0;
+    const capacidadBase = parseInt("{{ paquete.capacidad_base }}") || 1;
+
+    // Lanzar alerta estilizada
+    function mostrarError(mensaje) {
+        alertaReserva.innerHTML = `
+            <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #fecaca; font-weight: bold;">
+                <i class="fa-solid fa-circle-exclamation"></i> ${mensaje}
+            </div>
+        `;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Filtra y bloquea dinámicamente locaciones que queden chicas
+    function evaluarCapacidadLugares() {
+        let invitados = parseInt(inputAsistentes.value) || capacidadBase;
+
+        radioLugares.forEach(radio => {
+            let capMaxLugar = parseInt(radio.dataset.capacidad);
+            let contenedorCard = document.getElementById(`card-lugar-${radio.value}`);
+
+            if (invitados > capMaxLugar) {
+                contenedorCard.classList.add('lugar-bloqueado');
+                if (radio.checked) {
+                    radio.checked = false; // Desmarcar si ya no cumple
+                }
+            } else {
+                contenedorCard.classList.remove('lugar-bloqueado');
+            }
+        });
+    }
+
+    function actualizarTotal() {
+        let asistentes = parseInt(inputAsistentes.value);
+        // Si está vacío o es inválido momentáneamente mientras escribe, usamos la base para no romper el cálculo
+        if (isNaN(asistentes) || asistentes < capacidadBase) {
+            asistentes = capacidadBase;
+        }
+
+        // 1. Costo proporcional del paquete base
+        let factor = asistentes / capacidadBase;
+        let totalEstimado = precioBasePaquete * factor;
+
+        // 2. Costo de servicios opcionales
+        checkboxesServicios.forEach(cb => {
+            if (cb.checked) totalEstimado += parseFloat(cb.dataset.precio) || 0;
+        });
+
+        // 3. Menú de comida (Cobrado Estrictamente por Persona)
+        radioMenus.forEach(radio => {
+            if (radio.checked) {
+                let precioMenu = parseFloat(radio.dataset.precio) || 0;
+                totalEstimado += (precioMenu * asistentes);
+            }
+        });
+
+        // 4. Arrendamiento fijo de locación
+        radioLugares.forEach(radio => {
+            if (radio.checked) totalEstimado += parseFloat(radio.dataset.precio) || 0;
+        });
+
+        precioDisplay.innerText = '$' + totalEstimado.toLocaleString('es-CO', { 
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0 
+        });
+    }
+
+    // --- ESCUCHADORES DE EVENTOS ---
+
+    // 1. Mientras escribe: Actualiza totales y deshabilita lugares sin interrumpir la escritura
+    inputAsistentes.addEventListener('input', function() {
+        evaluarCapacidadLugares();
+        actualizarTotal();
+    });
+
+    // 2. Al salir del campo o terminar: Ajusta el valor si quedó por debajo del aforo mínimo
+    inputAsistentes.addEventListener('change', function() {
+        let valor = parseInt(this.value);
+        if (isNaN(valor) || valor < capacidadBase) {
+            this.value = capacidadBase;
+        }
+        evaluarCapacidadLugares();
+        actualizarTotal();
+    });
+
+    radioMenus.forEach(r => r.addEventListener('change', actualizarTotal));
+    radioLugares.forEach(r => r.addEventListener('change', actualizarTotal));
+    checkboxesServicios.forEach(cb => cb.addEventListener('change', actualizarTotal));
+
+    // Bloqueo de teclas para evitar números negativos o caracteres raros
+    document.querySelectorAll('.no-negativos').forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            if (['-', '+', 'e', 'E', '.'].includes(e.key)) e.preventDefault();
+        });
+    });
+
+    // CONTROL FINAL ANTES DE ENVIAR (SUBMIT INTERCEPTION)
+    formReserva.addEventListener('submit', function(e) {
+        let invitados = parseInt(inputAsistentes.value) || 0;
+        let lugarMarcado = document.querySelector('input[name="lugar_id"]:checked');
+
+        if (invitados < capacidadBase) {
+            e.preventDefault();
+            mostrarError(`La cantidad de invitados no puede ser inferior a la capacidad base del paquete (${capacidadBase} personas).`);
+            return;
+        }
+
+        if (!lugarMarcado) {
+            e.preventDefault();
+            mostrarError("Por favor selecciona un lugar para llevar a cabo el evento.");
+            return;
+        }
+
+        let capMaxLugar = parseInt(lugarMarcado.dataset.capacidad);
+        if (invitados > capMaxLugar) {
+            e.preventDefault();
+            mostrarError(`El lugar seleccionado supera su aforo máximo. Solo permite ${capMaxLugar} personas y configuraste ${invitados}.`);
+            return;
+        }
+    });
+
+    // Inicializar cálculos y estados de tarjetas al cargar
+    evaluarCapacidadLugares();
+    actualizarTotal();
+});
+</script>
+{% endblock %}

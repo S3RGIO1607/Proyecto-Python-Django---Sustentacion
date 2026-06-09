@@ -1,0 +1,181 @@
+:root{
+--bg-dark:#0a0a0b;
+--bg-card:#141417;
+--accent:#d4af37;
+--text-main:#ffffff;
+--text-muted:#a1a1aa;
+--border:rgba(255,255,255,0.08);
+--primary:#541E12;
+--transition:all .3s ease;
+}
+
+body{
+background:var(--bg-dark);
+font-family:'Segoe UI',sans-serif;
+margin:0;
+color:var(--text-main);
+}
+
+/* CONTENEDOR GENERAL */
+.registro-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-dark);
+    padding: 20px;
+}
+
+/* TARJETA */
+.registro-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 900px;
+    background: var(--bg-card);
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+/* FORM */
+.registro-form {
+    padding: 40px;
+}
+
+.registro-form h2 {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+}
+
+.subtext {
+    color: var(--text-muted);
+    margin-bottom: 25px;
+}
+
+/* INPUTS */
+.input-group {
+    position: relative;
+    margin-bottom: 18px;
+}
+
+.input-group i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 12px 12px 38px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: white;
+    outline: none;
+    transition: 0.3s;
+}
+
+.input-group input:focus {
+    border-color: var(--accent);
+}
+
+/* LABEL FLOTANTE */
+.input-group label {
+    position: absolute;
+    left: 38px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    transition: 0.3s;
+    pointer-events: none;
+}
+
+.input-group input:focus + label,
+.input-group input:valid + label {
+    top: -8px;
+    font-size: 0.7rem;
+    color: var(--accent);
+    background: var(--bg-card);
+    padding: 0 5px;
+}
+
+/* BOTÓN */
+.btn-registro {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: black;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-registro:hover {
+    background: #f1d279;
+    transform: translateY(-2px);
+}
+
+/* LINK */
+.login-link {
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+.login-link a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+/* PANEL DERECHO */
+.registro-info {
+    background: linear-gradient(135deg, #541E12, #2c0d08);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 40px;
+}
+
+.registro-info h1 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.registro-info p {
+    color: #ddd;
+}
+
+.badge {
+    margin-top: 20px;
+    padding: 8px 15px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+    font-size: 0.8rem;
+}
+
+/* ERROR */
+.error-box {
+    background: #7f1d1d;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+}
+
+/* RESPONSIVE */
+@media(max-width: 768px){
+    .registro-card {
+        grid-template-columns: 1fr;
+    }
+
+    .registro-info {
+        display: none;
+    }
+}

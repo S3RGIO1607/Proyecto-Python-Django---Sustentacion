@@ -1,0 +1,254 @@
+{% extends 'base2.html' %}
+
+{% block content %}
+<style>
+    /* Contenedor tipo Tarjeta de Servicio alineado al Catálogo */
+    .service-form-card {
+        background: white;
+        border-radius: 2rem; 
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        border: 1px solid #f1f5f9;
+        max-width: 600px;
+        margin: 2rem auto;
+        overflow: hidden;
+    }
+
+    .form-header {
+        background: #2563eb; 
+        padding: 2.5rem 2rem;
+        text-align: center;
+        color: white;
+        position: relative;
+    }
+
+    .form-header::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 40px;
+        background: linear-gradient(to top, rgba(255,255,255,0.1), transparent);
+    }
+
+    .form-content {
+        padding: 2.5rem;
+    }
+
+    .label-style {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.7rem;
+        font-weight: 900;
+        color: #64748b;
+        text-transform: uppercase;
+        margin-bottom: 0.6rem;
+        letter-spacing: 0.15em;
+    }
+
+    .input-style {
+        width: 100%;
+        padding: 0.9rem 1.2rem;
+        border: 2px solid #f1f5f9;
+        border-radius: 1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        color: #1e293b;
+        background: #f8fafc;
+    }
+
+    .input-style:focus {
+        outline: none;
+        border-color: #2563eb;
+        background-color: white;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.06);
+    }
+
+    /* Pseudo-clases nativas para feedback visual sutil */
+    .input-style:user-invalid {
+        border-color: #ef4444;
+        background-color: #fef2f2;
+    }
+
+    .price-wrapper {
+        position: relative;
+    }
+
+    .price-wrapper::before {
+        content: '$';
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-weight: 900;
+        font-size: 0.9rem;
+    }
+
+    .price-wrapper .input-style {
+        padding-left: 2.2rem;
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 1.5rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .btn-cancel {
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: #9ca3af;
+        transition: color 0.3s ease;
+    }
+
+    .btn-cancel:hover {
+        color: #4b5563;
+    }
+
+    .btn-save {
+        background: #2563eb;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 9999px; 
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        transition: all 0.3s;
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2);
+    }
+
+    .btn-save:hover {
+        background: #1d4ed8;
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.3);
+    }
+
+    .char-counter {
+        font-size: 0.65rem;
+        color: #94a3b8;
+        font-weight: bold;
+        text-transform: none;
+        letter-spacing: normal;
+    }
+
+    .contenedor-main { background: transparent !important; box-shadow: none !important; }
+</style>
+
+<div class="max-w-4xl mx-auto px-4 py-8">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-xl {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %} text-sm font-bold shadow-sm">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="service-form-card">
+        <div class="form-header">
+            <div class="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/30 shadow-lg">
+                <i class="fa-solid fa-bell-concierge text-2xl text-white"></i>
+            </div>
+            <h1 class="text-2xl font-black tracking-tighter uppercase">
+                Nuevo <span class="opacity-80">Servicio</span>
+            </h1>
+            <p class="text-blue-100 text-[10px] font-bold uppercase tracking-widest mt-1">Configuración de catálogo global</p>
+        </div>
+
+        <form action="{% url 'registrar_servicio' %}" method="post" class="form-content">
+            {% csrf_token %}
+            
+            <div class="mb-6">
+                <label class="label-style">
+                    <span><i class="fa-solid fa-tag mr-2 text-blue-500"></i> Nombre del Servicio</span>
+                </label>
+                <input type="text" 
+                       name="txt_nombre" 
+                       id="txt_nombre"
+                       value="{{ valores_previos.nombre|default:'' }}"
+                       class="input-style" 
+                       placeholder="Ej: Luces de Neón"
+                       minlength="2"
+                       maxlength="50"
+                       pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$"
+                       title="El nombre solo debe contener letras y espacios (entre 2 y 50 caracteres)."
+                       required>
+            </div>
+
+            <div class="mb-6">
+                <label class="label-style">
+                    <span><i class="fa-solid fa-quote-left mr-2 text-blue-500"></i> Descripción detallada</span>
+                    <span id="counter-descripcion" class="char-counter">0 / 250</span>
+                </label>
+                <textarea name="txt_descripcion" 
+                          id="txt_descripcion"
+                          class="input-style" 
+                          rows="4" 
+                          placeholder="Describe qué incluye este servicio de manera detallada (mínimo 20 caracteres)..."
+                          minlength="20"
+                          maxlength="250"
+                          required>{{ valores_previos.descripcion|default:'' }}</textarea>
+            </div>
+
+            <div class="mb-8">
+                <label class="label-style">
+                    <span><i class="fa-solid fa-circle-dollar-to-slot mr-2 text-blue-500"></i> Costo del Servicio</span>
+                </label>
+                <div class="price-wrapper">
+                    <input type="number" 
+                        step="1" 
+                        min="0"
+                        name="txt_precio" 
+                        value="{{ valores_previos.precio|default:'' }}"
+                        class="input-style" 
+                        placeholder="0"
+                        title="Ingrese un valor entero sin decimales y mayor o igual a 0"
+                        onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                    required>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <a href="{% url 'gestionar_catalogos' %}" class="btn-cancel text-[10px] font-black uppercase tracking-[0.2em]">
+                    Cerrar
+                </a>
+                <button type="submit" class="btn-save flex items-center">
+                    <span>Guardar Servicio</span>
+                    <i class="fa-solid fa-arrow-right ml-3 text-[8px]"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const textarea = document.getElementById('txt_descripcion');
+        const counter = document.getElementById('counter-descripcion');
+
+        function actualizarContador() {
+            const longitud = textarea.value.length;
+            counter.textContent = `${longitud} / 250`;
+            
+            // Cambio estético del color del contador si no cumple el mínimo
+            if (longitud < 20 && longitud > 0) {
+                counter.style.color = '#ef4444'; // Rojo aviso
+            } else {
+                counter.style.color = '#94a3b8'; // Gris por defecto
+            }
+        }
+
+        textarea.addEventListener('input', actualizarContador);
+        actualizarContador(); // Ejecución inicial por si hay datos previos cargados
+    });
+</script>
+{% endblock %}

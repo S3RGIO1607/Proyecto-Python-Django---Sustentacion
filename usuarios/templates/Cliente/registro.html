@@ -1,0 +1,209 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro - Arron</title>
+
+    <link rel="stylesheet" href="{% static 'css/iniciosesion.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+
+<main class="registro-container">
+
+    <section class="registro-card">
+
+        <div class="registro-form">
+
+            <h2>Crear Cuenta</h2>
+            <p class="subtext">Completa tus datos</p>
+
+            {% if error %}
+            <div class="error-box" style="background-color: #fef2f2; border-left: 4px solid #ef4444; color: #991b1b; padding: 1rem; border-radius: 0 12px 12px 0; margin-bottom: 1.5rem; font-size: 0.85rem; font-weight: bold;">
+                <i class="fa-solid fa-circle-exclamation" style="margin-right: 8px;"></i> {{ error }}
+            </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="input-group">
+                    <i class="fa-solid fa-id-card"></i>
+                    <input type="number" name="numero_documento" value="{{ datos.numero_documento|default:'' }}" min="0" minlength="6" maxlength="25" required>
+                    <label>Documento</label>
+                </div>
+
+                <div class="input-group">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" name="nombre" class="style-name" value="{{ datos.nombre|default:'' }}" minlength="3" maxlength="25" pattern="^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*$" required>
+                    <label>Nombre completo</label>
+                </div>
+
+                <div class="input-group">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" name="correo" value="{{ datos.correo|default:'' }}" minlength="11" maxlength="70" required>
+                    <label>Correo</label>
+                </div>
+
+                <div class="input-group password-group">
+                    <div class="input-field-wrapper">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" name="contrasena" id="id_contrasena" required>
+                        <label>Contraseña</label>
+                    </div>
+
+                    <div id="password-security-wrapper" class="security-collapsed">
+                        <div class="strength-meter">
+                            <div id="password-strength-bar"></div>
+                        </div>
+                        <div class="strength-text">
+                            <span id="strength-label"></span>
+                        </div>
+
+                        <div id="password-requirements" class="req-inline-card">
+                            <div class="req-header">Seguridad de la cuenta</div>
+                            <ul class="req-list">
+                                <li id="req-length" class="req-item"><i class="fa-solid fa-circle-dot"></i> 8+ caracteres</li>
+                                <li id="req-lower" class="req-item"><i class="fa-solid fa-circle-dot"></i> Una Minúscula</li>
+                                <li id="req-upper" class="req-item"><i class="fa-solid fa-circle-dot"></i> Una Mayúscula</li>
+                                <li id="req-special" class="req-item"><i class="fa-solid fa-circle-dot"></i> Un Símbolo</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <input type="text" name="direccion" value="{{ datos.direccion|default:'' }}" required>
+                    <label>Dirección</label>
+                </div>
+
+                <div class="input-group">
+                    <i class="fa-solid fa-phone"></i>
+                    <input type="number" name="telefono" value="{{ datos.telefono|default:'' }}" min="0" minlength="10" required>
+                    <label>Teléfono</label>
+                </div>
+
+                <button type="submit" class="btn-registro">
+                    Registrar cuenta <i class="fa-solid fa-arrow-right"></i>
+                </button>
+
+                <p class="login-link">
+                    ¿Ya tienes cuenta?
+                    <a href="{% url 'iniciar_sesion' %}">Inicia sesión</a>
+                </p>
+
+            </form>
+        </div>
+
+        <div class="registro-info">
+            <h1>Arron Eventos</h1>
+            <p>Reserva eventos, alquila productos y gestiona todo en un solo lugar.</p>
+            <div class="badge">Experiencia Premium</div>
+        </div>
+
+    </section>
+
+</main>
+
+<script>
+    const passwordInput = document.getElementById('id_contrasena');
+    const securityWrapper = document.getElementById('password-security-wrapper');
+    const bar = document.getElementById('password-strength-bar');
+    const label = document.getElementById('strength-label');
+
+    const reqs = {
+        length: document.getElementById('req-length'),
+        lower: document.getElementById('req-lower'),
+        upper: document.getElementById('req-upper'),
+        special: document.getElementById('req-special')
+    };
+
+    passwordInput.addEventListener('focus', () => {
+        securityWrapper.classList.add('visible');
+    });
+
+    passwordInput.addEventListener('input', function() {
+        const val = this.value;
+        let score = 0;
+
+        const checks = {
+            length: val.length >= 8,
+            lower: /[a-z]/.test(val),
+            upper: /[A-Z]/.test(val),
+            special: /[^A-Za-z0-9]/.test(val)
+        };
+
+        Object.keys(checks).forEach(key => {
+            const isValid = checks[key];
+            const el = reqs[key];
+            
+            if (isValid) {
+                el.classList.add('valid');
+                el.querySelector('i').className = 'fa-solid fa-check-circle';
+                score += 25;
+            } else {
+                el.classList.remove('valid');
+                el.querySelector('i').className = 'fa-solid fa-circle-dot';
+            }
+        });
+
+        bar.style.width = score + '%';
+
+        if (score === 0) {
+            label.innerText = '';
+            bar.style.backgroundColor = 'transparent';
+        } else if (score <= 50) {
+            bar.style.backgroundColor = '#ef4444'; 
+            label.innerText = 'Seguridad: Débil';
+            label.style.color = '#ef4444';
+        } else if (score <= 75) {
+            bar.style.backgroundColor = '#f59e0b'; 
+            label.innerText = 'Seguridad: Media';
+            label.style.color = '#f59e0b';
+        } else {
+            bar.style.backgroundColor = '#541E12'; // Cambiado al tono principal de Arron
+            label.innerText = 'Seguridad: Excelente';
+            label.style.color = '#541E12';
+        }
+    });
+
+    passwordInput.addEventListener('blur', function() {
+        if (this.value.length === 0) {
+            securityWrapper.classList.remove('visible');
+        }
+    });
+
+    // ==========================================
+    // BLOQUEO DE NEGATIVOS Y ESCRITURA EN VIVO
+    // ==========================================
+    const numericInputs = document.querySelectorAll('input[type="number"]');
+    numericInputs.forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E' || e.key === '.') {
+                e.preventDefault();
+            }
+        });
+        input.addEventListener('input', function() {
+            if (this.value < 0) this.value = 0;
+        });
+    });
+
+    const nameInput = document.querySelector('.style-name');
+    nameInput.addEventListener('keydown', function(e) {
+        const isValidKey = /^[a-zA-ZÁÉÍÓÚÑáéíóúñ\s]$/.test(e.key) || 
+                           ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key);
+        if (!isValidKey) {
+            e.preventDefault();
+        }
+    });
+
+    nameInput.addEventListener('blur', function() {
+        this.value = this.value.trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    });
+</script>
+
+</body>
+</html>

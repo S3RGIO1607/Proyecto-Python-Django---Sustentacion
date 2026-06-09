@@ -1,0 +1,195 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arron | Eventos Premium</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{% static 'css/inicioestilos.css' %}">
+    <link rel="stylesheet" href="{% static 'css/nosotros.css' %}">
+    <link rel="stylesheet" href="{% static 'css/productos.css' %}">
+    <link rel="stylesheet" href="{% static 'css/paquetes.css' %}">
+    <link rel="stylesheet" href="{% static 'css/servicios.css' %}">
+    <link rel="stylesheet" href="{% static 'css/carrito.css' %}">
+
+    <style>
+.dark-toast { background: #1a1a1a; color: white; border-radius: 8px; overflow: hidden; min-width: 280px; margin-top: 10px; box-shadow: 0 10px 15px rgba(0,0,0,0.3); animation: fadeInUp 0.5s ease; }
+.dark-body { padding: 15px; display: flex; align-items: center; }
+.dark-indicator { width: 4px; height: 20px; border-radius: 2px; margin-right: 12px; }
+.alert-success .dark-indicator { background: #00ff88; }
+.alert-error .dark-indicator { background: #ff4d4d; }
+.progress-bar-container { background: rgba(255,255,255,0.1); height: 3px; width: 100%; }
+.progress-bar-fill { height: 100%; background: white; width: 100%; animation: shrink 5s linear forwards; }
+.alert-success .progress-bar-fill { background: #00ff88; }
+@keyframes shrink { from { width: 100%; } to { width: 0%; } }
+@keyframes fadeInUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
+</head>
+<body>
+
+                <header class="navbar-custom">
+                    <div class="header-container">
+                        <div class="logo-area">
+                            <a href="{% url 'home' %}"><img src="{% static 'imagenes/logo2.png' %}" alt="Logo Arron"></a>
+                        </div>
+
+                        <nav id="nav">
+                            <ul class="nav-links">
+                                <li><a href="{% url 'home' %}"><i class="bi bi-house"></i> Inicio</a></li>
+                                <li><a href="{% url 'nosotros' %}">Nosotros</a></li>
+                                <li><a href="{% url 'productos_catalogo' %}">Productos</a></li>
+                                <li><a href="{% url 'paquetes_catalogo' %}">Eventos</a></li>
+                                <li><a href="#Contactenos">Contacto</a></li>
+                            </ul>
+
+                            <div class="nav-actions">
+                                <!-- CARRITO: Solo para clientes (Rol 4) -->
+                                {% if request.session.usuario_id and request.session.rol == 4 %}
+                                <a href="{% url 'ver_carrito' %}" class="nav-item-custom badge">
+                                    <i class="fa-solid fa-cart-shopping"></i>
+                                    <span>{{ request.session.carrito|length|default:0 }}</span>
+                                </a>
+                                {% endif %}
+
+                                <!-- MIS RESERVAS: Solo si está logueado -->
+                                {% if request.session.usuario_id %}
+                                <a href="{% url 'mis_reservas' %}" class="nav-item-custom">
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                    <span>Mis Reservas</span>
+                                </a>
+                                {% endif %}
+
+                            <!-- Lógica de Usuario con Dropdown -->
+                                {% if not request.session.usuario_id %}
+                                    <a href="{% url 'iniciar_sesion' %}" class="btn-login">Ingresar</a>
+                                {% else %}
+                                    <div class="user-dropdown-container">
+                    <div class="user-profile-trigger" id="userDropdownBtn">
+                        <i class="fa-regular fa-circle-user"></i>
+                        <span>{{ request.session.nombre_usuario }}</span>
+                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+                    </div>
+
+                    <div class="user-dropdown-menu" id="userDropdownMenu">
+                        <div class="dropdown-header-name">
+                            <small>Sesión de</small>
+                            <strong>{{ request.session.nombre_usuario }}</strong>
+                        </div>
+                        
+                        <a href="{% url 'mi_perfil' %}" class="dropdown-link">
+                            <i class="fa-solid fa-user-gear"></i> Mi Información
+                        </a>
+
+                        <div class="dropdown-divider"></div>
+
+                        <form action="{% url 'logout' %}" method="post" style="margin:0;">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-link logout-item">
+                                <i class="fa-solid fa-power-off"></i> Cerrar Sesión
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+            </div>
+        </nav>
+    </div>
+</header>
+
+<main>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+    {% for message in messages %}
+    <div class="dark-toast alert-{{ message.tags }}">
+        <div class="dark-body">
+            <div class="dark-indicator"></div>
+            <div class="dark-text">
+                <i class="fa-solid fa-bell me-2"></i> {{ message }}
+            </div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar-fill"></div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+    {% block content %}{% endblock %}
+</main>
+
+<footer class="footer-premium" id="Contactenos">
+    <div class="container footer-content">
+        <div class="footer-info">
+            <img src="{% static 'imagenes/logo2.png' %}" class="footer-logo">
+            <p>Creamos experiencias memorables. Tu evento soñado, en manos de expertos.</p>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-tiktok"></i></a>
+                <a href="#"><i class="fab fa-whatsapp"></i></a>
+            </div>
+        </div>
+        <div class="footer-details">
+            <div class="contact-item">
+                <i class="bi bi-geo-alt"></i>
+                <span>Bogotá, Colombia</span>
+            </div>
+            <div class="contact-item">
+                <i class="bi bi-envelope-at"></i>
+                <span>aaroneventossas@gmail.com</span>
+            </div>
+        </div>
+    </div>
+    <div class="footer-legal">
+        &copy; 2026 Arron Eventos. Diseñado para la excelencia.
+    </div>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('userDropdownBtn');
+    const menu = document.getElementById('userDropdownMenu');
+
+    if (btn && menu) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation(); // Evita que el clic se propague
+            menu.classList.toggle('active');
+            
+            // Rota la flechita
+            const arrow = btn.querySelector('.arrow-icon');
+            arrow.style.transform = menu.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0deg)';
+        });
+
+        // Cerrar si hacen clic afuera
+        document.addEventListener('click', function(e) {
+            if (!btn.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.remove('active');
+                btn.querySelector('.arrow-icon').style.transform = 'rotate(0deg)';
+            }
+        });
+    }
+});
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+        // Seleccionamos todos los mensajes que aparezcan
+        const toasts = document.querySelectorAll('.glass-toast, .dark-toast, .minimal-toast');
+        
+        toasts.forEach(toast => {
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(20px)';
+                toast.style.transition = 'all 0.5s ease';
+                setTimeout(() => toast.remove(), 500);
+            }, 5000); // 5 segundos de vida
+        });
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

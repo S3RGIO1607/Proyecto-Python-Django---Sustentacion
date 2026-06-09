@@ -1,0 +1,310 @@
+{% extends 'base2.html' %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    :root {
+        --arron-vinotinto: #541E12;
+        --arron-gold: #b45309;
+        --arron-bg: #f8fafc;
+        --arron-border: #e2e8f0;
+        --arron-dark: #1e293b;
+    }
+
+    .main-bg {
+        background-color: var(--arron-bg);
+        min-height: 100vh;
+        padding: 4rem 0;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .invoice-box {
+        max-width: 900px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 40px;
+        padding: 5rem;
+        box-shadow: 0 50px 100px -20px rgba(0,0,0,0.12);
+        border: 1px solid var(--arron-border);
+        position: relative;
+    }
+
+    /* Sello Arron - Estilo Timbre Postal */
+    .seal-arron {
+        color: var(--arron-vinotinto);
+        font-weight: 800;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        border: 2.5px solid var(--arron-vinotinto);
+        padding: 8px 20px;
+        display: inline-block;
+        transform: rotate(-12deg);
+        opacity: 0.7;
+        border-radius: 8px;
+        letter-spacing: 3px;
+        position: absolute;
+        top: 50px;
+        left: 50px;
+    }
+
+    .invoice-header h2 {
+        font-weight: 900;
+        letter-spacing: -2px;
+        color: var(--arron-dark);
+    }
+
+    /* Tabla de Liquidación */
+    .table-damages {
+        border-collapse: separate;
+        border-spacing: 0 12px;
+    }
+
+    .table-damages thead th {
+        border: none;
+        color: #94a3b8;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 1.5px;
+        padding-bottom: 1rem;
+    }
+
+    .table-damages tbody tr {
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+
+    .table-damages tbody td {
+        padding: 1.5rem 1.25rem;
+        border-top: 1px solid var(--arron-border);
+        border-bottom: 1px solid var(--arron-border);
+        vertical-align: middle;
+    }
+
+    .table-damages tbody td:first-child { 
+        border-left: 1px solid var(--arron-border); 
+        border-radius: 16px 0 0 16px; 
+    }
+    .table-damages tbody td:last-child { 
+        border-right: 1px solid var(--arron-border); 
+        border-radius: 0 16px 16px 0; 
+    }
+
+    /* Banners de Resultado de Alto Impacto */
+    .result-banner {
+        border-radius: 30px;
+        padding: 2.5rem;
+        text-align: center;
+        border: 2px solid;
+    }
+
+    .refund-banner {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+    }
+
+    .debt-banner {
+        background: #fff1f2;
+        border-color: #fecdd3;
+    }
+
+    /* Botonera */
+    .btn-confirm {
+        width: 100%;
+        height: 100%; /* Asegura que llene el contenedor */
+        background: var(--arron-vinotinto);
+        color: white !important;
+        border: none;
+        padding: 1.2rem;
+        border-radius: 20px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-confirm:hover {
+        background: #000;
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .btn-correct {
+        flex: 1; /* El botón de revisar es más pequeño */
+        background: #f1f5f9;
+        color: #475569 !important;
+        border: none;
+        padding: 1.2rem;
+        border-radius: 20px;
+        font-weight: 700;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.3s;
+        text-decoration: none;
+        white-space: nowrap; /* Evita que el texto se parta en dos líneas */
+    }
+
+    .btn-correct:hover {
+        background: #e2e8f0;
+        color: var(--arron-dark) !important;
+    }
+
+    .tracking-widest { letter-spacing: 0.2em; }
+    .fw-black { font-weight: 900; }
+
+    .balance-card {
+        background: #fafafa;
+        border: 1px solid var(--arron-border);
+        border-radius: 20px;
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .balance-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .form-finalizar {
+        flex: 3; /* El botón de finalizar ocupa más espacio */
+    }
+
+    .actions-container {
+        display: flex;
+        gap: 1rem;
+        align-items: stretch; /* Hace que ambos botones tengan la misma altura */
+        margin-top: 3rem;
+    }
+</style>
+
+<div class="main-bg">
+    <div class="container">
+        <div class="invoice-box animate__animated animate__fadeIn">
+            
+            <div class="seal-arron">Liquidación Arron</div>
+
+            <div class="d-flex justify-content-between align-items-end mb-5 invoice-header pt-4">
+                <div>
+                    <h2 class="display-5 mb-1">CONTRATO <span class="text-muted">#{{ alquiler.id }}</span></h2>
+                    <p class="text-muted fs-5 mb-0">Titular de Cuenta: <span class="fw-bold text-dark">{{ alquiler.usuario.nombre|upper }}</span></p>
+                </div>
+                <div class="text-end">
+                    <p class="mb-0 fw-bold text-uppercase text-muted small tracking-widest">Fecha de Emisión</p>
+                    <p class="fw-black text-dark fs-5 mb-0">{% now "d \d\e F, Y" %}</p>
+                </div>
+            </div>
+
+            <div class="mb-5">
+                <div class="d-flex align-items-center gap-2 mb-4">
+                    <div style="width: 40px; height: 3px; background: var(--arron-gold);"></div>
+                    <h5 class="fw-black text-uppercase mb-0" style="letter-spacing: 1px; font-size: 0.9rem;">Detalle de Novedades</h5>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-damages">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">Mobiliario / Equipo</th>
+                                <th class="text-center">Unidades Afectadas</th>
+                                <th class="text-end pe-4">Costo Reposición</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in detalles_danos %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark fs-6">{{ item.producto.nombre_producto }}</div>
+                                    <small class="text-muted">Cargo por unidad perdida o dañada</small>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill fw-bold">
+                                        {{ item.cantidad_danada }} Un.
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4 fw-black text-dark fs-5">
+                                    ${{ item.subtotal_danos|floatformat:0|intcomma }}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center py-5">
+                                    <div class="text-success">
+                                        <i class="fa-solid fa-circle-check fa-3x mb-3"></i>
+                                        <p class="fw-black fs-4 mb-0">ESTADO IMPECABLE</p>
+                                        <p class="text-muted">No se registran cargos adicionales por este contrato.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="row justify-content-end mb-5">
+                <div class="col-md-5">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted fw-medium">Total Cargos Daños:</span>
+                        <span class="fw-bold text-danger">${{ alquiler.valor_danos|floatformat:0|intcomma }}</span>
+                    </div>
+                    {% if alquiler.valor_mora > 0 %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Mora por retraso:</span>
+                            <span class="fw-bold text-warning">
+                                ${{ alquiler.valor_mora|floatformat:0|intcomma }}
+                            </span>
+                        </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between pt-2 border-top border-2">
+                        <span class="fw-black text-dark">BALANCE FINAL:</span>
+                        <span class="fw-black text-dark fs-4">${{ saldo_reembolso|floatformat:0|intcomma|cut:"-" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                {% if saldo_reembolso >= 0 %}
+                <div class="result-banner refund-banner">
+                    <i class="fa-solid fa-hand-holding-dollar text-success fs-1 mb-2"></i>
+                    <p class="text-success fw-black text-uppercase tracking-widest small mb-1">Monto a devolver al cliente</p>
+                    <h1 class="display-3 fw-black text-success mb-0">${{ saldo_reembolso|floatformat:0|intcomma }}</h1>
+                </div>
+                {% else %}
+                <div class="result-banner debt-banner">
+                    <i class="fa-solid fa-receipt text-danger fs-1 mb-2"></i>
+                    <p class="text-danger fw-black text-uppercase tracking-widest small mb-1">Saldo pendiente de cobro</p>
+                    <h1 class="display-3 fw-black text-danger mb-0">${{ saldo_reembolso|floatformat:0|cut:"-"|intcomma }}</h1>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="actions-container">
+                <a href="{% url 'mostrar_detalle_alquiler' alquiler.id %}" class="btn-correct">
+                    <i class="fa-solid fa-arrow-left"></i> REVISAR
+                </a>
+
+                <form action="{% url 'finalizar_alquiler' alquiler.id %}" method="POST" class="form-finalizar">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-confirm">
+                        FINALIZAR Y CERRAR CONTRATO <i class="fa-solid fa-circle-check"></i>
+                    </button>
+                </form>
+            </div>
+            
+            <div class="text-center mt-4">
+                <span class="text-muted small fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">
+                    <i class="fa-solid fa-shield-halved me-1"></i> Sistema de Gestión Premium Arron Eventos
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

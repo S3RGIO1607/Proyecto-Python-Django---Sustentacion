@@ -1,0 +1,131 @@
+.paquetes-section{
+padding:140px 20px 100px;
+background:var(--bg-dark);
+}
+
+.paquetes-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+gap:40px;
+margin-top:50px;
+}
+
+.paquete-card{
+background:var(--bg-card);
+border:1px solid var(--border);
+border-radius:12px;
+overflow:hidden;
+transition:var(--transition);
+display:flex;
+flex-direction:column;
+}
+
+.paquete-card:hover{
+transform:translateY(-8px);
+border-color:var(--accent);
+}
+
+.paquete-body{
+padding:25px;
+display:flex;
+flex-direction:column;
+flex-grow:1;
+}
+
+.paquete-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:10px;
+}
+
+.paquete-badge{
+background:var(--accent);
+color:black;
+padding:4px 10px;
+font-size:.7rem;
+font-weight:700;
+}
+
+.paquete-desc{
+color:var(--text-muted);
+font-size:.9rem;
+margin-bottom:15px;
+}
+
+.paquete-features{
+list-style:none;
+padding:0;
+margin-bottom:15px;
+}
+
+.paquete-features li{
+font-size:.9rem;
+color:var(--text-muted);
+margin-bottom:6px;
+}
+
+.paquete-incluye h4{
+font-size:.9rem;
+margin-bottom:10px;
+color:var(--accent);
+}
+
+.paquete-incluye ul{
+list-style:none;
+padding:0;
+margin:0 0 20px 0;
+}
+
+.paquete-incluye li{
+font-size:.85rem;
+margin-bottom:5px;
+color:var(--text-muted);
+}
+/* Botón Principal */
+.btn-paquete {
+    display: inline-block;
+    padding: 12px 24px;
+    background-color: var(--accent); /* El color dorado/amarillo que ya usas */
+    color: #000; /* Texto negro para contraste */
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    border: 2px solid var(--accent);
+    text-align: center;
+}
+
+/* Efecto Hover */
+.btn-paquete:hover {
+    background-color: transparent;
+    color: var(--accent);
+    transform: scale(1.05); /* Un pequeño aumento de tamaño */
+    box-shadow: 0 5px 15px rgba(241, 210, 121, 0.3); /* Resplandor suave */
+}
+
+/* Ajuste para el footer del paquete */
+.paquete-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid var(--border); /* Línea divisoria sutil */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.precio {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--accent);
+    margin: 0; /* Quita márgenes extra */
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--text-muted);
+    border-color: var(--border);
+}

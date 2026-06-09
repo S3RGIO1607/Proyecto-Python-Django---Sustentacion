@@ -1,0 +1,283 @@
+{% extends 'base2.html' %}
+
+{% block content %}
+<style>
+    /* Tarjeta de Edición Gastronómica */
+    .edit-menu-container {
+        background: white;
+        border-radius: 2rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+        margin-top: 2rem;
+    }
+
+    /* Cabecera Naranja (Catálogo Menús) */
+    .edit-menu-header {
+        background: #f59e0b;
+        padding: 3rem 2rem;
+        color: white;
+        text-align: center;
+        position: relative;
+    }
+
+    .edit-badge {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+        padding: 6px 16px;
+        border-radius: 99px;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        font-weight: 900;
+        letter-spacing: 2px;
+        display: inline-block;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .edit-form-body {
+        padding: 2.5rem;
+    }
+
+    .field-group {
+        margin-bottom: 1.8rem;
+    }
+
+    .label-edit {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.7rem;
+        font-weight: 900;
+        color: #64748b;
+        text-transform: uppercase;
+        margin-bottom: 0.6rem;
+        letter-spacing: 0.1em;
+    }
+
+    .input-edit-style {
+        width: 100%;
+        padding: 0.9rem 1.2rem;
+        border: 2px solid #f1f5f9;
+        border-radius: 1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.3s;
+        color: #1e293b;
+        background: #f8fafc;
+    }
+
+    .input-edit-style:focus {
+        outline: none;
+        border-color: #f59e0b;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.06);
+    }
+
+    /* Pseudo-clase nativa para feedback visual en errores */
+    .input-edit-style:user-invalid {
+        border-color: #ef4444;
+        background-color: #fef2f2;
+    }
+
+    /* Input de Precio */
+    .price-input-container {
+        position: relative;
+        max-width: 250px;
+    }
+
+    .price-symbol {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-weight: 900;
+        color: #94a3b8;
+    }
+
+    .price-input-container input {
+        padding-left: 2.5rem;
+    }
+
+    /* Footer y Botones */
+    .edit-form-footer {
+        background: #f8fafc;
+        padding: 1.5rem 2.5rem;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 1.5rem;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .btn-update {
+        background: #f59e0b;
+        color: white;
+        padding: 0.9rem 2.2rem;
+        border-radius: 9999px;
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.2);
+    }
+
+    .btn-update:hover {
+        background: #d97706;
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-cancel-edit {
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #94a3b8;
+        transition: 0.2s;
+    }
+
+    .btn-cancel-edit:hover {
+        color: #64748b;
+    }
+
+    .char-counter {
+        font-size: 0.65rem;
+        color: #94a3b8;
+        font-weight: bold;
+        text-transform: none;
+        letter-spacing: normal;
+    }
+
+    .contenedor-main { background: transparent !important; box-shadow: none !important; }
+</style>
+
+<div class="max-w-3xl mx-auto pb-12 px-4">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-xl {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-amber-50 text-amber-700 border border-amber-200{% endif %} text-sm font-bold shadow-sm">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="edit-menu-container">
+        
+        <div class="edit-menu-header">
+            <span class="edit-badge">Gestión Gastronómica</span>
+            <h1 class="text-3xl font-black uppercase tracking-tighter italic">Editar Menú</h1>
+            <div class="mt-4 flex justify-center items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-orange-100">
+                <span class="opacity-60">Referencia de Cocina:</span>
+                <span class="bg-white/10 px-2 py-1 rounded-md">{{ menu.id }}</span>
+            </div>
+        </div>
+
+        <form action="{% url 'editar_menu' %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="txt_id" value="{{ menu.id }}">
+
+            <div class="edit-form-body">
+                
+                <div class="field-group">
+                    <label class="label-edit">
+                        <span><i class="fa-solid fa-utensils mr-2 text-orange-500"></i> Nombre del Menú</span>
+                    </label>
+                    <input type="text" 
+                           name="txt_nombre" 
+                           value="{{ menu.nombre }}"
+                           class="input-edit-style" 
+                           placeholder="Ej: Menú Ejecutivo Arron"
+                           minlength="2"
+                           maxlength="50"
+                           pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$"
+                           title="El nombre del menú solo debe contener letras y espacios (entre 2 y 50 caracteres)."
+                           required>
+                </div>
+
+                <div class="field-group">
+                    <label class="label-edit">
+                        <span><i class="fa-solid fa-bowl-food mr-2 text-orange-500"></i> Composición del Menú</span>
+                        <span id="counter-descripcion" class="char-counter">0 / 250</span>
+                    </label>
+                    <textarea name="txt_descripcion" 
+                              id="txt_descripcion"
+                              class="input-edit-style" 
+                              rows="4" 
+                              placeholder="Describe la entrada, plato fuerte y postre..."
+                              minlength="20"
+                              maxlength="250"
+                              required>{{ menu.descripcion }}</textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="field-group">
+                        <label class="label-edit">
+                            <span><i class="fa-solid fa-circle-dollar-to-slot mr-2 text-orange-500"></i> Tarifa por Persona</span>
+                        </label>
+                        <div class="price-input-container">
+                            <span class="price-symbol">$</span>
+                            <input type="number" 
+                                   step="1" 
+                                   min="0"
+                                   name="txt_precio_por_persona" 
+                                   value="{{ menu.precio_por_persona|stringformat:'d' }}"
+                                   class="input-edit-style" 
+                                   title="Ingrese un valor entero sin decimales ni símbolos negativos."
+                                   onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="label-edit">
+                            <span><i class="fa-solid fa-eye mr-2 text-orange-500"></i> Visibilidad en Catálogo</span>
+                        </label>
+                        <select name="txt_estado"
+                                class="input-edit-style font-bold text-orange-600"
+                                required>
+                            <option value="A" {% if menu.estado == 'A' %}selected{% endif %}>🟢 Disponible</option>
+                            <option value="I" {% if menu.estado == 'I' %}selected{% endif %}>🔴 Fuera de Temporada</option>
+                        </select>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="edit-form-footer">
+                <a href="{% url 'gestionar_catalogos' %}" class="btn-cancel-edit">
+                    Cancelar Cambios
+                </a>
+                <button type="submit" class="btn-update">
+                    <i class="fa-solid fa-rotate text-[10px]"></i>
+                    <span>Actualizar Menú</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const textarea = document.getElementById('txt_descripcion');
+        const counter = document.getElementById('counter-descripcion');
+
+        function actualizarContador() {
+            const longitud = textarea.value.length;
+            counter.textContent = `${longitud} / 250`;
+            
+            if (longitud < 20 && longitud > 0) {
+                counter.style.color = '#ef4444'; // Alerta visual roja por debajo del mínimo
+            } else {
+                counter.style.color = '#94a3b8'; // Color estándar slate
+            }
+        }
+
+        textarea.addEventListener('input', actualizarContador);
+        actualizarContador(); // Carga el estado inicial del registro
+    });
+</script>
+{% endblock %}

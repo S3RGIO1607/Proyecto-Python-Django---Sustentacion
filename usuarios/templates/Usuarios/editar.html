@@ -1,0 +1,234 @@
+{% extends "base2.html" %}
+
+{% block content %}
+    <style>
+        /* Contenedor tipo Tarjeta de Edición */
+        .edit-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f5f9;
+            overflow: hidden;
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        /* Banner superior de edición */
+        .edit-banner {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            padding: 1.5rem 2rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .edit-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+            padding: 2rem;
+        }
+
+        /* Estilos de Input */
+        .form-label-edit {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #64748b;
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+        }
+
+        .form-control-edit {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            color: #1e293b;
+        }
+
+        .form-control-edit:focus {
+            border-color: #541E12;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(84, 30, 18, 0.1);
+        }
+
+        /* Campos deshabilitados/readonly */
+        .form-control-readonly {
+            background-color: #f8fafc;
+            border-color: #f1f5f9;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        /* Secciones internas */
+        .edit-section-title {
+            grid-column: span 2;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #541E12;
+            padding-top: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Botones */
+        .btn-update {
+            background-color: #541E12;
+            color: white;
+            padding: 0.8rem 2.5rem;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-update:hover {
+            background-color: #3d150d;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(84, 30, 18, 0.2);
+        }
+
+        .btn-back {
+            background-color: #f1f5f9;
+            color: #64748b;
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        @media (max-width: 768px) {
+            .edit-grid { grid-template-columns: 1fr; }
+            .edit-section-title { grid-column: span 1; }
+        }
+
+        .contenedor-main { background: transparent !important; box-shadow: none !important; }
+    </style>
+
+    <div class="max-w-5xl mx-auto pb-12">
+        <div class="edit-card">
+            
+            <div class="edit-banner">
+                <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-md">
+                    <i class="fa-solid fa-user-pen text-2xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold">Modificar Perfil</h2>
+                    <p class="text-white/80 text-sm">Actualice la información del usuario en el sistema</p>
+                </div>
+            </div>
+
+            <form action="{% url 'editar_usuario' %}" method="post">
+                {% csrf_token %}
+                
+                <div class="edit-grid">
+                    
+                    <h3 class="edit-section-title">Datos de Identidad (No editables)</h3>
+                    
+                    <div>
+                        <label class="form-label-edit">Documento</label>
+                        <input type="text" name="txt_numero_documento" class="form-control-edit form-control-readonly" 
+                               value="{{ usuario.numero_documento }}" readonly>
+                    </div>
+
+                    <div>
+                        <label class="form-label-edit">ID Sistema</label>
+                        <input type="text" name="txt_id" class="form-control-edit form-control-readonly" 
+                               value="{{ usuario.id }}" readonly>
+                    </div>
+
+                    <div>
+                        <label class="form-label-edit">Contraseña</label>
+                        <input type="password" name="txt_contrasena" class="form-control-edit form-control-readonly" 
+                               value="{{ usuario.contrasena }}" readonly>
+                    </div>
+
+                    <h3 class="edit-section-title">Información Actualizable</h3>
+
+                    <div>
+                        <label class="form-label-edit">Nombre Completo</label>
+                        <input type="text" name="txt_nombre" class="form-control-edit" value="{{ usuario.nombre }}" required>
+                    </div>
+
+                    <div>
+                        <label class="form-label-edit">Correo Electrónico</label>
+                        <input type="email" name="txt_correo" class="form-control-edit" value="{{ usuario.correo }}" required>
+                    </div>
+
+                    <div>
+                        <label class="form-label-edit">Dirección</label>
+                        <input type="text" name="txt_direccion" class="form-control-edit" value="{{ usuario.direccion|default:'' }}">
+                    </div>
+
+                    <div>
+                        <label class="form-label-edit">Teléfono</label>
+                        <input type="text" name="txt_telefono" class="form-control-edit" value="{{ usuario.telefono|default:'' }}">
+                    </div>
+
+                    <div>
+                        <label class="form-label-edit">Nivel Educativo</label>
+                            <select name="txt_nivel_educativo" class="form-control-edit">
+                                <option value="">-- Seleccione --</option>
+                                <option value="Bachiller" {% if usuario.nivel_educativo == "Bachiller" %}selected{% endif %}>Bachiller</option>
+                                <option value="Tecnico" {% if usuario.nivel_educativo == "Tecnico" %}selected{% endif %}>Técnico</option>
+                                <option value="Tecnologo" {% if usuario.nivel_educativo == "Tecnologo" %}selected{% endif %}>Tecnólogo</option>
+                                <option value="Profesional" {% if usuario.nivel_educativo == "Profesional" %}selected{% endif %}>Profesional</option>
+                            </select>
+                    </div>
+
+                    <div>
+                        <label class="form-label-edit">EPS</label>
+                        <input type="text" name="txt_eps" class="form-control-edit" value="{{ usuario.eps|default:'' }}">
+                    </div>
+
+                    <h3 class="edit-section-title">Referencias y Seguridad</h3>
+
+                    <div>
+                        <label class="form-label-edit">Referencia Personal</label>
+                        <input type="text" name="txt_referencia_personal" class="form-control-edit" value="{{ usuario.referencia_personal|default:'' }}">
+                    </div>
+
+                    <div>
+                        <label class="form-label-edit">Teléfono Referencia</label>
+                        <input type="text" name="txt_telefono_referencia_personal" class="form-control-edit" value="{{ usuario.telefono_referencia_personal|default:'' }}">
+                    </div>
+
+                    <div>
+                        <label class="form-label-edit">Rol del Usuario</label>
+                        <select name="txt_rol" class="form-control-edit font-bold" required>
+                            {% for rol in roles %}
+                                <option value="{{ rol.id }}" {% if rol.id == usuario.rol.id %}selected{% endif %}>
+                                    {{ rol.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="form-label-edit">Estado de la Cuenta</label>
+                        <select name="txt_estado" class="form-control-edit">
+                            <option value="A" {% if usuario.estado == "A" %}selected{% endif %}>✅ Activo</option>
+                            <option value="I" {% if usuario.estado == "I" %}selected{% endif %}>❌ Inactivo</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="bg-gray-50 p-6 flex justify-between items-center">
+                    <a href="{% url 'listar_usuarios' %}" class="btn-back transition hover:bg-gray-200">
+                        <i class="fa-solid fa-xmark mr-1"></i> Descartar
+                    </a>
+                    <button type="submit" class="btn-update">
+                        <i class="fa-solid fa-check-double mr-1"></i> Guardar Cambios
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+{% endblock %}

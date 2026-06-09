@@ -1,0 +1,302 @@
+{% extends "base2.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    :root {
+        --bg-main: #fdfaf6;
+        --bg-card: #ffffff;
+        --border-soft: #ede9e3;
+        --primary: #b45309; /* Dorado Arron */
+        --secondary: #541E12; /* Vinotinto Arron */
+        --text-main: #1c1917;
+    }
+
+    body { background: var(--bg-main); color: var(--text-main); }
+
+    /* Contenedor de Inventario con estilo Premium */
+    .inventory-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(16px);
+        border-radius: 28px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+        border: 1px solid var(--border-soft);
+        margin-bottom: 40px;
+        transition: transform 0.3s ease;
+    }
+
+    /* Tabla Estilizada */
+    .table-modern {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 12px;
+    }
+
+    .table-modern thead th {
+        color: var(--text-main);
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        padding: 1rem;
+        border-bottom: 2px solid var(--primary);
+    }
+
+    .table-modern tbody tr {
+        background-color: white;
+        transition: all 0.3s ease;
+    }
+
+    .table-modern tbody tr:hover {
+        transform: scale(1.005);
+        box-shadow: 0 15px 30px rgba(180, 83, 9, 0.08);
+    }
+
+    .table-modern td {
+        padding: 1.2rem 1rem;
+        vertical-align: middle;
+        border-top: 1px solid var(--border-soft);
+        border-bottom: 1px solid var(--border-soft);
+    }
+
+    .table-modern td:first-child { border-left: 1px solid var(--border-soft); border-radius: 15px 0 0 15px; }
+    .table-modern td:last-child { border-right: 1px solid var(--border-soft); border-radius: 0 15px 15px 0; }
+
+    /* Imagen con toque de diseño */
+    .product-img {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 16px;
+        border: 3px solid var(--bg-main);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    /* Botones de Acción Redondeados */
+    .btn-action {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-view { background: #f8fafc; color: #64748b; }
+    .btn-edit { background: #fffbeb; color: #d97706; }
+    .btn-delete { background: #fef2f2; color: #dc2626; border: none; }
+    .btn-enable { background: #f0fdf4; color: #16a34a; }
+
+    .btn-action:hover { transform: translateY(-3px) rotate(8deg); filter: brightness(0.95); }
+
+    /* Badges de Stock */
+    .stock-badge {
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 800;
+        background: var(--bg-main);
+        color: var(--secondary);
+    }
+
+    /* Botones Superiores */
+    .btn-nav-premium {
+        padding: 12px 24px;
+        border-radius: 16px;
+        font-weight: 800;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: 0.4s;
+    }
+
+    .btn-gold { background: var(--primary); color: white; box-shadow: 0 10px 20px rgba(180, 83, 9, 0.2); }
+    .btn-slate { background: var(--secondary); color: white; }
+    .btn-outline { border: 2px solid var(--border-soft); color: var(--text-main); background: white; }
+
+    .btn-nav-premium:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(0,0,0,0.1); }
+
+    /* Dark Mode Support */
+    .dark-mode .inventory-card { background: rgba(15, 23, 42, 0.8); border-color: rgba(255,255,255,0.05); }
+    .dark-mode .table-modern tbody tr { background-color: rgba(30, 41, 59, 0.5); }
+    .dark-mode .table-modern td { border-color: rgba(255,255,255,0.05); color: #e2e8f0; }
+    .dark-mode .text-gray-800 { color: white; }
+</style>
+
+<div class="max-w-7xl mx-auto px-6 py-10">
+
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
+        <div>
+            <h1 class="text-4xl font-black tracking-tighter text-gray-800">
+                Catálogo de <span class="text-[var(--primary)] italic">Productos</span>
+            </h1>
+            <p class="text-gray-500 font-medium mt-1">Inventario Maestro de Arron Eventos</p>
+        </div>
+
+        <form method="GET" action="{% url 'exportar_productos_pdf' %}" target="_blank" class="flex flex-wrap gap-3 items-center">
+            
+            <div class="relative">
+                <input type="text" name="q" placeholder="Filtrar reporte..." 
+                       class="pl-10 pr-4 py-3 bg-white border border-[var(--border-soft)] rounded-2xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            </div>
+
+            <label class="btn-nav-premium btn-outline cursor-pointer m-0">
+                <input type="checkbox" name="bajo_stock" class="hidden peer">
+                <i class="fa-solid fa-triangle-exclamation text-red-500"></i>
+                <span class="peer-checked:text-red-600">Solo Stock Bajo</span>
+            </label>
+
+            <button type="submit" class="btn-nav-premium btn-slate border-none cursor-pointer">
+                <i class="fa-solid fa-file-pdf"></i>
+                Generar Reporte
+            </button>
+
+            <a href="{% url 'movimientos_producto' %}" class="btn-nav-premium btn-outline">
+                <i class="fa-solid fa-arrow-right-arrow-left text-amber-600"></i>
+                Ver Movimientos
+            </a>
+
+            <a href="{% url 'ejecutar_super_carga' %}" class="btn-nav-premium btn-outline border-amber-500 text-amber-700 hover:bg-amber-50" 
+   onclick="return confirm('¿Deseas iniciar la carga masiva desde las carpetas del servidor?')">
+    <i class="fa-solid fa-cloud-arrow-up"></i>
+    Super Carga
+</a>
+
+            <a href="{% url 'mostrar_registro_producto' %}" class="btn-nav-premium btn-gold">
+                <i class="fa-solid fa-plus"></i>
+                Nuevo Producto
+            </a>
+        </form>
+    </div>
+
+    <div class="inventory-card animate-in">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-xs font-black uppercase tracking-[0.2em] text-emerald-600 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Disponibles para Alquiler
+            </h2>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="table-modern">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Imagen</th>
+                        <th>Producto</th>
+                        <th>Existencia</th>
+                        <th>Tarifa Alquiler</th>
+                        <th class="text-center">Gestión</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in productos %}
+                    <tr>
+                        <td class="text-xs font-bold text-gray-400">#{{ producto.id }}</td>
+                        <td>
+                            {% if producto.imagen %}
+                            <img src="{{ producto.imagen.url }}" class="product-img">
+                            {% else %}
+                            <div class="product-img bg-gray-100 flex items-center justify-center">
+                                <i class="fa-solid fa-box text-gray-300"></i>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="font-black text-gray-800">{{ producto.nombre_producto }}</div>
+                            <div class="text-[10px] text-gray-400 uppercase tracking-widest">Arron Id: PRD-{{ producto.id }}</div>
+                        </td>
+                        <td>
+                            <span class="stock-badge">{{ producto.stock_disponible }} un.</span>
+                        </td>
+                        <td>
+                            <div class="font-black text-emerald-700">${{ producto.precio_alquiler|intcomma }}</div>
+                        </td>
+                        <td class="text-center">
+                            <div class="flex justify-center gap-3">
+                                <a href="{% url 'mostrar_detalle_producto' producto.id %}" class="btn-action btn-view" title="Ver Detalle">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                <a href="{% url 'pre_editar_producto' producto.id %}" class="btn-action btn-edit" title="Editar">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <form action="{% url 'eliminar_producto' producto.id %}" method="get" class="inline">
+                                    <button onclick="return confirm('¿Inactivar producto?')" class="btn-action btn-delete" title="Inactivar">
+                                        <i class="fa-solid fa-ban"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-20">
+                            <i class="fa-solid fa-box-open text-4xl text-gray-200 mb-4 block"></i>
+                            <p class="text-gray-400 font-bold">No hay productos en el catálogo activo</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="inventory-card opacity-80 border-dashed">
+        <h2 class="text-xs font-black uppercase tracking-[0.2em] text-red-400 mb-8">Archivo de Productos Inactivos</h2>
+        <div class="overflow-x-auto">
+            <table class="table-modern">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Imagen</th>
+                        <th>Nombre</th>
+                        <th>Precio Anterior</th>
+                        <th class="text-center">Restaurar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in productos_inactivos %}
+                    <tr>
+                        <td class="text-xs text-gray-400 italic">#{{ producto.id }}</td>
+                        <td>
+                            {% if producto.imagen %}
+                            <img src="{{ producto.imagen.url }}" class="product-img grayscale">
+                            {% endif %}
+                        </td>
+                        <td class="font-bold text-gray-500">{{ producto.nombre_producto }}</td>
+                        <td class="text-gray-400 font-bold">${{ producto.precio_alquiler|intcomma }}</td>
+                        <td class="text-center">
+                            <a href="{% url 'habilitar_producto' producto.id %}" 
+                               onclick="return confirm('¿Reincorporar este producto al inventario?')" 
+                               class="btn-action btn-enable">
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-6 text-gray-300 text-xs italic">
+                            No hay productos en el archivo
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Soporte para modo oscuro si el dashboard lo activó
+    if (document.body.classList.contains('dark-mode')) {
+        // Lógica adicional si es necesaria
+    }
+</script>
+{% endblock %}

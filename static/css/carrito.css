@@ -1,0 +1,85 @@
+:root {
+    --primary: #fbc02d;
+    --dark: #121212;
+    --card-bg: #1e1e1e;
+    --text-muted: #a0a0a0;
+}
+
+.carrito-wrapper { background-color: var(--dark); min-height: 100vh; color: white; }
+
+/* Títulos y Badges */
+.section-title { font-weight: 800; text-transform: uppercase; letter-spacing: -1px; font-size: 2rem; }
+.badge-items { background: rgba(255,193,7,0.1); color: var(--primary); padding: 8px 16px; border-radius: 30px; font-weight: 700; font-size: 0.8rem; border: 1px solid var(--primary); }
+
+/* Tarjetas de Producto */
+.cart-item-modern {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: 0.3s;
+}
+.cart-item-modern:hover { transform: translateX(5px); border-color: var(--primary); }
+
+.img-container img { width: 80px; height: 80px; object-fit: cover; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+
+.item-name { font-weight: 700; margin-bottom: 4px; }
+.item-price { color: var(--primary); font-weight: 600; font-size: 0.95rem; }
+.remove-link { color: #ff5252; text-decoration: none; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; transition: 0.3s; }
+.remove-link:hover { color: #ff1744; }
+
+/* Stepper de Cantidad */
+.quantity-stepper { background: #2a2a2a; border-radius: 12px; display: flex; align-items: center; border: 1px solid #333; }
+.step-btn { background: none; border: none; color: white; padding: 10px 15px; font-size: 1.2rem; transition: 0.2s; }
+.step-btn:hover { color: var(--primary); }
+.step-input { background: none; border: none; color: white; width: 40px; text-align: center; font-weight: 700; }
+
+.subtotal-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); display: block; }
+.subtotal-val { font-weight: 800; font-size: 1.1rem; margin: 0; }
+
+/* Tarjeta de Resumen (Derecha) */
+.summary-card {
+    background: white;
+    border-radius: 24px;
+    padding: 30px;
+    color: #121212;
+    position: sticky;
+    top: 100px;
+}
+.summary-title { font-weight: 800; margin-bottom: 25px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
+
+/* Selector Moderno */
+.delivery-box { background: #f8f9fa; padding: 15px; border-radius: 16px; }
+.delivery-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: #666; margin-bottom: 10px; }
+.select-wrapper { position: relative; }
+.modern-select { 
+    width: 100%; border: 1px solid #ddd; padding: 10px 15px; border-radius: 10px; 
+    appearance: none; font-weight: 600; background: white; cursor: pointer;
+}
+.select-icon { position: absolute; right: 15px; top: 15px; pointer-events: none; color: #999; }
+
+/* Desglose de Precios */
+.bill-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-weight: 600; color: #555; }
+.bill-row.highlight { color: #0d6efd; background: #eef6ff; padding: 10px; border-radius: 10px; margin: 15px 0; }
+.bill-row.total { font-size: 1.5rem; color: #121212; font-weight: 900; }
+.divider { opacity: 0.1; margin: 20px 0; }
+
+/* Botón Checkout */
+.btn-checkout {
+    background: var(--dark);
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 18px;
+    border-radius: 16px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    transition: 0.3s;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+.btn-checkout:hover { background: #333; color: var(--primary); transform: translateY(-3px); }
+
+/* Empty State */
+.empty-state { text-align: center; padding: 60px; background: var(--card-bg); border-radius: 30px; border: 2px dashed #333; }
+.empty-icon { font-size: 4rem; margin-bottom: 20px; }

@@ -1,0 +1,249 @@
+{% extends "base2.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    :root {
+        --bg-main: #fdfaf6;
+        --bg-card: #ffffff;
+        --border-soft: #ede9e3;
+        --primary: #b45309; /* Dorado Arron */
+        --secondary: #541E12; /* Vinotinto Arron */
+        --text-main: #1c1917;
+    }
+
+    body { background: var(--bg-main); color: var(--text-main); }
+
+    /* Tarjetas Elevadas con Blur */
+    .inventory-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(16px);
+        border-radius: 28px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+        border: 1px solid var(--border-soft);
+        margin-bottom: 40px;
+    }
+
+    /* Tabla Estilo Boutique */
+    .table-modern {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 12px;
+    }
+
+    .table-modern thead th {
+        color: var(--text-main);
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        padding: 1rem;
+        border-bottom: 2px solid var(--primary);
+    }
+
+    .table-modern tbody tr {
+        background-color: white;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .table-modern tbody tr:hover {
+        transform: scale(1.005);
+        box-shadow: 0 15px 30px rgba(84, 30, 18, 0.05);
+    }
+
+    .table-modern td {
+        padding: 1.2rem 1rem;
+        vertical-align: middle;
+        border-top: 1px solid var(--border-soft);
+        border-bottom: 1px solid var(--border-soft);
+    }
+
+    .table-modern td:first-child { border-left: 1px solid var(--border-soft); border-radius: 15px 0 0 15px; }
+    .table-modern td:last-child { border-right: 1px solid var(--border-soft); border-radius: 0 15px 15px 0; }
+
+    /* Badges de Estado Premium */
+    .badge {
+        padding: 6px 14px;
+        border-radius: 10px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+    }
+    
+    /* Mapeo de estados a colores Arron */
+    .status-reservado { background: #fffbeb; color: #d97706; border: 1px solid #fef3c7; } 
+    .status-confirmado { background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
+    .status-encurso { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }   
+    .status-devuelto { background: #fdf4ff; color: #9333ea; border: 1px solid #f5e1ff; }  
+    .status-finalizado { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+    .status-cancelado { background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; }
+
+    /* Botones de Acción */
+    .btn-action {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-view { background: #f8fafc; color: #64748b; }
+    .btn-process { background: #f0fdf4; color: #16a34a; }
+    .btn-truck { background: #fff7ed; color: #ea580c; }
+    .btn-liquidar { background: #fdf2f8; color: #db2777; }
+
+    .btn-action:hover { transform: translateY(-3px) rotate(8deg); filter: brightness(0.95); }
+
+    /* Botones Superiores Nav */
+    .btn-nav-premium {
+        padding: 12px 24px;
+        border-radius: 16px;
+        font-weight: 800;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: 0.4s;
+    }
+
+    .btn-gold { background: var(--primary); color: white; box-shadow: 0 10px 20px rgba(180, 83, 9, 0.2); }
+    .btn-slate { background: var(--secondary); color: white; }
+
+    .btn-nav-premium:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(0,0,0,0.1); }
+</style>
+
+<div class="max-w-7xl mx-auto px-6 py-10">
+    
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
+        <div>
+            <h1 class="text-4xl font-black tracking-tighter text-gray-800">
+                Control de <span class="text-[var(--secondary)]">Alquileres</span>
+            </h1>
+            <p class="text-gray-500 font-medium mt-1">Gestión logística y contratos de Arron Eventos</p>
+        </div>
+    </div>
+
+    <div class="inventory-card">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-xs font-black uppercase tracking-[0.2em] text-blue-600 flex items-center gap-3">
+                <span class="flex h-3 w-3 relative">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+                </span>
+                Operaciones en Curso
+            </h2>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="table-modern">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th>Cliente / Titular</th>
+                        <th>Periodo Alquiler</th>
+                        <th>Estado Logístico</th>
+                        <th>Total Final</th>
+                        <th class="text-center">Gestión</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alquiler in alquileres_activos %}
+                    <tr>
+                        <td class="font-mono text-xs text-gray-400 ps-4">#{{ alquiler.id }}</td>
+                        <td>
+                            <div class="font-black text-gray-800">{{ alquiler.usuario.nombre }}</div>
+                            <div class="text-[10px] text-gray-400 uppercase tracking-widest">Contrato: {{ alquiler.id|stringformat:"05d" }}</div>
+                        </td>
+                        <td>
+                            <div class="text-sm font-bold text-gray-600 italic">
+                                {{ alquiler.fecha_inicio|date:"d M" }} <i class="fa-solid fa-arrow-right text-[10px] mx-1 text-gray-300"></i> {{ alquiler.fecha_devolucion|date:"d M, Y" }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge status-{{ alquiler.estado|lower|cut:' ' }}">
+                                {{ alquiler.estado }}
+                            </span>
+                        </td>
+                        <td class="font-black text-[var(--secondary)]">
+                            ${{ alquiler.total_final|intcomma }}
+                        </td>
+                        <td class="text-center">
+                            <div class="flex justify-center gap-3">
+                                <a href="{% url 'mostrar_detalle_alquiler' alquiler.id %}" class="btn-action btn-view" title="Ver Expediente">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+
+                                {% if alquiler.estado == 'Confirmado' or alquiler.estado == 'Reservado' %}
+                                <a href="{% url 'despachar_alquiler' alquiler.id %}" class="btn-action btn-truck" title="Despachar Mobiliario">
+                                    <i class="fa-solid fa-truck-fast"></i>
+                                </a>
+                                {% endif %}
+
+                                {% if alquiler.estado == 'En Curso' %}
+                                <a href="{% url 'registrar_retorno' alquiler.id %}" class="btn-action btn-process" title="Registrar Retorno">
+                                    <i class="fa-solid fa-clipboard-check"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center py-20 text-gray-300 italic font-bold">No hay movimientos activos en este momento.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="inventory-card opacity-90 border-dashed">
+        <h2 class="text-xs font-black uppercase tracking-[0.2em] text-gray-400 mb-8 flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left"></i> Historial Reciente
+        </h2>
+        <div class="overflow-x-auto">
+            <table class="table-modern">
+                <tbody>
+                    {% for alquiler in alquileres_historial %}
+                    <tr class="opacity-80">
+                        <td class="font-mono text-xs text-gray-400 ps-4">#{{ alquiler.id }}</td>
+                        <td class="font-bold text-gray-700">{{ alquiler.usuario.nombre }}</td>
+                        <td>
+                            <span class="badge status-{{ alquiler.estado|lower }}">
+                                {{ alquiler.estado }}
+                            </span>
+                        </td>
+                        <td class="font-bold text-gray-400 text-sm">${{ alquiler.total_final|intcomma }}</td>
+                        <td class="text-center">
+                            <div class="flex justify-center gap-3">
+                                <a href="{% url 'mostrar_detalle_alquiler' alquiler.id %}" class="btn-action btn-view">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+
+                                {% if alquiler.estado == 'Devuelto' %}
+                                <a href="{% url 'liquidar_alquiler' alquiler.id %}" class="btn-action btn-liquidar" title="Liquidar Garantía">
+                                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                                </a>
+                                {% endif %}
+
+                                {% if alquiler.estado == 'Finalizado' %}
+                                <span class="text-emerald-500 flex items-center justify-center w-[40px]">
+                                    <i class="fa-solid fa-circle-check text-xl"></i>
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

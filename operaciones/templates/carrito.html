@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    :root {
+        --primary-gold: #fbc02d;
+        --deep-black: #000000;
+        --card-dark: #111111;
+        --input-bg: #1a1a1a;
+        --text-main: #ffffff;
+        --text-secondary: #e0e0e0;
+        --text-muted: #b0b0b0;
+    }
+
+    .carrito-wrapper {
+        background-color: var(--deep-black);
+        min-height: 100vh;
+        color: var(--text-main);
+        padding-top: 60px;
+    }
+
+    .section-title {
+        font-weight: 800;
+        color: var(--text-main);
+    }
+
+    .badge-items {
+        background: rgba(251, 192, 45, 0.2);
+        color: var(--primary-gold);
+        padding: 8px 18px;
+        border-radius: 50px;
+        font-weight: 700;
+        border: 1px solid var(--primary-gold);
+    }
+
+    .cart-item-modern {
+        background: var(--card-dark);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 20px;
+    }
+
+    .product-name {
+        color: var(--text-main) !important;
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+
+    .product-price {
+        color: var(--primary-gold) !important;
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+
+    .qty-controls {
+        display: flex;
+        align-items: center;
+        background: #000;
+        border-radius: 12px;
+        padding: 4px;
+        border: 1px solid rgba(251, 192, 45, 0.3);
+    }
+
+    .qty-btn {
+        width: 35px;
+        height: 35px;
+        border-radius: 8px;
+        border: none;
+        background: #222;
+        color: var(--primary-gold);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+
+    .qty-input {
+        width: 45px;
+        background: transparent;
+        border: none;
+        color: #fff !important;
+        text-align: center;
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+
+    .summary-card {
+        background: var(--card-dark);
+        border-radius: 20px;
+        padding: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .date-label {
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: var(--primary-gold);
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    #fecha_alquiler, #fecha_limite {
+        background: #000 !important;
+        border: 1px solid #444 !important;
+        color: #ffffff !important;
+        padding: 12px 12px 12px 40px !important;
+        border-radius: 8px;
+        width: 100%;
+        font-weight: 600;
+    }
+
+    .price-row span:first-child {
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .price-row span:last-child {
+        color: #fff;
+        font-weight: 700;
+    }
+
+    .total-label {
+        color: #fff;
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+
+    .btn-checkout {
+        background: var(--primary-gold);
+        color: #000;
+        border: none;
+        padding: 18px;
+        border-radius: 12px;
+        font-weight: 900;
+        width: 100%;
+        transition: transform 0.2s;
+    }
+
+    .btn-checkout:hover {
+        transform: scale(1.02);
+        background: #ffca28;
+    }
+
+    .custom-select {
+        background: #000;
+        color: #fff;
+        border: 1px solid #444;
+        padding: 12px;
+        border-radius: 10px;
+        width: 100%;
+    }
+
+    input::placeholder {
+        color: #666 !important;
+    }
+
+    .input-wrapper-premium {
+        position: relative;
+    }
+</style>
+
+<div class="carrito-wrapper">
+    <div class="container pb-5">
+        <div class="d-flex align-items-center justify-content-between mb-5">
+            <h2 class="section-title mb-0">
+                <span style="color: var(--primary-gold);">MI</span> CARRITO
+            </h2>
+            <span class="badge-items">
+                <i class="fa-solid fa-cart-shopping me-2"></i>{{ request.session.carrito|length }} PRODUCTOS
+            </span>
+        </div>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %} alert-dismissible fade show bg-dark text-white border-warning mb-4" role="alert">
+                    <i class="fa-solid fa-circle-info text-warning me-2"></i> {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div id="js-cart-errors" class="mb-4 d-none">
+            <div style="background: #270c0c; color: #ff8888; padding: 15px; border-radius: 12px; border: 1px solid #7c2d12; font-weight: bold;">
+                <i class="fa-solid fa-triangle-exclamation me-2 text-warning"></i> <span id="js-error-text"></span>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-8">
+                {% for id, item in request.session.carrito.items %}
+                <div class="cart-item-modern">
+                    <div class="row align-items-center g-3">
+                        <div class="col-4 col-md-2">
+                            <div class="img-container">
+                                <img src="{{ item.imagen }}" class="img-fluid rounded-3 shadow">
+                            </div>
+                        </div>
+                        
+                        <div class="col-8 col-md-5">
+                            <h5 class="product-name mb-1">{{ item.nombre }}</h5>
+                            <p class="product-price mb-2">
+                                ${{ item.precio|floatformat:0|intcomma }}
+                            </p>
+                            <a href="{% url 'eliminar_del_carrito' id %}" class="text-danger small fw-bold text-decoration-none">
+                                <i class="fa-solid fa-trash-can me-1"></i> ELIMINAR
+                            </a>
+                        </div>
+
+                        <div class="col-12 col-md-5 d-flex justify-content-md-end align-items-center">
+                            <form action="{% url 'actualizar_carrito' id %}" method="POST" class="qty-controls">
+                                {% csrf_token %}
+                                <button type="submit" name="accion" value="restar" class="qty-btn">−</button>
+                                <input type="number" name="cantidad" value="{{ item.cantidad }}" readonly class="qty-input">
+                                <button type="submit" name="accion" value="sumar" class="qty-btn">+</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5" style="background: var(--card-dark); border-radius: 20px; border: 1px dashed #444;">
+                    <h3 class="text-white">Tu carrito está vacío</h3>
+                    <a href="{% url 'productos_catalogo' %}" class="btn btn-warning fw-bold mt-3">VER CATÁLOGO</a>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="col-lg-4">
+                <div class="summary-card">
+                    <h4 class="mb-4 text-white fw-800">RESUMEN DE ALQUILER</h4>
+                    
+                    <form action="{% url 'confirmar_alquiler_carrito' %}" method="POST" id="form-confirmar">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="date-label">FECHA DEL EVENTO</label>
+                            <div class="input-wrapper-premium mb-3">
+                                <i class="fa-solid fa-calendar-day" style="position:absolute; left:12px; top:15px; color:var(--primary-gold); z-index: 10;"></i>
+                                <input type="text" name="fecha_alquiler" id="fecha_alquiler" 
+                                       value="{{ fecha_alquiler_guardada }}" placeholder="Seleccionar fecha" readonly required>
+                            </div>
+
+                            <label class="date-label">FECHA DE DEVOLUCIÓN</label>
+                            <div class="input-wrapper-premium">
+                                <i class="fa-solid fa-clock-rotate-left" style="position:absolute; left:12px; top:15px; color:var(--primary-gold); z-index: 10;"></i>
+                                <input type="text" id="fecha_limite" readonly placeholder="Automático">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="date-label">ENTREGA</label>
+                            <select name="requiere_transporte" id="transporte-selector" onchange="recalcularTotales()" class="custom-select fw-bold">
+                                <option value="no" {% if not requiere_transporte %}selected{% endif %}>Retiro en Bodega (Gratis)</option>
+                                <option value="si" {% if requiere_transporte %}selected{% endif %}>Envío a Domicilio (+$50,000)</option>
+                            </select>
+                        </div>
+
+                        <div class="pricing">
+                            <div class="d-flex justify-content-between mb-2 price-row">
+                                <span>Subtotal</span>
+                                <span>${{ subtotal|floatformat:0|intcomma }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 price-row">
+                                <span>Depósito Garantía</span>
+                                <span>${{ valor_danos|floatformat:0|intcomma }}</span>
+                            </div>
+                            {% if requiere_transporte %}
+                            <div class="d-flex justify-content-between mb-2 price-row">
+                                <span>Transporte</span>
+                                <span class="text-warning">+${{ costo_envio|floatformat:0|intcomma }}</span>
+                            </div>
+                            {% endif %}
+                            <hr style="border-color: #444;">
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <span class="total-label text-white">TOTAL FINAL</span>
+                                <span style="font-size: 1.8rem; font-weight: 900; color: var(--primary-gold);">
+                                    ${{ total_final|floatformat:0|intcomma }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-checkout mt-4" id="btn-submit-reserva">
+                            CONTINUAR RESERVA
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Capturamos el posible valor inicial que viene desde Django
+    const fechaInicial = document.getElementById("fecha_alquiler").value;
+
+    const fp = flatpickr("#fecha_alquiler", {
+        minDate: "today",
+        dateFormat: "d/m/Y",
+        locale: "es",
+        disableMobile: true,
+        defaultDate: fechaInicial ? fechaInicial : null, // Mantiene la fecha tras los POSTs automáticos
+        onChange: function(selectedDates) {
+            actualizarFechaLimite(selectedDates);
+        },
+        onReady: function(selectedDates, dateStr, instance) {
+            if(instance.selectedDates.length > 0) {
+                actualizarFechaLimite(instance.selectedDates);
+            }
+        }
+    });
+
+    function actualizarFechaLimite(selectedDates) {
+        if (selectedDates.length > 0) {
+            let fecha = new Date(selectedDates[0]);
+            fecha.setDate(fecha.getDate() + 3);
+            let dia = String(fecha.getDate()).padStart(2, '0');
+            let mes = String(fecha.getMonth() + 1).padStart(2, '0');
+            let anio = fecha.getFullYear();
+            document.getElementById("fecha_limite").value = `${dia}/${mes}/${anio}`;
+        }
+    }
+
+    // Validación antes de proceder a la reserva
+    const formConfirmar = document.getElementById('form-confirmar');
+    formConfirmar.addEventListener('submit', function(e) {
+        const fechaSeleccionada = document.getElementById('fecha_alquiler').value;
+        const errorContainer = document.getElementById('js-cart-errors');
+        const errorText = document.getElementById('js-error-text');
+
+        if (!fechaSeleccionada) {
+            e.preventDefault(); // Detiene el envío del formulario
+            errorText.textContent = "Por favor, selecciona una Fecha para tu Evento antes de continuar con la reserva.";
+            errorContainer.classList.remove('d-none');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+});
+
+// Cambia el comportamiento para enviar la fecha junto con la recarga de transporte
+function recalcularTotales() {
+    const form = document.getElementById('form-confirmar');
+    // Forzamos que vaya a la vista del carrito para procesar el cambio de transporte y retener los datos
+    form.action = "{% url 'ver_carrito' %}";
+    form.submit();
+}
+</script>
+
+{% endblock %}

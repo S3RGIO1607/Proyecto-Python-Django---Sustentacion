@@ -1,0 +1,204 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        :root {
+            --primary: #541E12;   /* Borgoña Arron */
+            --accent: #C5A059;    /* Dorado */
+            --success: #27ae60;   /* Verde para Pagado */
+            --danger: #c0392b;    /* Rojo para Mora/Daños */
+            --text-dark: #1A1A1A;
+            --bg-soft: #F9F7F5;
+        }
+
+        body { font-family: 'Helvetica', sans-serif; color: var(--text-dark); margin: 0; padding: 40px; }
+        
+        /* Header */
+        .header { display: table; width: 100%; border-bottom: 3px solid var(--primary); padding-bottom: 20px; margin-bottom: 30px; }
+        .header-left { display: table-cell; vertical-align: middle; }
+        .header-right { display: table-cell; vertical-align: middle; text-align: right; }
+        .logo { width: 130px; }
+        .header-right h1 { color: var(--primary); margin: 0; font-size: 1.8rem; text-transform: uppercase; }
+
+        /* Badges */
+        .badge {
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .badge-paid { background-color: var(--success); color: white; }
+        .badge-pending { background-color: #f1c40f; color: black; }
+        .badge-danger { background-color: var(--danger); color: white; }
+
+        /* Info Grid */
+        .info-grid { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .info-box { padding: 15px; border: 1px solid #eee; vertical-align: top; }
+        .label { color: var(--accent); font-size: 0.65rem; font-weight: 800; text-transform: uppercase; display: block; margin-bottom: 5px; }
+        .value { font-size: 0.9rem; font-weight: bold; }
+
+        /* Sección de Detalles */
+        .details-card { background: var(--bg-soft); border-radius: 8px; padding: 20px; margin-bottom: 30px; border-left: 4px solid var(--primary); }
+        
+        /* Tabla de Items */
+        .tabla-items { width: 100%; border-collapse: collapse; }
+        .tabla-items th { border-bottom: 2px solid var(--primary); padding: 10px; text-align: left; font-size: 0.75rem; color: var(--primary); }
+        .tabla-items td { padding: 12px 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+
+        /* Totales */
+        .summary-wrapper { width: 100%; margin-top: 20px; }
+        .total-table { width: 300px; float: right; border-collapse: collapse; }
+        .total-row td { padding: 8px 0; font-size: 0.85rem; }
+        .grand-total { background: var(--primary); color: white; border-radius: 8px; }
+        .grand-total td { padding: 15px 10px; font-weight: bold; font-size: 1.2rem; }
+
+        .footer { position: fixed; bottom: 30px; width: 100%; text-align: center; font-size: 0.7rem; color: #999; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-left">
+            <img src="file://{{ logo_path }}" class="logo">
+        </div>
+        <div class="header-right">
+            <h1>{{ titulo }}</h1>
+            {% if obj.estado != 'Reservado' and obj.estado != 'Cancelado' %}
+                <div class="badge badge-paid">✓ Pago Confirmado</div>
+            {% else %}
+                <div class="badge badge-pending">⚠ Pago Pendiente</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <table class="info-grid">
+        <tr>
+            <td class="info-box" style="width: 40%;">
+                <span class="label">Cliente</span>
+                <span class="value">{{ obj.usuario.nombre }}</span>
+                <span style="font-size: 0.8rem; color: #666;">{{ obj.usuario.email }}</span>
+            </td>
+            <td class="info-box">
+                <span class="label">ID Operación</span>
+                <span class="value">#{{ obj.id }}</span>
+                <span class="label" style="margin-top:10px;">Fecha Emisión</span>
+                <span class="value">{% now "d/m/Y" %}</span>
+            </td>
+            <td class="info-box">
+                <span class="label">Estado Actual</span>
+                <span class="value">{{ obj.estado }}</span>
+                {% if obj.dias_retraso > 0 %}
+                    <span class="badge badge-danger" style="display:block; margin-top:5px;">Retraso: {{ obj.dias_retraso }} días</span>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    {% if not obj.paquete %}
+    <div class="details-card">
+        <span class="label" style="color: var(--primary);">Periodo de Alquiler</span>
+        <table style="width: 100%; margin-top: 10px;">
+            <tr>
+                <td><strong>Salida:</strong> {{ obj.fecha_inicio|date:"d/m/Y" }}</td>
+                <td><strong>Límite:</strong> {{ obj.fecha_limite|date:"d/m/Y" }}</td>
+                <td><strong>Devolución:</strong> {{ obj.fecha_devolucion|date:"d/m/Y"|default:"Pendiente" }}</td>
+            </tr>
+        </table>
+    </div>
+    {% else %}
+    <div class="details-card">
+        <span class="label" style="color: var(--primary);">Planificación del Evento</span>
+        <table style="width: 100%; margin-top: 10px;">
+            <tr>
+                <td><strong>Lugar:</strong> {{ obj.lugar.nombre|default:"Por definir" }}</td>
+                <td><strong>Asistentes:</strong> {{ obj.asistentes }}</td>
+                <td><strong>Fecha:</strong> {{ obj.fecha_evento|date:"d/m/Y" }}</td>
+            </tr>
+        </table>
+    </div>
+    {% endif %}
+
+    <table class="tabla-items">
+        <thead>
+            <tr>
+                <th>Descripción del Servicio / Producto</th>
+                <th class="text-center">Cant.</th>
+                <th class="text-right">Unitario</th>
+                <th class="text-right">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in detalles %}
+            <tr>
+                <td>{{ item.nombre }}</td>
+                <td class="text-center">{{ item.cantidad }}</td>
+                <td class="text-right">${{ item.precio_unit|floatformat:0|intcomma }}</td>
+                <td class="text-right">${{ item.subtotal|floatformat:0|intcomma }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="summary-wrapper">
+        <table class="total-table">
+            <tr class="total-row">
+                <td class="text-right">Subtotal Base:</td>
+                <td class="text-right" style="width: 120px;">
+                    {% if obj.paquete %}${{ obj.total|floatformat:0|intcomma }}{% else %}${{ obj.valor_alquiler|floatformat:0|intcomma }}{% endif %}
+                </td>
+            </tr>
+            
+            {% if obj.costo_transporte > 0 %}
+            <tr class="total-row">
+                <td class="text-right">Transporte:</td>
+                <td class="text-right">${{ obj.costo_transporte|floatformat:0|intcomma }}</td>
+            </tr>
+            {% endif %}
+
+            {% if obj.valor_mora > 0 %}
+            <tr class="total-row" style="color: var(--danger); font-weight: bold;">
+                <td class="text-right">Mora por Retraso:</td>
+                <td class="text-right">${{ obj.valor_mora|floatformat:0|intcomma }}</td>
+            </tr>
+            {% endif %}
+
+            {% if obj.valor_danos > 0 %}
+            <tr class="total-row" style="color: var(--danger); font-weight: bold;">
+                <td class="text-right">Cargos por Daños:</td>
+                <td class="text-right">${{ obj.valor_danos|floatformat:0|intcomma }}</td>
+            </tr>
+            {% endif %}
+
+            {% if obj.deposito_garantia > 0 %}
+            <tr class="total-row" style="color: #888;">
+                <td class="text-right">Depósito de Garantía:</td>
+                <td class="text-right">${{ obj.deposito_garantia|floatformat:0|intcomma }}</td>
+            </tr>
+            {% endif %}
+
+            <tr class="grand-total">
+                <td class="text-right">TOTAL FINAL:</td>
+                <td class="text-right">${{ total|floatformat:0|intcomma }}</td>
+            </tr>
+        </table>
+        
+        <div style="width: 45%; font-size: 0.75rem; color: #666; margin-top: 20px;">
+            <strong>Notas Legales:</strong><br>
+            {% if obj.estado != 'Reservado' and obj.estado != 'Cancelado' %}
+                Este documento confirma la recepción del pago. Los cargos por daños (si los hay) han sido procesados tras la auditoría del mobiliario/evento.
+            {% else %}
+                Este es un presupuesto sujeto a cambios. Los daños detectados post-evento serán descontados del depósito de garantía.
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="footer">
+        Arron Eventos Premium | Bogotá, Colombia | www.arroneventos.com
+    </div>
+
+</body>
+</html>

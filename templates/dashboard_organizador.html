@@ -1,0 +1,131 @@
+{% extends "base2.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .bg-gradient-gold {
+        background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%);
+    }
+    .shadow-premium {
+        box-shadow: 0 25px 50px -12px rgba(217, 119, 6, 0.15);
+    }
+</style>
+
+<div class="max-w-7xl mx-auto px-6 py-10">
+    <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+        <div>
+            <span class="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600 mb-2 block">Event Curation</span>
+            <h1 class="text-5xl font-black tracking-tighter text-gray-900">
+                PLANNER <span class="font-light italic text-amber-600">Studio</span>
+            </h1>
+        </div>
+        <div class="text-right">
+            <p class="text-xs font-bold text-gray-400 uppercase">Event Planner</p>
+            <p class="text-sm font-black text-gray-800">{{ user.nombre }}</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+        <a href="{% url 'listar_reservas' %}" class="lg:col-span-8 bg-gradient-gold p-10 text-white relative overflow-hidden group shadow-premium flex flex-col justify-between min-h-[320px] rounded-[2.5rem] transition-transform hover:scale-[1.01]">
+            <div class="relative z-10">
+                <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6">
+                    <i class="fa-solid fa-champagne-glasses text-3xl"></i>
+                </div>
+                <h2 class="text-4xl font-black italic mb-2">Gestión de Eventos</h2>
+                <p class="text-amber-100 text-lg max-w-md leading-relaxed">Personaliza menús, coordina locaciones y supervisa cronogramas de gala.</p>
+            </div>
+            
+            <div class="relative z-10 flex gap-10 border-t border-white/20 pt-6">
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-amber-200">Próximos</p>
+                    <p class="text-3xl font-black">{{ eventos_proximos }}</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-amber-200">En Evaluación</p>
+                    <p class="text-3xl font-black">{{ eventos_evaluacion }}</p>
+                </div>
+            </div>
+            <i class="fa-solid fa-wand-magic-sparkles absolute -right-20 -bottom-20 text-[25rem] opacity-10 group-hover:rotate-12 transition-transform duration-1000"></i>
+        </a>
+
+        <div class="lg:col-span-4 bg-white p-10 flex flex-col justify-between shadow-xl rounded-[2.5rem] border border-gray-50 relative overflow-hidden">
+            <h3 class="text-[10px] font-black uppercase tracking-widest text-gray-400 border-b pb-4">Platillo Estrella</h3>
+            
+            <div class="text-center py-4 relative z-10">
+                <div class="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-utensils text-3xl text-amber-500"></i>
+                </div>
+                <p class="text-2xl font-black text-gray-800 leading-tight mb-1">
+                    {% if menu_top %}{{ menu_top.nombre }}{% else %}Sin datos{% endif %}
+                </p>
+                <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-[10px] font-black uppercase">Tendencia del mes</span>
+            </div>
+
+            <a href="{% url 'gestionar_catalogos' %}" class="w-full py-4 bg-slate-900 text-white rounded-2xl text-center font-bold hover:bg-slate-800 transition-colors z-10">
+                Ver Catalogo
+            </a>
+            <i class="fa-solid fa-plate-wheat absolute -left-10 -bottom-10 text-8xl text-gray-50"></i>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div class="lg:col-span-3 bg-white p-8 shadow-xl rounded-[2.5rem] border border-gray-50">
+            <div class="flex items-center justify-between mb-10">
+                <h3 class="text-sm font-black uppercase italic tracking-tighter text-gray-800">Agenda de la Semana</h3>
+                <span class="text-xs font-bold text-amber-600 bg-amber-50 px-4 py-1 rounded-full">Próximos 7 días</span>
+            </div>
+            
+            <div class="space-y-4">
+                {% for r in eventos_semana %}
+                <div class="flex items-center gap-6 p-5 rounded-[2rem] hover:bg-slate-50 transition-all border border-transparent hover:border-gray-100 group">
+                    <div class="w-16 h-20 bg-slate-900 rounded-2xl flex flex-col items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform">
+                        <span class="text-[10px] font-black uppercase opacity-60">{{ r.fecha_evento|date:"M" }}</span>
+                        <span class="text-2xl font-black">{{ r.fecha_evento|date:"d" }}</span>
+                    </div>
+                    
+                    <div class="flex-1">
+                        <h4 class="font-black text-gray-800 text-lg leading-tight">{{ r.usuario.nombre }}</h4>
+                        <p class="text-amber-600 font-bold text-sm">{{ r.paquete.nombre }}</p>
+                        <p class="text-xs text-gray-400 mt-1 uppercase">
+                            <i class="fa-solid fa-location-dot me-1"></i> {{ r.lugar.nombre }}
+                        </p>
+                    </div>
+                    
+                    <div class="hidden md:block text-right">
+                        <span class="px-5 py-2 {% if r.estado == 'Confirmado' %}bg-emerald-500{% else %}bg-amber-500{% endif %} text-white rounded-full text-[10px] font-black uppercase shadow-sm">
+                            {{ r.estado }}
+                        </span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-10">
+                    <p class="text-gray-400 italic">No hay eventos programados para esta semana.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-6">
+            <div class="bg-slate-900 p-8 text-white rounded-[2.5rem] relative overflow-hidden shadow-2xl">
+                <p class="text-[10px] font-black uppercase text-amber-500 mb-4 tracking-[0.2em]">Locación Estrella</p>
+                <p class="text-2xl font-bold leading-tight relative z-10">
+                    {% if lugar_mas_reservado %}{{ lugar_mas_reservado.nombre }}{% else %}No hay datos{% endif %}
+                </p>
+                <i class="fa-solid fa-star absolute -right-4 -top-4 text-6xl text-white/5"></i>
+            </div>
+
+            <a href="{% url 'listar_reservas' %}" class="flex-1 p-8 flex flex-col items-center justify-center group bg-white border-4 border-dashed border-gray-100 rounded-[2.5rem] hover:border-amber-500 transition-all hover:bg-amber-50/30">
+                <div class="w-14 h-14 bg-slate-50 group-hover:bg-amber-500 rounded-full flex items-center justify-center mb-4 transition-all duration-300">
+                    <i class="fa-solid fa-calendar-day text-2xl text-gray-300 group-hover:text-white transition-colors"></i>
+                </div>
+                <span class="text-[10px] font-black uppercase text-gray-400 group-hover:text-amber-600 tracking-widest text-center leading-tight">
+                    Radar de <br> Disponibilidad
+                </span>
+                <p class="text-[9px] text-gray-300 mt-2 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                    Consultar fechas libres
+                </p>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

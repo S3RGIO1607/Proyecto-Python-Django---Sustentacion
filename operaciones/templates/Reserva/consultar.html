@@ -1,0 +1,346 @@
+{% extends 'base2.html' %}
+{% load humanize %}
+
+{% block content %}
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg:#f7f9fc;
+    --card:#ffffff;
+    --text:#0f172a;
+    --soft:#64748b;
+    --border:#e5e7eb;
+    --accent:#541E12;
+    --success:#10b981;
+    --danger:#ef4444;
+    --warning:#f59e0b;
+}
+
+body { font-family: 'Inter', sans-serif; background:var(--bg); }
+
+.container-startup {
+    max-width: 1100px;
+    margin:auto;
+    padding:30px 20px;
+}
+
+/* HERO */
+.hero {
+    background: var(--card);
+    border-radius:18px;
+    padding:25px;
+    border:1px solid var(--border);
+    margin-bottom:20px;
+}
+
+.hero-top {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.status {
+    padding:6px 14px;
+    border-radius:50px;
+    background:#111827;
+    color:white;
+    font-size:0.75rem;
+}
+
+.hero h1 {
+    font-size:1.8rem;
+    font-weight:800;
+}
+
+/* ALERTAS */
+.alert {
+    padding:12px;
+    border-radius:10px;
+    margin-top:10px;
+    font-size:0.85rem;
+}
+
+.alert-warning { background:#fff7ed; color:#9a3412; }
+.alert-danger { background:#fef2f2; color:#991b1b; }
+
+/* GRID */
+.grid {
+    display:grid;
+    grid-template-columns:2fr 1fr;
+    gap:20px;
+}
+
+@media(max-width:1000px){
+    .grid { grid-template-columns:1fr; }
+}
+
+/* CARD */
+.card {
+    background:var(--card);
+    border-radius:16px;
+    padding:20px;
+    border:1px solid var(--border);
+    margin-bottom:15px;
+}
+
+/* LIST */
+.row {
+    display:flex;
+    justify-content:space-between;
+    padding:10px 0;
+    border-bottom:1px solid var(--border);
+}
+
+/* INVENTARIO */
+.inventory {
+    display:flex;
+    justify-content:space-between;
+    padding:10px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    margin-bottom:8px;
+}
+
+/* SIDEBAR */
+.sidebar {
+    position:sticky;
+    top:20px;
+}
+
+.total {
+    background:#0f172a;
+    color:white;
+    padding:20px;
+    border-radius:12px;
+    text-align:center;
+}
+
+/* BOTONES */
+.btn {
+    display:block;
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    text-align:center;
+    font-weight:600;
+    text-decoration:none;
+    margin-top:10px;
+    background:var(--accent);
+    color:white;
+}
+
+.back {
+    display:block;
+    text-align:center;
+    margin-top:10px;
+    color:var(--soft);
+    text-decoration:none;
+}
+
+</style>
+
+<div class="container-startup">
+
+    <!-- HERO -->
+    <div class="hero">
+        <div class="hero-top">
+            <div>
+                <h1>Reserva #{{ reserva.id }}</h1>
+                <small>{{ reserva.usuario.nombre }}</small>
+            </div>
+            <div class="status">{{ reserva.estado }}</div>
+        </div>
+
+        <div class="mt-3">
+            <strong>Evento:</strong> {{ reserva.fecha_evento|date:"d M Y" }} - {{ reserva.hora_inicio|time:"h:i A" }}
+        </div>
+
+        <!-- ALERTAS INTELIGENTES -->
+        {% if reserva.estado == 'Reservado' %}
+            <div class="alert alert-warning">
+                ⚠️ Evento pendiente de confirmación
+            </div>
+        {% elif reserva.estado == 'Evento Activo' %}
+            <div class="alert alert-warning">
+                ⚠️ Evento en curso - pendiente registrar retorno
+            </div>
+        {% elif reserva.estado == 'Evaluacion' %}
+            <div class="alert alert-danger">
+                ⚠️ Pendiente liquidar depósito y daños
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="grid">
+
+        <!-- MAIN -->
+        <div>
+
+            <!-- EVENTO -->
+            <div class="card">
+                <strong>Resumen del Evento</strong>
+
+                <div class="row">
+                    <span>Fecha</span>
+                    <strong>{{ reserva.fecha_evento|date:"d/m/Y" }}</strong>
+                </div>
+
+                <div class="row">
+                    <span>Hora</span>
+                    <strong>{{ reserva.hora_inicio|time:"h:i A" }}</strong>
+                </div>
+
+                <div class="row">
+                    <span>Duración</span>
+                    <strong>{{ reserva.paquete.duracion_horas }} horas</strong>
+                </div>
+
+                <div class="row">
+                    <span>Ubicación</span>
+                    <strong>{{ reserva.lugar|default:"Por confirmar" }}</strong>
+                </div>
+            </div>
+
+            <!-- CONFIG -->
+            <div class="card">
+                <strong>Configuración</strong>
+
+                <div class="row">
+                    <span>Paquete</span>
+                    <strong>{{ reserva.paquete.nombre }}</strong>
+                </div>
+
+                <div class="row">
+                    <span>Menú</span>
+                    <strong>{{ reserva.menu_comida.nombre|default:"Sin catering" }}</strong>
+                </div>
+
+                <strong class="d-block mt-3">Servicios adicionales</strong>
+
+                {% for s in servicios %}
+                    <div class="row">
+                        <span>{{ s.servicio.nombre }} (x{{ s.cantidad }})</span>
+                        <strong>${{ s.precio_fijado|intcomma }}</strong>
+                    </div>
+                {% empty %}
+                    <p class="text-muted">Sin extras</p>
+                {% endfor %}
+            </div>
+
+            <!-- INVENTARIO -->
+            <div class="card">
+    <strong>Inventario</strong>
+
+    <!-- HEADER -->
+    <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#64748b; margin-top:10px; padding-bottom:6px; border-bottom:1px solid var(--border);">
+        <span>Producto</span>
+        <span>Cantidad contratada</span>
+        <span>Estado</span>
+    </div>
+
+    {% for item in reserva.productos.all %}
+    <div class="inventory">
+
+        <!-- PRODUCTO -->
+        <div>
+            <strong>{{ item.producto.nombre_producto }}</strong><br>
+            <small>ID #{{ item.producto.id }}</small>
+        </div>
+
+        <!-- CONTRATADOS -->
+        <div>
+            <strong>{{ item.cantidad }}</strong>
+        </div>
+
+        <!-- DAÑOS -->
+        <div>
+            {% if reserva.estado == 'Finalizado' or reserva.estado == 'Evaluacion' %}
+                {% for ev in reserva.evaluacionevento_set.all %}
+                    {% if ev.producto.id == item.producto.id %}
+                        {% if ev.cantidad_danada > 0 %}
+                            <span style="color:#ef4444; font-weight:600;">
+                                {{ ev.cantidad_danada }} dañados
+                            </span>
+                        {% else %}
+                            <span style="color:#10b981; font-weight:600;">
+                                Completo
+                            </span>
+                        {% endif %}
+                    {% endif %}
+                {% empty %}
+                    <span style="color:#10b981; font-weight:600;">
+                        Completo
+                    </span>
+                {% endfor %}
+            {% else %}
+                <span class="text-muted">Pendiente</span>
+            {% endif %}
+        </div>
+
+    </div>
+    {% endfor %}
+</div>
+
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+
+            <div class="card">
+
+                <strong>Resumen Financiero</strong>
+
+                <div class="row">
+                    <span>Total</span>
+                    <strong>${{ reserva.total|intcomma }}</strong>
+                </div>
+
+                <div class="row">
+                    <span>Depósito</span>
+                    <strong>${{ reserva.deposito_garantia|intcomma }}</strong>
+                </div>
+
+                {% for eval in reserva.evaluacionevento_set.all %}
+                    {% if eval.costo_dano > 0 %}
+                        <div class="row" style="color:red;">
+                            <span>Daños</span>
+                            <strong>- ${{ eval.costo_dano|intcomma }}</strong>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
+                <div class="total mt-3">
+                    <small>Total evento</small>
+                    <h2>${{ reserva.total|intcomma }}</h2>
+                </div>
+
+                <!-- ACCIONES -->
+                {% if reserva.estado == 'Reservado' %}
+                    <a href="{% url 'cambiar_estado' reserva.id 'Confirmado' %}" class="btn">
+                        Confirmar evento
+                    </a>
+                {% elif reserva.estado == 'Evento Activo' %}
+                    <a href="{% url 'evaluar_evento_inventario' reserva.id %}" class="btn" style="background:var(--success);">
+                        Registrar retorno
+                    </a>
+                {% elif reserva.estado == 'Evaluacion' %}
+                    <a href="{% url 'liquidar_deposito' reserva.id %}" class="btn" style="background:#334155;">
+                        Liquidar garantía
+                    </a>
+                {% endif %}
+
+                <a href="{% url 'listar_reservas' %}" class="back">
+                    ← Volver
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

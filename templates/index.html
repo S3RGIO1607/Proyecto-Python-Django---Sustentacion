@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<section class="hero-video">
+    <video autoplay muted loop playsinline class="bg-video">
+        <source src="{% static 'imagenes/video.mp4' %}" type="video/mp4">
+    </video>
+
+    <div class="hero-overlay">
+        <div class="hero-content">
+            <span class="hero-subtitle">Exclusividad & Estilo</span>
+            <h1>Casa de Eventos <span class="text-accent">Arron</span></h1>
+            <p>Transformamos tus ideas en celebraciones inolvidables con los más altos estándares de calidad.</p>
+            <div class="hero-btns">
+                <a href="{% url 'paquetes_catalogo' %}" class="btn-hero">Explorar Paquetes</a>
+                <a href="#Contactenos" class="btn-hero btn-secondary">Contactar Ahora</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="features">
+    <div class="container">
+        <div class="section-header">
+            <span class="hero-subtitle" style="text-align: center; display: block;">Excelencia</span>
+            <h2>Nuestra Experiencia</h2>
+            <div class="divider"></div>
+        </div>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="icon-wrapper"><i class="fa fa-music"></i></div>
+                <h3>Producción Musical</h3>
+                <p>Equipos de sonido de última generación y logística completa para conciertos y festivales.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="icon-wrapper"><i class="fa fa-cake-candles"></i></div>
+                <h3>Momentos Especiales</h3>
+                <p>Desde bodas hasta eventos corporativos, personalizamos cada detalle para reflejar tu esencia.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="icon-wrapper"><i class="fa fa-calendar-check"></i></div>
+                <h3>Espacios Exclusivos</h3>
+                <p>Salones versátiles y elegantes equipados para brindar confort y prestigio a tus invitados.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="highlight-products" style="background: #0d0d0f;">
+    <div class="container">
+        <div class="section-header">
+            <span class="hero-subtitle" style="text-align: center; display: block;">Catálogo</span>
+            <h2 class="highlight-title">Servicios Destacados</h2>
+            <p style="color: var(--text-muted); text-align: center;">Alquiler de equipos con tecnología de punta</p>
+        </div>
+
+        <div class="highlight-grid">
+            <div class="product-highlight">
+                <div class="product-img-wrapper">
+                    <img src="{% static 'imagenes/fiesta.jpeg' %}" alt="Sonido">
+                    <div class="product-badge">Top Ventas</div>
+                </div>
+                <div class="highlight-info">
+                    <h4>Sonido Profesional</h4>
+                    <p>Sistemas Line Array y microfonía de alta fidelidad.</p>
+                    <a href="{% url 'productos_catalogo' %}" class="btn-text">Ver detalle <i class="fa fa-chevron-right"></i></a>
+                </div>
+            </div>
+
+            <div class="product-highlight">
+                <div class="product-img-wrapper">
+                    <img src="{% static 'imagenes/evento.jpeg' %}" alt="Luces">
+                </div>
+                <div class="highlight-info">
+                    <h4>Iluminación Arquitectónica</h4>
+                    <p>Efectos LED y robótica que transforman cualquier espacio.</p>
+                    <a href="{% url 'productos_catalogo' %}" class="btn-text">Ver detalle <i class="fa fa-chevron-right"></i></a>
+                </div>
+            </div>
+
+            <div class="product-highlight">
+                <div class="product-img-wrapper">
+                    <img src="{% static 'imagenes/evento2.jpeg' %}" alt="Decoración">
+                </div>
+                <div class="highlight-info">
+                    <h4>Ambientación Premium</h4>
+                    <p>Mobiliario y decoración temática diseñada por expertos.</p>
+                    <a href="{% url 'productos_catalogo' %}" class="btn-text">Ver detalle <i class="fa fa-chevron-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="galeria-eventos">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="titulo-galeria">Momentos Arron</h2>
+            <p>Un vistazo a las experiencias que hemos creado recientemente.</p>
+        </div>
+
+        <div class="galeria-grid">
+            {% for i in "12345678" %}
+            <div class="galeria-item">
+                <img src="{% static 'imagenes/img' %}{{ forloop.counter }}.jpeg" alt="Evento {{ i }}">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

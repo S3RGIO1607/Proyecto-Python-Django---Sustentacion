@@ -1,0 +1,398 @@
+{% extends "base2.html" %}
+
+{% block content %}
+
+<style>
+/* CONTENEDOR PRINCIPAL */
+.edit-product-card{
+    background:white;
+    border-radius:24px;
+    box-shadow:0 15px 35px rgba(0,0,0,0.05);
+    border:1px solid #f1f5f9;
+    overflow:hidden;
+}
+
+/* HEADER */
+.edit-header{
+    background:linear-gradient(135deg,#541E12 0%,#2D0A05 100%);
+    padding:2rem;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+/* FORMULARIO */
+.form-container{
+    padding:2.5rem;
+    display:grid;
+    grid-template-columns:1fr 350px;
+    gap:2.5rem;
+}
+
+.field-label{
+    display:block;
+    font-size:0.75rem;
+    font-weight:800;
+    color:#64748b;
+    text-transform:uppercase;
+    margin-bottom:0.5rem;
+    letter-spacing:0.5px;
+}
+
+.input-edit{
+    width:100%;
+    padding:0.75rem 1rem;
+    border:2px solid #e2e8f0;
+    border-radius:12px;
+    transition:all .2s;
+    font-weight:500;
+}
+
+.input-edit:focus{
+    border-color:#541E12;
+    outline:none;
+    box-shadow:0 0 0 4px rgba(84,30,18,.1);
+}
+
+/* TARJETAS */
+.card-box{
+    padding:1rem;
+    background:#f8fafc;
+    border-radius:12px;
+    border:1px solid #e2e8f0;
+}
+
+/* IMAGEN */
+.image-management{
+    background:#f8fafc;
+    padding:1.5rem;
+    border-radius:20px;
+    border:1px solid #e2e8f0;
+}
+
+.current-img-container{
+    position:relative;
+    width:100%;
+    aspect-ratio:1/1;
+    background:white;
+    border-radius:15px;
+    overflow:hidden;
+    margin-bottom:1.5rem;
+    border:1px solid #e2e8f0;
+}
+
+.current-img-container img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.img-overlay-tag{
+    position:absolute;
+    top:10px;
+    left:10px;
+    background:rgba(0,0,0,.6);
+    color:white;
+    padding:4px 10px;
+    border-radius:6px;
+    font-size:.65rem;
+    font-weight:700;
+}
+
+/* FOOTER */
+.edit-footer{
+    background:#f8fafc;
+    padding:1.5rem 2.5rem;
+    display:flex;
+    justify-content:flex-end;
+    gap:1rem;
+    border-top:1px solid #f1f5f9;
+}
+
+.btn-update-confirm{
+    background:#541E12;
+    color:white;
+    padding:.8rem 2rem;
+    border-radius:12px;
+    font-weight:700;
+    transition:.3s;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    border: none;
+}
+
+.btn-update-confirm:hover{
+    background:#3d150d;
+    transform:translateY(-2px);
+    box-shadow:0 10px 15px rgba(84,30,18,.2);
+}
+
+@media (max-width:900px){
+    .form-container{grid-template-columns:1fr;}
+}
+
+.contenedor-main{
+    background:transparent!important;
+    box-shadow:none!important;
+}
+</style>
+
+<div class="max-w-6xl mx-auto pb-12" style="max-width: 1100px; margin: 0 auto;">
+
+    <div id="contenedor-alertas-edit" class="mb-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #fecaca; font-weight: bold;">
+                    <i class="fa-solid fa-triangle-exclamation mr-2"></i> {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="edit-product-card">
+
+        <div class="edit-header">
+            <div>
+                <h1 class="text-2xl font-black" style="font-size: 1.5rem; font-weight: 900; margin: 0;">Editor de Inventario</h1>
+                <p class="text-white/70 text-sm" style="margin: 5px 0 0 0; opacity: 0.8;">
+                    Actualizando: <span class="text-white font-bold">{{ producto.nombre_producto }}</span>
+                </p>
+            </div>
+            <i class="fa-solid fa-pen-nib text-3xl opacity-30" style="font-size: 1.8rem; opacity: 0.4;"></i>
+        </div>
+
+        <form action="{% url 'editar_producto' %}" method="POST" enctype="multipart/form-data" id="formEditarProducto">
+            {% csrf_token %}
+            <input type="hidden" name="txt_id" value="{{ producto.id }}">
+
+            <div class="form-container">
+
+                <div class="space-y-6" style="display: flex; flex-direction: column; gap: 20px;">
+
+                    <div>
+                        <label class="field-label">Nombre Comercial del Producto</label>
+                        <input type="text" name="txt_nombre" id="txt_nombre"
+                               value="{{ producto.nombre_producto }}" class="input-edit"
+                               minlength="3" maxlength="30" required>
+                    </div>
+
+                    <div>
+                        <label class="field-label">Descripción Operativa</label>
+                        <textarea name="txt_descripcion" id="txt_descripcion" class="input-edit"
+                                  rows="4" minlength="25" maxlength="350" required>{{ producto.descripcion }}</textarea>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+                        <div class="card-box">
+                            <h3 class="field-label mb-3 text-blue-600" style="color: #2563eb !important; margin-bottom: 12px;">
+                                Control de Existencias
+                            </h3>
+                            <div class="space-y-4" style="display: flex; flex-direction: column; gap: 10px;">
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase" style="font-size: 11px; color: #94a3b8;">
+                                        Stock Total
+                                    </label>
+                                    <input type="number" step="1" min="0" name="txt_stock_total" id="txt_stock_total"
+                                           value="{{ producto.stock_total }}" class="input-edit bg-white no-negativos" required>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase" style="font-size: 11px; color: #94a3b8;">
+                                        Stock Disponible
+                                    </label>
+                                    <input type="number" step="1" min="0" name="txt_stock_disponible" id="txt_stock_disponible"
+                                           value="{{ producto.stock_disponible }}" class="input-edit bg-white no-negativos" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-box">
+                            <h3 class="field-label mb-3 text-emerald-600" style="color: #059669 !important; margin-bottom: 12px;">
+                                Configuración de Precios
+                            </h3>
+                            <div class="space-y-4" style="display: flex; flex-direction: column; gap: 10px;">
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase" style="font-size: 11px; color: #94a3b8;">
+                                        Precio Compra ($)
+                                    </label>
+                                    <input type="number" step="1" min="0" name="txt_precio_compra" id="txt_precio_compra"
+                                           value="{{ producto.precio_compra|floatformat:0 }}" class="input-edit bg-white no-negativos" required>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase" style="font-size: 11px; color: #94a3b8;">
+                                        Precio Alquiler ($)
+                                    </label>
+                                    <input type="number" step="1" min="0" name="txt_precio_alquiler" id="txt_precio_alquiler"
+                                           value="{{ producto.precio_alquiler|floatformat:0 }}" class="input-edit bg-white no-negativos" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-box" style="grid-column: span 2;">
+                            <h3 class="field-label mb-3 text-purple-600" style="color: #9333ea !important; margin-bottom: 12px;">
+                                Estado del Producto
+                            </h3>
+                            <div class="flex items-center gap-4" style="display: flex; align-items: center; gap: 15px;">
+                                <select name="txt_estado" class="input-edit" style="max-width: 200px;">
+                                    <option value="A" {% if producto.estado == "A" %}selected{% endif %}>🟢 Activo</option>
+                                    <option value="I" {% if producto.estado == "I" %}selected{% endif %}>🔴 Inactivo</option>
+                                </select>
+
+                                {% if producto.estado == "A" %}
+                                    <span style="background: #dcfce7; color: #15803d; padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: bold;">
+                                        Activo actualmente
+                                    </span>
+                                {% else %}
+                                    <span style="background: #fee2e2; color: #b91c1c; padding: 6px 12px; border-radius: 9999px; font-size: 12px; font-weight: bold;">
+                                        Producto deshabilitado
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="image-management">
+                    <label class="field-label text-center mb-4" style="text-align: center; margin-bottom: 15px;">
+                        Gestión de Imagen
+                    </label>
+
+                    <div class="current-img-container shadow-inner">
+                        <span class="img-overlay-tag">Imagen Actual</span>
+                        {% if producto.imagen %}
+                            <img src="{{ producto.imagen.url }}" id="preview-edit" alt="Actual">
+                        {% else %}
+                            <div class="w-full h-full flex flex-col items-center justify-center text-slate-300" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #cbd5e1;">
+                                <i class="fa-solid fa-image text-5xl mb-2" style="font-size: 3rem;"></i>
+                                <span class="text-xs">Sin imagen</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <label class="field-label">Reemplazar fotografía</label>
+                    <label class="flex flex-col items-center w-full px-4 py-3 bg-white text-slate-400 rounded-xl border-2 border-dashed border-slate-200 cursor-pointer hover:border-[#541E12] hover:text-[#541E12] transition-all"
+                           style="display: flex; flex-direction: column; align-items: center; background: white; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 15px; cursor: pointer;">
+                        <i class="fa-solid fa-camera mb-1" style="color: #64748b; margin-bottom: 5px;"></i>
+                        <span style="font-size: 10px; font-weight: bold; color: #64748b;">SUBIR NUEVA</span>
+                        <input type="file" name="txt_imagen" class="hidden" accept="image/png, image/jpeg, image/jpg" style="display: none;" onchange="updatePreview(this)">
+                    </label>
+                </div>
+
+            </div>
+
+            <div class="edit-footer">
+                <a href="{% url 'listar_productos' %}" class="px-6 py-2.5 text-slate-400 font-bold hover:text-slate-600 transition" style="text-decoration: none; padding-top: 10px; color: #94a3b8;">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn-update-confirm">
+                    <i class="fa-solid fa-arrows-rotate"></i> Actualizar Producto
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+function updatePreview(input){
+    if(input.files && input.files[0]){
+        const reader = new FileReader();
+        reader.onload = function(e){
+            const img = document.getElementById('preview-edit');
+            if(img){
+                img.src = e.target.result;
+                const tag = document.querySelector('.img-overlay-tag');
+                if(tag) {
+                    tag.textContent = 'Nueva Imagen';
+                    tag.style.background = '#059669';
+                }
+            }
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('formEditarProducto');
+    const contenedorAlertas = document.getElementById('contenedor-alertas-edit');
+
+    function mostrarAlerta(mensaje) {
+        contenedorAlertas.innerHTML = `
+            <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #fecaca; font-weight: bold;">
+                <i class="fa-solid fa-circle-exclamation mr-2"></i> ${mensaje}
+            </div>
+        `;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 1. Bloqueo de caracteres no enteros y negativos en el teclado
+    document.querySelectorAll('.no-negativos').forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            if (['-', '+', 'e', 'E', '.', ','].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+        input.addEventListener('change', function() {
+            let valor = parseInt(this.value);
+            if (isNaN(valor) || valor < 0) this.value = 0;
+        });
+    });
+
+    // 2. Interceptación y validaciones lógicas antes de enviar
+    form.addEventListener('submit', function(e) {
+        let valido = true;
+        let mensaje = "";
+
+        const nombre = document.getElementById('txt_nombre').value.trim();
+        const descripcion = document.getElementById('txt_descripcion').value.trim();
+        const stockTotal = parseInt(document.getElementById('txt_stock_total').value);
+        const stockDisponible = parseInt(document.getElementById('txt_stock_disponible').value);
+        const precioCompra = parseInt(document.getElementById('txt_precio_compra').value);
+        const precioAlquiler = parseInt(document.getElementById('txt_precio_alquiler').value);
+
+        const regexAlfanumerico = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s,.\-]+$/;
+
+        // Validación de Textos
+        if (nombre.length < 3 || nombre.length > 30) {
+            valido = false;
+            mensaje = "El nombre del producto debe tener entre 3 y 30 caracteres.";
+        } else if (!regexAlfanumerico.test(nombre)) {
+            valido = false;
+            mensaje = "El nombre contiene caracteres especiales inválidos.";
+        }
+        else if (descripcion.length < 25 || descripcion.length > 350) {
+            valido = false;
+            mensaje = `La descripción operativa debe poseer entre 25 y 350 caracteres. (Llevas ${descripcion.length})`;
+        } else if (!regexAlfanumerico.test(descripcion)) {
+            valido = false;
+            mensaje = "La descripción contiene caracteres especiales inválidos.";
+        }
+
+        // Validación de Números No Negativos
+        else if (isNaN(precioCompra) || precioCompra < 0 || isNaN(precioAlquiler) || precioAlquiler < 0) {
+            valido = false;
+            mensaje = "Los precios de compra y alquiler deben ser valores numéricos enteros positivos.";
+        }
+        else if (isNaN(stockTotal) || stockTotal < 0 || isNaN(stockDisponible) || stockDisponible < 0) {
+            valido = false;
+            mensaje = "Las existencias de stock deben ser valores numéricos enteros positivos.";
+        }
+
+        // Validación de Negocio Crítica: Disponible no puede superar al Total
+        else if (stockDisponible > stockTotal) {
+            valido = false;
+            mensaje = `Incoherencia de stock: El stock disponible (${stockDisponible}) no puede superar al stock total físico (${stockTotal}).`;
+        }
+
+        if (!valido) {
+            e.preventDefault();
+            mostrarAlerta(mensaje);
+        }
+    });
+});
+</script>
+{% endblock %}

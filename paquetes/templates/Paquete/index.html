@@ -1,0 +1,260 @@
+{% extends 'base2.html' %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    :root {
+        --bg-main: #fdfaf6;
+        --bg-card: #ffffff;
+        --border-soft: #ede9e3;
+        --primary: #b45309; /* Dorado Arron */
+        --secondary: #541E12; /* Vinotinto Arron */
+        --text-main: #1c1917;
+    }
+
+    body { background: var(--bg-main); color: var(--text-main); }
+
+    /* Tarjeta contenedora Premium */
+    .inventory-card {
+        background: var(--bg-card);
+        border-radius: 28px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+        border: 1px solid var(--border-soft);
+        margin-bottom: 40px;
+    }
+
+    /* Tabla Moderna con filas flotantes */
+    .table-modern {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 12px;
+    }
+
+    .table-modern thead th {
+        color: var(--text-main);
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        padding: 1rem;
+        border-bottom: 2px solid var(--primary);
+    }
+
+    .table-modern tbody tr {
+        background-color: white;
+        transition: all 0.3s ease;
+    }
+
+    .table-modern tbody tr:hover {
+        transform: scale(1.005);
+        box-shadow: 0 15px 30px rgba(180, 83, 9, 0.08);
+    }
+
+    .table-modern td {
+        padding: 1.2rem 1rem;
+        vertical-align: middle;
+        border-top: 1px solid var(--border-soft);
+        border-bottom: 1px solid var(--border-soft);
+    }
+
+    .table-modern td:first-child { border-left: 1px solid var(--border-soft); border-radius: 15px 0 0 15px; }
+    .table-modern td:last-child { border-right: 1px solid var(--border-soft); border-radius: 0 15px 15px 0; }
+
+    /* Icono de Paquete */
+    .package-icon-box {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+        background: #fffbeb;
+        color: var(--primary);
+        font-size: 1.1rem;
+        border: 1px solid #fde68a;
+    }
+
+    /* Badges de Estado */
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+    .status-active { background: #f0fdf4; color: #16a34a; }
+    .status-inactive { background: #fef2f2; color: #dc2626; }
+
+    /* Botones de Acción */
+    .btn-action {
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-view { background: #f8fafc; color: #64748b; }
+    .btn-edit { background: #fffbeb; color: #d97706; }
+    .btn-delete { background: #fef2f2; color: #dc2626; border: none; cursor: pointer; }
+    .btn-restore { background: #f0fdf4; color: #16a34a; border: none; cursor: pointer; }
+
+    .btn-action:hover { transform: translateY(-3px) rotate(8deg); filter: brightness(0.95); }
+
+    /* Botón Nuevo */
+    .btn-nav-premium {
+        padding: 12px 24px;
+        border-radius: 16px;
+        font-weight: 800;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: 0.4s;
+        background: var(--secondary);
+        color: white;
+        box-shadow: 0 10px 20px rgba(84, 30, 18, 0.2);
+    }
+    .btn-nav-premium:hover { background: #3d150d; transform: translateY(-2px); }
+</style>
+
+<div class="max-w-7xl mx-auto px-6 py-10">
+
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
+        <div>
+            <h1 class="text-4xl font-black tracking-tighter text-gray-800">
+                Gestión de <span class="text-[var(--secondary)]">Paquetes</span>
+            </h1>
+            <p class="text-gray-500 font-medium mt-1">Configura ofertas completas y experiencias exclusivas.</p>
+        </div>
+
+        <a href="{% url 'mostrar_registro_paquete' %}" class="btn-nav-premium">
+            <i class="fa-solid fa-box-archive"></i>
+            Nuevo Paquete
+        </a>
+    </div>
+
+    <div class="inventory-card">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-xs font-black uppercase tracking-[0.2em] text-emerald-600 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Catálogo Vigente
+            </h2>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="table-modern">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th>Paquete</th>
+                        <th>Precio Base</th>
+                        <th>Garantía</th>
+                        <th>Estado</th>
+                        <th class="text-center">Gestión</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for paquete in paquetes %}
+                    <tr>
+                        <td class="font-mono text-xs text-gray-400 ps-4">#{{ paquete.id }}</td>
+                        <td>
+                            <div class="flex items-center gap-4">
+                                <div class="package-icon-box">
+                                    <i class="fa-solid fa-gift"></i>
+                                </div>
+                                <div>
+                                    <div class="font-black text-gray-800">{{ paquete.nombre }}</div>
+                                    <div class="text-xs text-gray-400 max-w-xs truncate">{{ paquete.descripcion }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="font-black text-[var(--secondary)]">
+                                ${{ paquete.precio|floatformat:2|intcomma }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="text-sm font-semibold text-gray-500">
+                                ${{ paquete.deposito_garantia|floatformat:2|intcomma }}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-badge status-active">Activo</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="flex justify-center gap-3">
+                                <a href="{% url 'mostrar_detalle_paquete' paquete.id %}" class="btn-action btn-view" title="Ver Detalle">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                <a href="{% url 'pre_editar_paquete' paquete.id %}" class="btn-action btn-edit" title="Editar">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                                <form action="{% url 'eliminar_paquete' paquete.id %}" method="POST" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" onclick="return confirm('¿Inhabilitar este paquete?')" class="btn-action btn-delete" title="Inhabilitar">
+                                        <i class="fa-solid fa-ban"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-20 text-gray-400 italic">
+                            No hay paquetes activos en el sistema.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="inventory-card border-dashed opacity-75">
+        <h2 class="text-xs font-black uppercase tracking-[0.2em] text-red-400 mb-8 flex items-center gap-2">
+            <i class="fa-solid fa-box-open"></i> Archivo de Paquetes
+        </h2>
+
+        <div class="overflow-x-auto">
+            <table class="table-modern">
+                <tbody>
+                    {% for paquete in paquetes_inactivos %}
+                    <tr class="grayscale">
+                        <td class="font-mono text-xs text-gray-400 ps-4">#{{ paquete.id }}</td>
+                        <td>
+                            <div class="font-bold text-gray-500">{{ paquete.nombre }}</div>
+                        </td>
+                        <td class="text-gray-400 font-bold">${{ paquete.precio|floatformat:2|intcomma }}</td>
+                        <td><span class="status-badge status-inactive">Inactivo</span></td>
+                        <td class="text-center">
+                            <div class="flex justify-center gap-3">
+                                <a href="{% url 'mostrar_detalle_paquete' paquete.id %}" class="btn-action btn-view" title="Ver">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                <form action="{% url 'activar_paquete' paquete.id %}" method="POST" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-action btn-restore" title="Reactivar">
+                                        <i class="fa-solid fa-rotate-left"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-6 text-gray-300 text-xs italic">
+                            No hay paquetes en el archivo.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

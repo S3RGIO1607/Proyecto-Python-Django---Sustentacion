@@ -1,0 +1,386 @@
+{% extends "base2.html" %}
+
+{% block content %}
+    <style>
+        /* Tus estilos originales se mantienen intactos */
+        .form-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f5f9;
+            padding: 2.5rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .form-section-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 0.5rem;
+            grid-column: span 2;
+        }
+
+        .form-grid-modern {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        .form-label-modern {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-label-modern i {
+            color: #541E12;
+            margin-right: 6px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .form-input-modern {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        .form-input-modern:focus {
+            border-color: #541E12;
+            box-shadow: 0 0 0 4px rgba(84, 30, 18, 0.1);
+            background-color: #fff;
+        }
+
+        .btn-save {
+            background-color: #541E12;
+            color: white;
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-save:hover {
+            background-color: #3d150d;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(84, 30, 18, 0.3);
+        }
+
+        .btn-cancel {
+            background-color: #f1f5f9;
+            color: #64748b;
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+
+        .btn-cancel:hover {
+            background-color: #e2e8f0;
+            color: #1e293b;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid-modern { grid-template-columns: 1fr; }
+            .form-section-title { grid-column: span 1; }
+            .form-card { padding: 1.5rem; }
+        }
+
+        .contenedor-main { background: transparent !important; box-shadow: none !important; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+    </style>
+
+    <div class="max-w-4xl mx-auto pb-12">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-black text-gray-800">Registrar Nuevo <span class="text-[#541E12]">Usuario</span></h1>
+            <p class="text-gray-500 mt-2">Complete la información para dar de alta a un nuevo miembro del staff.</p>
+        </div>
+
+        {% if error %}
+        <div class="max-w-4xl mx-auto mb-6 p-4 bg-red-50 border-l-4 border-red-600 rounded-r-2xl shadow-sm animate-fade-in flex items-center gap-3">
+            <i class="fa-solid fa-circle-exclamation text-red-600 text-xl"></i>
+            <div>
+                <h4 class="text-xs font-black text-red-800 uppercase tracking-wider">No se pudo guardar el registro</h4>
+                <p class="text-xs font-bold text-red-700 mt-0.5">{{ error }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="form-card">
+            <form action="{% url 'registrar_usuario' %}" method="post">
+                {% csrf_token %}
+                
+                <div class="form-grid-modern">
+                    
+                    <h3 class="form-section-title">Información de Acceso</h3>
+
+                    <div>
+                        <label class="form-label-modern"><i class="fa-solid fa-id-card"></i> Documento</label>
+                        <input type="number" name="txt_numero_documento" class="form-input-modern" 
+                               value="{{ usuario.numeroDocumento|default:'' }}" placeholder="Ej: 10203040" 
+                               min="0" minlength="6" maxlength="25" required>
+                    </div>
+
+                    <div>
+                        <label class="form-label-modern"><i class="fa-solid fa-user"></i> Nombre Completo</label>
+                        <input type="text" name="txt_nombre" class="form-input-modern style-name" 
+                               value="{{ usuario.nombre|default:'' }}" placeholder="Nombre y Apellido" 
+                               minlength="3" maxlength="25" pattern="^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*$" required>
+                    </div>
+
+                    <div>
+                        <label class="form-label-modern"><i class="fa-solid fa-envelope"></i> Correo Electrónico</label>
+                        <input type="email" name="txt_correo" class="form-input-modern" 
+                               value="{{ usuario.correo|default:'' }}" placeholder="correo@ejemplo.com" 
+                               minlength="11" maxlength="70" required>
+                    </div>
+
+                    <div class="relative">
+                        <label class="form-label-modern"><i class="fa-solid fa-lock"></i> Contraseña</label>
+                        <input type="password" name="txt_contrasena" id="id_contrasena" 
+                               class="form-input-modern" placeholder="••••••••" required>
+                        
+                        <div class="mt-3" style="height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden;">
+                            <div id="password-strength-bar" style="width: 0%; height: 100%; transition: all 0.4s ease;"></div>
+                        </div>
+                        <div class="flex justify-between mt-1 mb-2">
+                            <span id="strength-label" class="text-[10px] font-black uppercase tracking-wider"></span>
+                        </div>
+
+                        <div id="password-requirements" class="hidden absolute z-10 w-full mt-1 p-4 bg-white border border-gray-100 rounded-2xl shadow-xl border-t-4 border-t-[#541E12]">
+                            <h4 class="text-xs font-bold text-gray-700 mb-3 italic uppercase tracking-tight">Requisitos de seguridad:</h4>
+                            <ul class="grid grid-cols-2 gap-2 text-[11px] font-bold">
+                                <li id="req-length" class="text-red-500 flex items-center gap-2">
+                                    <i class="fa-solid fa-paw"></i> 8+ caracteres
+                                </li>
+                                <li id="req-lower" class="text-red-500 flex items-center gap-2">
+                                    <i class="fa-solid fa-paw"></i> Una Minúscula
+                                </li>
+                                <li id="req-upper" class="text-red-500 flex items-center gap-2">
+                                    <i class="fa-solid fa-paw"></i> Una Mayúscula
+                                </li>
+                                <li id="req-special" class="text-red-500 flex items-center gap-2">
+                                    <i class="fa-solid fa-paw"></i> Un Símbolo
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h3 class="form-section-title mt-4">Contacto y Localización</h3>
+
+                    <div>
+                        <label class="form-label-modern"><i class="fa-solid fa-location-dot"></i> Dirección</label>
+                        <input type="text" name="txt_direccion" class="form-input-modern" 
+                               value="{{ usuario.direccion|default:'' }}" placeholder="Calle, Carrera, Ciudad">
+                    </div>
+
+                    <div>
+                        <label class="form-label-modern"><i class="fa-solid fa-phone"></i> Teléfono Móvil</label>
+                        <input type="number" name="txt_telefono" class="form-input-modern" 
+                               value="{{ usuario.telefono|default:'' }}" placeholder="300 000 0000" 
+                               min="0" minlength="10">
+                    </div>
+
+                    <h3 class="form-section-title mt-4">Perfil y Seguridad Social</h3>
+
+                    <div>
+                        <label class="form-label-modern"><i class="fa-solid fa-graduation-cap"></i> Nivel Educativo</label>
+                        <select name="txt_nivel_educativo" class="form-input-modern" required>
+                            <option value="">-- Seleccione --</option>
+                            <option value="Bachiller" {% if usuario.nivelEducativo == "Bachiller" %}selected{% endif %}>Bachiller</option>
+                            <option value="Tecnico" {% if usuario.nivelEducativo == "Tecnico" %}selected{% endif %}>Técnico</option>
+                            <option value="Tecnologo" {% if usuario.nivelEducativo == "Tecnologo" %}selected{% endif %}>Tecnólogo</option>
+                            <option value="Profesional" {% if usuario.nivelEducativo == "Profesional" %}selected{% endif %}>Profesional</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="form-label-modern"><i class="fa-solid fa-hospital"></i> EPS</label>
+                        <input type="text" name="txt_eps" class="form-input-modern" 
+                               value="{{ usuario.eps|default:'' }}" placeholder="Nombre de EPS" 
+                               minlength="7">
+                    </div>
+
+                    <div>
+                        <label class="form-label-modern"><i class="fa-solid fa-user-group"></i> Referencia Personal</label>
+                        <input type="text" name="txt_referencia_personal" class="form-input-modern only-letters" 
+                               value="{{ usuario.referenciaPersonal|default:'' }}" placeholder="Nombre de referencia" 
+                               minlength="10" maxlength="50">
+                    </div>
+
+                    <div>
+                        <label class="form-label-modern"><i class="fa-solid fa-phone-volume"></i> Teléfono Referencia</label>
+                        <input type="number" name="txt_telefono_referencia_personal" class="form-input-modern" 
+                               value="{{ usuario.telefonoReferenciaPersonal|default:'' }}" placeholder="Teléfono contacto" 
+                               min="0" minlength="10">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="form-label-modern"><i class="fa-solid fa-user-shield"></i> Rol Asignado</label>
+                        <select name="txt_rol" class="form-input-modern bg-slate-50 font-bold text-[#541E12]" required>
+                            <option value="">-- Seleccione el rol de sistema --</option>
+                            {% for rol in roles %}
+                                <option value="{{ rol.id }}" {% if usuario.rol.id == rol.id %}selected{% endif %}>
+                                    {{ rol.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                </div>
+
+                <div class="flex items-center justify-end gap-4 mt-10 pt-6 border-t border-gray-100">
+                    <a href="{% url 'listar_usuarios' %}" class="btn-cancel">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn-save">
+                        <i class="fa-solid fa-floppy-disk mr-2"></i> Guardar Usuario
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+<script>
+    const passwordInput = document.getElementById('id_contrasena');
+    const requirementsBox = document.getElementById('password-requirements');
+    const bar = document.getElementById('password-strength-bar');
+    const label = document.getElementById('strength-label');
+
+    // Referencias a los requisitos de la contraseña (He añadido el de minusculas)
+    const reqs = {
+        length: document.getElementById('req-length'),
+        lower: document.getElementById('req-lower'),
+        upper: document.getElementById('req-upper'),
+        special: document.getElementById('req-special')
+    };
+
+    passwordInput.addEventListener('focus', () => requirementsBox.classList.remove('hidden'));
+
+    passwordInput.addEventListener('input', function() {
+        const val = this.value;
+        let score = 0;
+
+        if (val.length === 0) {
+            bar.style.width = '0%';
+            label.innerText = '';
+            requirementsBox.classList.add('hidden');
+            return;
+        } else {
+            requirementsBox.classList.remove('hidden');
+        }
+
+        // --- NUEVA VALIDACIÓN DE REQUISITOS (Con minúscula solicitada) ---
+        const checks = {
+            length: val.length >= 8,
+            lower: /[a-z]/.test(val),
+            upper: /[A-Z]/.test(val),
+            special: /[^A-Za-z0-9]/.test(val)
+        };
+
+        Object.keys(checks).forEach(key => {
+            const isValid = checks[key];
+            const el = reqs[key];
+            
+            if (isValid) {
+                el.classList.replace('text-red-500', 'text-green-600');
+                el.querySelector('i').classList.replace('fa-paw', 'fa-check-circle');
+                score += 25; 
+            } else {
+                el.classList.replace('text-green-600', 'text-red-500');
+                el.querySelector('i').classList.replace('fa-check-circle', 'fa-paw');
+            }
+        });
+
+        // --- ACTUALIZAR BARRA DE FUERZA ---
+        bar.style.width = score + '%';
+
+        if (score <= 50) {
+            bar.style.backgroundColor = '#ef4444'; 
+            label.innerText = 'Seguridad: Débil';
+            label.style.color = '#ef4444';
+        } else if (score <= 75) {
+            bar.style.backgroundColor = '#f59e0b'; 
+            label.innerText = 'Seguridad: Media';
+            label.style.color = '#f59e0b';
+        } else {
+            bar.style.backgroundColor = '#541E12'; 
+            label.innerText = 'Seguridad: ¡Excelente!';
+            label.style.color = '#541E12';
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!passwordInput.contains(e.target) && !requirementsBox.contains(e.target)) {
+            requirementsBox.classList.add('hidden');
+        }
+    });
+
+    // ==========================================
+    // CONTROL TOTAL DE ESCRITURA EN TIEMPO REAL
+    // ==========================================
+    
+    // 1. Bloquear guiones, signos y letras exponenciales en los inputs numéricos
+    const numericInputs = document.querySelectorAll('input[type="number"]');
+    numericInputs.forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E' || e.key === '.') {
+                e.preventDefault();
+            }
+        });
+        input.addEventListener('input', function() {
+            if (this.value < 0) this.value = 0;
+        });
+    });
+
+    // 2. Campo de Nombre Completo: Solo letras y espacios. Capitaliza a Nombre Propio de forma automática
+    const nameInput = document.querySelector('.style-name');
+    nameInput.addEventListener('keydown', function(e) {
+        // Permitir letras, espacios y teclas de navegación/borrado
+        const isValidKey = /^[a-zA-ZÁÉÍÓÚÑáéíóúñ\s]$/.test(e.key) || 
+                           ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key);
+        if (!isValidKey) {
+            e.preventDefault();
+        }
+    });
+
+    nameInput.addEventListener('blur', function() {
+        // Transforma automáticamente a formato "Nombre Propio" al salir del campo
+        this.value = this.value.trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    });
+
+    // 3. Referencia Personal: Solo letras y espacios
+    const lettersInputs = document.querySelectorAll('.only-letters');
+    lettersInputs.forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            const isValidKey = /^[a-zA-ZÁÉÍÓÚÑáéíóúñ\s]$/.test(e.key) || 
+                               ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key);
+            if (!isValidKey) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+{% endblock %}

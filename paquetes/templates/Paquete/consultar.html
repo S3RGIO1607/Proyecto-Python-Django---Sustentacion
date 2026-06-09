@@ -1,0 +1,213 @@
+{% extends 'base2.html' %}
+
+{% block content %}
+<style>
+    /* Contenedor Principal */
+    .details-wrapper {
+        max-width: 1000px;
+        margin: 2rem auto;
+        display: grid;
+        grid-template-columns: 1fr 1.5fr; /* Columna info / Columna inventario */
+        gap: 2rem;
+    }
+
+    @media (max-width: 768px) { .details-wrapper { grid-template-columns: 1fr; } }
+
+    /* Tarjeta de Información General */
+    .info-card {
+        background: white;
+        border-radius: 24px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border: 1px solid #f1f5f9;
+        height: fit-content;
+    }
+
+    .info-card h1 {
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: #1e293b;
+        margin-bottom: 1.5rem;
+        border-bottom: 3px solid #541E12;
+        display: inline-block;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #f8fafc;
+    }
+
+    .detail-label {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #94a3b8;
+        text-transform: uppercase;
+    }
+
+    .detail-value {
+        font-weight: 600;
+        color: #1e293b;
+        text-align: right;
+    }
+
+    /* Badges de Estado */
+    .status-pill {
+        padding: 4px 12px;
+        border-radius: 99px;
+        font-size: 0.7rem;
+        font-weight: 800;
+    }
+    .status-active { background: #dcfce7; color: #166534; }
+    .status-inactive { background: #fee2e2; color: #991b1b; }
+
+    /* Paneles de Inventario (Derecha) */
+    .inventory-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .inventory-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 1.5rem;
+        border: 1px solid #f1f5f9;
+    }
+
+    .inventory-title {
+        font-size: 0.9rem;
+        font-weight: 800;
+        color: #64748b;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Listas limpias */
+    .item-list { width: 100%; }
+    .item-list tr td {
+        padding: 10px 0;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+    }
+
+    .qty-badge {
+        background: #f1f5f9;
+        color: #541E12;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+    }
+
+    .btn-action-group {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 1rem;
+    }
+
+    .contenedor-main { background: transparent !important; box-shadow: none !important; }
+</style>
+
+<div class="details-wrapper">
+    
+    <div class="info-card">
+        <h1>Resumen del Paquete</h1>
+        
+        <div class="detail-row">
+            <span class="detail-label">ID de Registro</span>
+            <span class="detail-value font-mono">{{ paquete.id }}</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Nombre</span>
+            <span class="detail-value">{{ paquete.nombre }}</span>
+        </div>
+
+        <div class="detail-row flex-col items-start gap-2">
+            <span class="detail-label">Descripción</span>
+            <p class="text-sm text-slate-500 leading-relaxed italic">{{ paquete.descripcion }}</p>
+        </div>
+
+        <div class="detail-row">
+            <span class="detail-label">Duración</span>
+            <span class="detail-value">{{ paquete.duracion_horas }} Horas</span>
+        </div>
+
+        <div class="detail-row">
+    <span class="detail-label">Depósito de Garantía</span>
+    <span class="detail-value text-amber-600 font-bold">
+        ${{ paquete.deposito_garantia|floatformat:2 }}
+    </span>
+</div>
+
+        <div class="mt-8 p-4 bg-slate-50 rounded-2xl flex justify-between items-center">
+            <div>
+                <span class="detail-label block mb-1">Precio Total</span>
+                <span class="text-2xl font-black text-[#541E12]">${{ paquete.precio|floatformat:2 }}</span>
+            </div>
+            <span class="status-pill {% if paquete.estado == 'A' %}status-active{% else %}status-inactive{% endif %}">
+    {{ paquete.get_estado_display }}
+</span>
+        </div>
+    </div>
+
+    <div class="inventory-panel">
+        
+        <div class="inventory-card">
+            <h2 class="inventory-title"><i class="fa-solid fa-box-archive text-[#541E12]"></i> Mobiliario y Productos</h2>
+            <table class="item-list">
+                {% for pp in paquete.paqueteproducto_set.all %}
+                <tr>
+    <td class="font-semibold text-slate-700">
+        {{ pp.producto.nombre_producto }}
+    </td>
+    <td class="text-center text-slate-500">
+        ${{ pp.producto.precio_alquiler|floatformat:2 }}
+    </td>
+    <td class="text-right">
+        <span class="qty-badge">{{ pp.cantidad }} Unid.</span>
+    </td>
+</tr>
+                {% empty %}
+                <tr>
+                    <td class="text-center text-slate-400 py-4 italic">No incluye productos físicos</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div class="inventory-card">
+            <h2 class="inventory-title"><i class="fa-solid fa-bell-concierge text-[#541E12]"></i> Servicios Incluidos</h2>
+            <div class="space-y-4 mt-2">
+                {% for ps in paquete.paqueteservicio_set.all %}
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <h3 class="font-bold text-slate-800 text-sm mb-1">{{ ps.servicio.nombre }}</h3>
+                    <p class="text-xs text-slate-500 line-clamp-2">{{ ps.servicio.descripcion }}</p>
+                </div>
+                {% empty %}
+                <div class="text-center text-slate-400 py-4 italic text-sm">
+                    No incluye servicios adicionales
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="btn-action-group">
+            <a href="{% url 'listar_paquetes' %}" class="px-6 py-2.5 font-bold text-slate-400 hover:text-slate-600 transition">
+                Volver al listado
+            </a>
+            
+            <a href="{% url 'pre_editar_paquete' paquete.id %}"
+               class="px-6 py-2.5 bg-amber-500 text-white rounded-xl font-bold shadow-lg shadow-amber-100 hover:bg-amber-600 transition flex items-center gap-2">
+                <i class="fa-solid fa-pen"></i> Editar
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

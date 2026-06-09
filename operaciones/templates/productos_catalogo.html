@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Productos de Alquiler - Arron{% endblock %}
+
+{% block content %}
+<section class="productos-section">
+    <div class="container">
+        
+        <div class="section-header">
+            <span class="hero-subtitle" style="text-align: center; display: block;">Nuestro Inventario</span>
+            <h2 class="section-title">Productos de Alquiler</h2>
+            <div class="divider"></div>
+        </div>
+
+        {% if not productos %}
+        <div class="alert-info-custom text-center">
+            <i class="fa fa-box-open" style="font-size: 2rem; color: var(--accent);"></i>
+            <p class="mt-2">
+                No hay productos disponibles en este momento.<br>
+                Vuelve pronto 🙂
+            </p>
+        </div>
+        {% endif %}
+
+        <div class="productos-grid">
+{% for producto in productos %}
+<div class="producto-card">
+
+<form method="post" action="{% url 'agregar_al_carrito' %}">
+{% csrf_token %}
+
+<input type="hidden" name="idProducto" value="{{ producto.id }}">
+
+<div class="producto-img">
+{% if producto.imagen %}
+<img src="{{ producto.imagen.url }}" alt="{{ producto.nombre_producto }}">
+{% else %}
+<img src="{% static 'imagenes/placeholder.jpg' %}" alt="Sin imagen">
+{% endif %}
+</div>
+
+<div class="producto-body">
+
+<h3>{{ producto.nombre_producto }}</h3>
+
+<p class="descripcion">
+{{ producto.descripcion }}
+</p>
+
+<p class="precio">
+$ <span class="valor">
+    {{ producto.precio_alquiler|floatformat:0|intcomma}}
+</span>
+</p>
+
+<div class="cantidad-control">
+<button type="button" class="quantity-btn decrement">−</button>
+
+<input type="number"
+name="cantidad"
+class="quantity-input"
+value="1"
+min="1"
+max="{{ producto.stock_disponible }}">
+
+<button type="button" class="quantity-btn increment">+</button>
+</div>
+
+{% if request.session.usuario_id %}
+<button type="submit" class="btn-alquilar">
+Añadir al Carrito
+</button>
+{% else %}
+<button type="button" class="btn-alquilar" onclick="redirigirLogin()">
+Añadir al Carrito
+</button>
+{% endif %}
+
+</div>
+
+</form>
+
+</div>
+{% endfor %}
+</div>
+
+        {% if productos.has_other_pages %}
+        <div class="paginacion">
+            {% if productos.has_previous %}
+                <a class="page-btn prev" href="?page={{ productos.previous_page_number }}">‹</a>
+            {% endif %}
+
+            <span class="page-numbers">
+                {% for num in productos.paginator.page_range %}
+                    <a class="page-btn {% if productos.number == num %}active{% endif %}" href="?page={{ num }}">
+                        {{ num }}
+                    </a>
+                {% endfor %}
+            </span>
+
+            {% if productos.has_next %}
+                <a class="page-btn next" href="?page={{ productos.next_page_number }}">›</a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+
+<script>
+
+    // Lógica de botones +/- (se mantiene igual pero optimizada)
+    document.querySelectorAll(".producto-card").forEach(producto => {
+        const btnMenos = producto.querySelector(".decrement");
+        const btnMas   = producto.querySelector(".increment");
+        const input    = producto.querySelector(".quantity-input");
+
+        if (!btnMenos || !btnMas || !input) return;
+
+        btnMas.addEventListener("click", () => {
+            let valor = parseInt(input.value) || 1;
+            let max = parseInt(input.max) || 99;
+            if (valor < max) input.value = valor + 1;
+        });
+
+        btnMenos.addEventListener("click", () => {
+            let valor = parseInt(input.value) || 1;
+            if (valor > 1) input.value = valor - 1;
+        });
+    });
+</script>
+{% endblock %}

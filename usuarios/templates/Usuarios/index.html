@@ -1,0 +1,241 @@
+{% extends "base2.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    :root {
+        --bg-main: #fdfaf6;
+        --bg-card: #ffffff;
+        --border-soft: #ede9e3;
+        --primary: #b45309; /* Dorado Arron */
+        --secondary: #541E12; /* Vinotinto Arron */
+        --text-main: #1c1917;
+    }
+
+    body { background: var(--bg-main); color: var(--text-main); }
+
+    /* Tarjeta contenedora estilo Premium */
+    .inventory-card {
+        background: var(--bg-card);
+        border-radius: 28px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+        border: 1px solid var(--border-soft);
+        margin-bottom: 40px;
+    }
+
+    /* Tabla Moderna */
+    .table-modern {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 12px;
+    }
+
+    .table-modern thead th {
+        color: var(--text-main);
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        padding: 1rem;
+        border-bottom: 2px solid var(--primary);
+    }
+
+    .table-modern tbody tr {
+        background-color: white;
+        transition: all 0.3s ease;
+    }
+
+    .table-modern tbody tr:hover {
+        transform: scale(1.005);
+        box-shadow: 0 15px 30px rgba(180, 83, 9, 0.08);
+    }
+
+    .table-modern td {
+        padding: 1.2rem 1rem;
+        vertical-align: middle;
+        border-top: 1px solid var(--border-soft);
+        border-bottom: 1px solid var(--border-soft);
+    }
+
+    .table-modern td:first-child { border-left: 1px solid var(--border-soft); border-radius: 15px 0 0 15px; }
+    .table-modern td:last-child { border-right: 1px solid var(--border-soft); border-radius: 0 15px 15px 0; }
+
+    /* Avatar circular con inicial */
+    .user-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 14px;
+        background: var(--bg-main);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        color: var(--secondary);
+        border: 2px solid var(--border-soft);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    /* Botones de Acción */
+    .btn-action {
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-view { background: #f8fafc; color: #64748b; }
+    .btn-edit { background: #fffbeb; color: #d97706; }
+    .btn-delete { background: #fef2f2; color: #dc2626; border: none; }
+    .btn-enable { background: #f0fdf4; color: #16a34a; }
+
+    .btn-action:hover { transform: translateY(-3px) rotate(8deg); filter: brightness(0.95); }
+
+    /* Botones Superiores */
+    .btn-nav-premium {
+        padding: 12px 24px;
+        border-radius: 16px;
+        font-weight: 800;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: 0.4s;
+    }
+
+    .btn-gold { background: var(--primary); color: white; box-shadow: 0 10px 20px rgba(180, 83, 9, 0.2); }
+    .btn-outline { border: 2px solid var(--border-soft); color: var(--text-main); background: white; }
+
+    /* Badge de Rol */
+    .role-badge {
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        background: #f1f5f9;
+        color: #475569;
+        text-transform: uppercase;
+    }
+</style>
+
+<div class="max-w-7xl mx-auto px-6 py-10">
+
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6">
+        <div>
+            <h1 class="text-4xl font-black tracking-tighter text-gray-800">
+                Gestión de <span class="text-[var(--primary)] italic">Staff</span>
+            </h1>
+            <p class="text-gray-500 font-medium mt-1">Panel administrativo de colaboradores Aaron.</p>
+        </div>
+
+        <div class="flex flex-wrap gap-3">
+            <a href="{% url 'mostrar_registro_usuario' %}" class="btn-nav-premium btn-gold">
+                <i class="fa-solid fa-user-plus"></i>
+                Nuevo Usuario
+            </a>
+        </div>
+    </div>
+
+    <div class="inventory-card">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-xs font-black uppercase tracking-[0.2em] text-emerald-600 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Personal Activo
+            </h2>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="table-modern">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Perfil</th>
+                        <th>Nombre Completo</th>
+                        <th>Contacto Principal</th>
+                        <th>Teléfono</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios %}
+                    <tr>
+                        <td>
+                            <div class="user-avatar">
+                                {{ usuario.nombre|slice:":1"|upper }}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="font-black text-gray-800">{{ usuario.nombre }}</div>
+                            <span class="role-badge">{{ usuario.rol.nombre }}</span>
+                        </td>
+                        <td class="text-sm text-gray-500 italic">{{ usuario.correo }}</td>
+                        <td class="font-bold text-gray-700">{{ usuario.telefono }}</td>
+                        <td class="text-center">
+                            <div class="flex justify-center gap-3">
+                                <a href="{% url 'mostrar_detalle_usuario' usuario.id %}" class="btn-action btn-view" title="Ver Detalle">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                <a href="{% url 'pre_editar_usuario' usuario.id %}" class="btn-action btn-edit" title="Editar">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <a href="{% url 'eliminar_usuario' usuario.id %}" 
+                                   onclick="return confirm('¿Inhabilitar este acceso?')" 
+                                   class="btn-action btn-delete" title="Inhabilitar">
+                                    <i class="fa-solid fa-user-slash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-20">
+                            <p class="text-gray-400 font-bold italic">No hay personal registrado en esta área.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="inventory-card opacity-80 border-dashed">
+        <h2 class="text-xs font-black uppercase tracking-[0.2em] text-red-400 mb-8 flex items-center gap-2">
+            <i class="fa-solid fa-ghost"></i> Cuentas Inhabilitadas
+        </h2>
+        
+        <div class="overflow-x-auto">
+            <table class="table-modern">
+                <tbody>
+                    {% for usuario in usuarios_inactivos %}
+                    <tr class="grayscale">
+                        <td style="width: 80px;">
+                            <div class="user-avatar bg-gray-50 border-dashed">{{ usuario.nombre|slice:":1"|upper }}</div>
+                        </td>
+                        <td class="font-bold text-gray-400">{{ usuario.nombre }}</td>
+                        <td class="text-gray-400 text-sm italic">{{ usuario.correo }}</td>
+                        <td class="text-gray-400">{{ usuario.telefono }}</td>
+                        <td class="text-center">
+                            <a href="{% url 'usuarios_habilitar' usuario.id %}" 
+                               onclick="return confirm('¿Reactivar acceso?')" 
+                               class="btn-action btn-enable" title="Reactivar">
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-6 text-gray-300 text-xs italic">
+                            Papelera de personal vacía.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

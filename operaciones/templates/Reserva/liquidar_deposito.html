@@ -1,0 +1,158 @@
+{% extends "base2.html" %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    /* Forzamos el centrado total del wrapper */
+    #arron-panel-wrapper {
+        background-color: #d1d3d5 !important;
+        min-height: 100vh;
+        width: 100%;
+        display: flex;
+        justify-content: center; /* Centrado horizontal */
+        align-items: center;     /* Centrado vertical */
+        padding: 40px 15px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .liquidation-card {
+        background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        border: none;
+        width: 100%;
+        max-width: 550px; /* Tamaño ideal para recibo */
+    }
+
+    .header-gradient {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+        padding: 35px 20px;
+    }
+
+    .finance-section {
+        padding: 20px;
+        border-radius: 16px;
+        margin-bottom: 15px;
+    }
+
+    .bg-deposit { background-color: #f0fdf4; border: 1px solid #dcfce7; }
+    .bg-damage { background-color: #fef2f2; border: 1px solid #fee2e2; }
+    
+    .label-caps {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        font-weight: 800;
+        color: #64748b;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .price-value {
+        font-size: 1.4rem;
+        font-weight: 800;
+    }
+
+    /* Estilo de lista de daños siempre visible */
+    .damage-list {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px dashed #fecaca;
+    }
+
+    .damage-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: #991b1b;
+        margin-bottom: 5px;
+    }
+
+    .total-banner {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 30px 20px;
+        border: 2px solid #e2e8f0;
+        text-align: center;
+        margin: 30px 0;
+    }
+
+    .btn-confirm {
+        background-color: #541E12 !important;
+        color: white !important;
+        border-radius: 12px !important;
+        padding: 16px !important;
+        font-weight: 700 !important;
+        border: none !important;
+        width: 100%;
+    }
+</style>
+
+<div id="arron-panel-wrapper">
+    <div class="liquidation-card">
+        <div class="header-gradient text-center">
+            <h6 class="text-uppercase mb-2" style="letter-spacing: 3px; font-size: 0.7rem; opacity: 0.7;">Liquidación Final</h6>
+            <h3 class="fw-bold mb-0">Cierre de Cuenta</h3>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+            <div class="mb-4 text-center">
+                <h5 class="fw-bold mb-1 text-dark">{{ reserva.usuario.nombre }}</h5>
+                <p class="text-muted small">
+                    Reserva #{{ reserva.id }} • {{ reserva.fecha_evento|date:"d M, Y" }}
+                </p>
+            </div>
+
+            <div class="finance-section bg-deposit">
+                <span class="label-caps" style="color: #166534;">Depósito de Garantía</span>
+                <div class="price-value text-success">
+                    <i class="fa-solid fa-vault me-2"></i>${{ reserva.deposito_garantia|floatformat:0|intcomma  }}
+                </div>
+            </div>
+
+            <div class="finance-section bg-damage">
+                <span class="label-caps" style="color: #991b1b;">Deducciones por Daños</span>
+                <div class="price-value text-danger">
+                    <i class="fa-solid fa-circle-minus me-2"></i>-${{ total_danos|floatformat:0|intcomma  }}
+                </div>
+
+                {% if evaluaciones %}
+                <div class="damage-list">
+                    {% for ev in evaluaciones %}
+                    <div class="damage-item">
+                        <span>{{ ev.cantidad_danada }}x {{ ev.producto.nombre_producto }}</span>
+                        <span class="fw-bold">${{ ev.costo_dano|floatformat:0|intcomma  }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="total-banner">
+                <span class="label-caps">Saldo Neto a Devolver</span>
+                <h2 class="display-6 fw-black text-dark mb-0">${{ saldo_a_devolver|floatformat:0|intcomma  }}</h2>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="alert alert-light border small text-muted mb-4 text-center">
+                    <i class="fa-solid fa-circle-info me-1"></i>
+                    Esta acción finalizará el evento y liberará el inventario.
+                </div>
+                
+                <button type="submit" class="btn btn-confirm mb-3">
+                    <i class="fa-solid fa-check-circle me-2"></i>Confirmar Reembolso
+                </button>
+                
+                <div class="text-center">
+                    <a href="{% url 'listar_reservas' %}" class="text-muted small text-decoration-none">
+                        <i class="fa-solid fa-xmark me-1"></i> Cancelar y salir
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

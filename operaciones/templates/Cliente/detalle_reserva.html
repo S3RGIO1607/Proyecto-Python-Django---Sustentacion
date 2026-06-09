@@ -1,0 +1,782 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    /* Contenedor con el mismo padding que el resto del sitio */
+    .detalle-section {
+        padding: 140px 20px 100px;
+        background: var(--bg-dark);
+        min-height: 100vh;
+    }
+
+    .detalle-container {
+        max-width: 800px;
+        margin: auto;
+    }
+
+    /* Tarjeta estilo Arron */
+    .detalle-card {
+        background: var(--bg-card);
+        border-radius: 16px;
+        padding: 40px;
+        border: 1px solid var(--border);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .detalle-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 35px;
+        padding-bottom: 25px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .detalle-header h2 {
+        margin: 0;
+        color: #fff;
+        font-size: 1.8rem;
+        font-weight: 800;
+    }
+
+    /* Estados tipo "Glow" */
+    .estado {
+        padding: 6px 16px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .reservado { background: rgba(0, 150, 255, 0.1); color: #0096ff; border: 1px solid #0096ff; }
+    .confirmado { background: rgba(0, 255, 128, 0.1); color: #00ff80; border: 1px solid #00ff80; }
+    .cancelado { background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border: 1px solid #ff4d4d; }
+
+    .section {
+        margin-bottom: 35px;
+    }
+
+    .section h4 {
+        margin-bottom: 20px;
+        color: var(--accent); /* Dorado */
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section h4::after {
+        content: "";
+        height: 1px;
+        flex-grow: 1;
+        background: var(--border);
+    }
+
+    .item-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        color: var(--text-muted);
+        font-size: 1rem;
+    }
+
+    .item-row span:last-child {
+        font-weight: 600;
+        color: #fff;
+    }
+
+    /* Caja de info de fecha */
+    .info-evento-box {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .info-evento-box i {
+        color: var(--accent);
+        font-size: 1.5rem;
+    }
+
+    .info-evento-box div strong {
+        display: block;
+        color: #fff;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    /* Caja de totales */
+    .total-box {
+        background: rgba(241, 210, 121, 0.05); /* Sutil fondo dorado */
+        margin: 0 -40px -40px -40px; 
+        padding: 40px;
+        border-top: 1px dashed var(--border);
+        border-radius: 0 0 16px 16px;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .total-label {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .total-amount {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--accent);
+    }
+
+    .btn-volver {
+        display: inline-flex;
+        align-items: center;
+        margin-top: 40px;
+        text-decoration: none;
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: var(--transition);
+        gap: 10px;
+    }
+
+    .btn-volver:hover {
+        color: var(--accent);
+        transform: translateX(-5px);
+    }
+
+    .text-muted {
+        color: var(--text-muted);
+        font-style: italic;
+        font-size: 0.9rem;
+    }
+
+    .detalle-section {
+        padding: 140px 20px 100px;
+        background: #0f172a; /* Un tono oscuro más profundo para elegancia */
+        min-height: 100vh;
+    }
+
+    /* Estilo extra para la fila de comida */
+    .comida-highlight {
+        background: rgba(var(--accent-rgb), 0.1);
+        border-left: 3px solid var(--accent);
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        margin-top: 10px;
+    }
+
+    .badge-pax {
+        background: var(--accent);
+        color: #000;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        margin-left: 10px;
+    }
+    .detalle-section {
+        padding: 140px 20px 100px;
+        background: #0f172a; 
+        min-height: 100vh;
+    }
+
+    /* Nuevo estilo para la caja del Lugar */
+    .lugar-highlight {
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        gap: 20px;
+        margin-top: 10px;
+    }
+
+    .lugar-img {
+        width: 100px;
+        height: 100px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid var(--accent);
+    }
+
+    .lugar-info h5 {
+        margin: 0 0 5px 0;
+        color: #fff;
+        font-size: 1.1rem;
+    }
+
+    .lugar-info p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    .badge-lugar {
+        display: inline-block;
+        margin-top: 8px;
+        font-size: 0.7rem;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .btn-pagar-main {
+        width: 100%;
+        margin-top: 30px;
+        padding: 18px;
+        background: var(--accent);
+        color: #000;
+        border: none;
+        border-radius: 8px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .btn-pagar-main:hover {
+        background: #fff;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    /* Caja de detalles de pago ya realizado */
+    .comprobante-pago-box {
+        background: rgba(0, 255, 128, 0.03);
+        border: 1px solid rgba(0, 255, 128, 0.2);
+        border-radius: 12px;
+        padding: 25px;
+        margin-top: 30px;
+    }
+
+    .comprobante-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #00ff80;
+        font-weight: 700;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+    }
+
+    .comprobante-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .comprobante-item {
+        font-size: 0.95rem;
+        color: var(--text-muted);
+    }
+
+    .comprobante-item strong {
+        display: block;
+        color: #fff;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        margin-top: 2px;
+    }
+
+
+    /* ==========================================================================
+       CORRECCIÓN PASARELA DE PAGO (MODAL PREMIUM)
+       ========================================================================== */
+    .modal-content-premium {
+        background: #111827 !important; /* Fondo ultra oscuro integrado */
+        border: 1px solid #374151 !important;
+        border-radius: 16px !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .modal-header-pago {
+        border-bottom: 1px solid #2d3748 !important;
+    }
+
+    /* Esconder el radio button nativo rústico */
+    .method-radio {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    /* Tarjetas de los métodos de pago */
+    .payment-method-card {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 14px 20px;
+        background: #1f2937;
+        border: 2px solid #374151;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .payment-method-card:hover {
+        background: #2563eb10;
+        border-color: #4b5563;
+    }
+
+    /* Estado cuando el Input Radio está seleccionado */
+    .method-radio:checked + .payment-method-card {
+        border-color: var(--accent) !important;
+        background: rgba(251, 192, 45, 0.05) !important;
+        box-shadow: 0 0 12px rgba(251, 192, 45, 0.15);
+    }
+
+    /* Inputs de escritura dentro del modal */
+    .payment-input-premium {
+        background: #1f2937 !important;
+        border: 1px solid #374151 !important;
+        color: #fff !important;
+        border-radius: 10px !important;
+        padding: 12px !important;
+        font-size: 0.95rem;
+    }
+    .payment-input-premium:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 8px rgba(251, 192, 45, 0.2) !important;
+    }
+
+    /* Selectores desplegables dentro del modal */
+    .payment-select-premium {
+        background: #1f2937 url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") no-repeat right .75rem center/16px 12px !important;
+        border: 1px solid #374151 !important;
+        color: #fff !important;
+        border-radius: 10px !important;
+        padding: 12px !important;
+    }
+    .payment-select-premium:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 8px rgba(251, 192, 45, 0.2) !important;
+    }
+
+    /* Alerta informativa de Efectivo */
+    .badge-info-efectivo {
+        background: rgba(251, 192, 45, 0.05);
+        border: 1px dashed rgba(251, 192, 45, 0.3);
+        border-radius: 12px;
+        padding: 15px;
+    }
+
+    /* Botón de confirmación final */
+    .btn-confirmar-pago {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, var(--accent) 0%, #f5b041 100%);
+        color: #000;
+        border: none;
+        border-radius: 10px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .btn-confirmar-pago:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(251, 192, 45, 0.3);
+        filter: brightness(1.1);
+    }
+</style>
+
+<section class="detalle-section">
+    <div class="detalle-container">
+        
+        <div class="detalle-card">
+            
+            <div class="detalle-header">
+                <div>
+                    <h2>Reserva #{{ reserva.id }}</h2>
+                    <p style="color: var(--text-muted); margin: 5px 0 0 0;">Creada el {{ reserva.fecha_creacion|date:"d/m/Y" }}</p>
+                </div>
+                <span class="estado 
+                    {% if reserva.estado == 'Reservado' %}reservado{% endif %}
+                    {% if reserva.estado == 'Confirmado' %}confirmado{% endif %}
+                    {% if reserva.estado == 'Cancelado' %}cancelado{% endif %}
+                ">
+                    {{ reserva.estado }}
+                </span>
+            </div>
+
+            <div class="section">
+                <h4>Información del Evento</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="info-evento-box">
+                        <i class="fa-solid fa-calendar-day"></i>
+                        <div>
+                            <strong>Fecha Programada</strong>
+                            <span>{{ reserva.fecha_evento }}</span>
+                        </div>
+                    </div>
+                    <div class="info-evento-box">
+                        <i class="fa-solid fa-clock"></i>
+                        <div>
+                            <strong>Hora de Inicio</strong>
+                            <span>{{ reserva.hora_inicio|time:"H:i" }} hrs</span>
+                        </div>
+                    </div>
+                    <div class="info-evento-box">
+                        <i class="fa-solid fa-hourglass-half"></i>
+                        <div>
+                            <strong>Duración del Paquete</strong>
+                            <span>{{ reserva.paquete.duracion_horas }} Horas</span>
+                        </div>
+                    </div>
+                    <div class="info-evento-box">
+                        <i class="fa-solid fa-users"></i>
+                        <div>
+                            <strong>Quórum total</strong>
+                            <span>{{ reserva.asistentes }} Invitados</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>Sede y Ubicación</h4>
+                {% if reserva.lugar %}
+                <div class="lugar-highlight">
+                    {% if reserva.lugar.imagen %}
+                        <img src="{{ reserva.lugar.imagen.url }}" class="lugar-img" alt="{{ reserva.lugar.nombre }}">
+                    {% else %}
+                        <div class="lugar-img" style="display: flex; align-items: center; justify-content: center; background: #1e293b;">
+                            <i class="fa-solid fa-building-columns" style="font-size: 2rem; color: var(--border);"></i>
+                        </div>
+                    {% endif %}
+                    <div class="lugar-info">
+                        <h5>{{ reserva.lugar.nombre }}</h5>
+                        <p><i class="fa-solid fa-location-dot" style="margin-right: 8px;"></i> {{ reserva.lugar.direccion }}</p>
+                        <span class="badge-lugar">Capacidad Máx: {{ reserva.lugar.capacidad_maxima }} personas</span>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted">Lugar por definir o acordado externamente.</p>
+                {% endif %}
+            </div>
+
+            <div class="section">
+                <h4>Gastronomía y Menú</h4>
+                {% if reserva.menu_comida %}
+                <div class="comida-highlight">
+                    <div class="item-row" style="margin-bottom: 5px;">
+                        <span>
+                            <i class="fa-solid fa-utensils" style="margin-right: 10px; color: var(--accent);"></i>
+                            <strong>{{ reserva.menu_comida.nombre }}</strong>
+                            <span class="badge-pax">{{ reserva.asistentes }} Platos</span>
+                        </span>
+                        <span>$ {{ reserva.menu_comida.precio_por_persona|floatformat:0|intcomma  }} c/u</span>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">{{ reserva.menu_comida.descripcion }}</p>
+                </div>
+                {% else %}
+                <p class="text-muted">No se seleccionó servicio de alimentación.</p>
+                {% endif %}
+            </div>
+
+            <div class="section">
+                <h4>Inventario y Mobiliario (Basado en Paquete)</h4>
+                {% for rp in reserva.productos.all %}
+                <div class="item-row">
+                    <span>
+                        <i class="fa-solid fa-chair" style="font-size: 0.8rem; margin-right: 10px; color: var(--accent);"></i>
+                        {{ rp.cantidad }}x {{ rp.producto.nombre_producto }}
+                    </span>
+                    <span>$ {{ rp.subtotal|floatformat:0|intcomma  }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="section">
+                <h4>Desglose de Servicios y Renta</h4>
+                <div class="item-row">
+                    <span><i class="fa-solid fa-box-archive" style="margin-right: 10px;"></i> Tarifa Base Paquete</span>
+                    <span>$ {{ reserva.precio_paquete|floatformat:0|intcomma  }}</span>
+                </div>
+
+                {% if reserva.lugar %}
+                <div class="item-row">
+                    <span><i class="fa-solid fa-house-chimney-window" style="margin-right: 10px; color: var(--accent);"></i> Renta de Sede</span>
+                    <span>$ {{ reserva.lugar.precio_renta|floatformat:0|intcomma  }}</span>
+                </div>
+                {% endif %}
+                
+                {% for rs in reserva.servicios_extra.all %}
+                {% if rs.servicio %} 
+                <div class="item-row">
+                    <span>
+                        <i class="fa-solid fa-plus-circle" style="font-size: 0.8rem; margin-right: 10px; color: var(--accent);"></i>
+                        {{ rs.servicio.nombre }}
+                    </span>
+                    <span>$ {{ rs.precio_fijado|floatformat:0|intcomma  }}</span>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="total-box">
+                <div class="item-row" style="margin-bottom: 20px; opacity: 0.8;">
+                    <span>Depósito de garantía (Reembolsable)</span>
+                    <span>$ {{ reserva.deposito_garantia|floatformat:0|intcomma  }}</span>
+                </div>
+                <div class="total-row">
+                    <span class="total-label">Inversión Total</span>
+                    <span class="total-amount">$ {{ reserva.total|floatformat:0|intcomma  }}</span>
+                </div>
+
+                {% if reserva.estado == 'Reservado' %}
+                    <button type="button" class="btn-pagar-main" data-bs-toggle="modal" data-bs-target="#modalPago">
+                        <i class="fa-solid fa-credit-card"></i> Proceder al Pago
+                    </button>
+
+                    <form action="{% url 'cancelar_reserva_cliente' reserva.id %}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta reserva? Esta acción no se puede deshacer.');">
+                        {% csrf_token %}
+                        <button type="submit" style="width: 100%; margin-top: 15px; background: transparent; color: #ff4d4d; border: 1px solid #ff4d4d; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; cursor: pointer; transition: all 0.3s ease;">
+                            <i class="fa-solid fa-xmark" style="margin-right: 8px;"></i> Cancelar Reserva
+                        </button>
+                    </form>
+                
+                {% elif reserva.estado != 'Cancelado' %}
+                    <div class="comprobante-pago-box">
+                        <div class="comprobante-header">
+                            <i class="fa-solid fa-circle-check"></i> Pago Confirmado y Registrado
+                        </div>
+                        <div class="comprobante-grid">
+                            <div class="comprobante-item">
+                                Método utilizado:
+                                <strong>{{ pago.metodo_pago }}</strong>
+                            </div>
+                            <div class="comprobante-item">
+                                Monto abonado:
+                                <strong>$ {{ pago.monto|floatformat:0|intcomma }} COP</strong>
+                            </div>
+
+                            {% if pago.metodo_pago == 'Transferencia' %}
+                                <div class="comprobante-item">
+                                    Banco / Plataforma:
+                                    <strong>{{ pago.transferencia_banco }}</strong>
+                                </div>
+                                <div class="comprobante-item">
+                                    Cuenta origen (Ultimos dígitos):
+                                    <strong>{{ pago.transferencia_numero }}</strong>
+                                </div>
+                            {% elif pago.metodo_pago == 'Tarjeta' %}
+                                <div class="comprobante-item">
+                                    Franquicia:
+                                    <strong>{{ pago.tarjeta_tipo }}</strong>
+                                </div>
+                                <div class="comprobante-item">
+                                    Titular:
+                                    <strong>{{ pago.tarjeta_titular }}</strong>
+                                </div>
+                            {% else %}
+                                <div class="comprobante-item" style="grid-column: 1 / -1;">
+                                    Detalle de Recepción:
+                                    <strong>Efectivo procesado en Caja de Sucursal</strong>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <a href="{% url 'mis_reservas' %}" class="btn-volver">
+            <i class="fa-solid fa-arrow-left"></i> Volver a mi panel de reservas
+        </a>
+        
+    </div>
+</section>
+
+{% if reserva.estado == 'Reservado' %}
+<div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-premium text-white">
+            <div class="modal-header modal-header-pago">
+                <div>
+                    <h5 class="modal-title" style="color: var(--accent); font-weight: 800; font-size: 1.4rem;">Finalizar Pago</h5>
+                    <p class="text-muted small mb-0">Reserva #{{ reserva.id }}</p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form action="{% url 'registrar_pago_cliente' 'reserva' reserva.id %}" method="POST" id="form-pasarela-pago">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.08);" class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold">Monto de la Reserva:</span>
+                            <span style="color: var(--accent); font-weight: 700;">$ {{ reserva.total|floatformat:0|intcomma }}</span>
+                        </div>
+                    </div>
+
+                    <label class="form-label small text-uppercase fw-bold mb-3" style="color: var(--accent); letter-spacing: 1px;">Selecciona Medio de Pago</label>
+                    
+                    <div class="payment-methods mb-4">
+                        <label class="w-100">
+                            <input type="radio" name="metodo" value="Transferencia" class="method-radio" checked>
+                            <div class="payment-method-card">
+                                <div style="color:var(--accent); font-size: 1.2rem;"><i class="fa-solid fa-building-columns"></i></div>
+                                <div><span class="d-block fw-bold text-white">Transferencia</span><small class="text-muted">Bancolombia / Nequi / Daviplata</small></div>
+                            </div>
+                        </label>
+
+                        <label class="w-100">
+                            <input type="radio" name="metodo" value="Tarjeta" class="method-radio">
+                            <div class="payment-method-card">
+                                <div style="color:var(--accent); font-size: 1.2rem;"><i class="fa-solid fa-credit-card"></i></div>
+                                <div><span class="d-block fw-bold text-white">Tarjeta Crédito/Débito</span><small class="text-muted">Procesamiento seguro</small></div>
+                            </div>
+                        </label>
+
+                        <label class="w-100">
+                            <input type="radio" name="metodo" value="Efectivo" class="method-radio">
+                            <div class="payment-method-card">
+                                <div style="color:var(--accent); font-size: 1.2rem;"><i class="fa-solid fa-money-bill-wave"></i></div>
+                                <div><span class="d-block fw-bold text-white">Efectivo</span><small class="text-muted">Pago en sucursal o contra entrega</small></div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div id="panel-transferencia" class="payment-dynamic-panel mb-3">
+                        <div class="mb-3">
+                            <label class="form-label small text-white-50 fw-bold">Plataforma Financiera</label>
+                            <select name="transferencia_banco" id="id_trans_banco" class="form-select payment-select-premium" required>
+                                <option value="" disabled selected>Selecciona una opción...</option>
+                                <option value="Bancolombia">Bancolombia (Cuenta)</option>
+                                <option value="Nequi">Nequi</option>
+                                <option value="Daviplata">Daviplata</option>
+                                <option value="Davivienda">Davivienda</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label small text-white-50 fw-bold">Tipo de Cuenta</label>
+                                <select name="transferencia_tipo" id="id_trans_tipo" class="form-select payment-select-premium" required>
+                                    <option value="Ahorros" selected>Ahorros</option>
+                                    <option value="Corriente">Corriente</option>
+                                    <option value="Monedero">Depósito Digital</option>
+                                </select>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label small text-white-50 fw-bold">Número de Cuenta</label>
+                                <input type="text" name="transferencia_numero" id="id_trans_numero" 
+                                       class="form-control payment-input-premium" required
+                                       placeholder="Ej. 3001234567" pattern="\d+" title="Ingrese únicamente dígitos numéricos"
+                                       minlength="10" maxlength="20">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="panel-tarjeta" class="payment-dynamic-panel d-none mb-3">
+                        <div class="mb-3">
+                            <label class="form-label small text-white-50 fw-bold">Tipo de Tarjeta</label>
+                            <select name="tarjeta_tipo" id="id_tarjeta_tipo" class="form-select payment-select-premium">
+                                <option value="" disabled selected>Selecciona franquicia...</option>
+                                <option value="Credito - Visa">Crédito Visa</option>
+                                <option value="Credito - Mastercard">Crédito Mastercard</option>
+                                <option value="Credito - Amex">Crédito American Express</option>
+                                <option value="Debito - Visa/Mastercard">Débito (Visa / MC)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-white-50 fw-bold">Nombre Completo del Titular</label>
+                            <input type="text" name="tarjeta_titular" id="id_tarjeta_titular" 
+                                   class="form-control payment-input-premium text-uppercase"
+                                   placeholder="Como aparece en la tarjeta" minlength="4" maxlength="60">
+                        </div>
+                    </div>
+
+                    <div id="panel-efectivo" class="payment-dynamic-panel d-none mb-3">
+                        <div class="badge-info-efectivo">
+                            <p class="mb-2 text-warning fw-bold small text-uppercase"><i class="fa-solid fa-circle-info me-1"></i> Instrucciones de Recaudo</p>
+                            <span class="d-block small text-white-50" style="line-height: 1.4;">
+                                El desembolso debe completarse directamente en nuestros puntos físicos de atención o reportarse ante su asesor logístico asignado en un plazo máximo de 24 horas para garantizar la reserva del inventario.
+                            </span>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="monto" value="{{ reserva.total }}">
+                </div>
+
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="submit" class="btn-confirmar-pago">
+                        <i class="fa-solid fa-lock me-2"></i> CONFIRMAR PAGO AHORA
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const radios = document.querySelectorAll('input[name="metodo"]');
+    const panelTransferencia = document.getElementById('panel-transferencia');
+    const panelTarjeta = document.getElementById('panel-tarjeta');
+    const panelEfectivo = document.getElementById('panel-efectivo');
+    
+    const inputsTransferencia = [
+        document.getElementById('id_trans_banco'),
+        document.getElementById('id_trans_tipo'),
+        document.getElementById('id_trans_numero')
+    ];
+    
+    const inputsTarjeta = [
+        document.getElementById('id_tarjeta_tipo'),
+        document.getElementById('id_tarjeta_titular')
+    ];
+
+    function conmutarPasarela() {
+        let metodoSeleccionado = "";
+        radios.forEach(r => { if (r.checked) metodoSeleccionado = r.value; });
+
+        panelTransferencia.classList.add('d-none');
+        panelTarjeta.classList.add('d-none');
+        panelEfectivo.classList.add('d-none');
+
+        inputsTransferencia.forEach(input => input.removeAttribute('required'));
+        inputsTarjeta.forEach(input => input.removeAttribute('required'));
+
+        if (metodoSeleccionado === "Transferencia") {
+            panelTransferencia.classList.remove('d-none');
+            inputsTransferencia.forEach(input => input.setAttribute('required', 'required'));
+        } 
+        else if (metodoSeleccionado === "Tarjeta") {
+            panelTarjeta.classList.remove('d-none');
+            inputsTarjeta.forEach(input => input.setAttribute('required', 'required'));
+        } 
+        else if (metodoSeleccionado === "Efectivo") {
+            panelEfectivo.classList.remove('d-none');
+        }
+    }
+
+    radios.forEach(radio => radio.addEventListener('change', conmutarPasarela));
+    conmutarPasarela();
+});
+</script>
+{% endif %}
+{% endblock %}

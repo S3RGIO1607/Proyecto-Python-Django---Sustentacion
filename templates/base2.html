@@ -1,0 +1,241 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>{% block title %}Casa de Eventos Aaron{% endblock %}</title>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- CSS -->
+<link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+
+<!-- FontAwesome -->
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+{% block extra_css %}{% endblock %}
+
+
+<style>
+.dark-toast { background: #1a1a1a; color: white; border-radius: 8px; overflow: hidden; min-width: 280px; margin-top: 10px; box-shadow: 0 10px 15px rgba(0,0,0,0.3); animation: fadeInUp 0.5s ease; }
+.dark-body { padding: 15px; display: flex; align-items: center; }
+.dark-indicator { width: 4px; height: 20px; border-radius: 2px; margin-right: 12px; }
+.alert-success .dark-indicator { background: #00ff88; }
+.alert-error .dark-indicator { background: #ff4d4d; }
+.progress-bar-container { background: rgba(255,255,255,0.1); height: 3px; width: 100%; }
+.progress-bar-fill { height: 100%; background: white; width: 100%; animation: shrink 5s linear forwards; }
+.alert-success .progress-bar-fill { background: #00ff88; }
+@keyframes shrink { from { width: 100%; } to { width: 0%; } }
+@keyframes fadeInUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
+</head>
+
+
+<body class="bg-gray-100 min-h-screen">
+
+<header class="bg-black shadow-md border-b border-[#541E12]">
+
+<div class="max-w-7xl mx-auto px-6 py-4 flex items-center gap-6">
+
+<!-- LOGO -->
+<img src="{% static 'imagenes/logo2.png' %}"
+alt="Logo Aaron"
+class="w-32 h-32 object-contain">
+
+<span class="text-2xl font-semibold text-white">
+Casa de Eventos Aaron
+</span>
+
+
+<!-- NAV -->
+<nav class="ml-auto flex items-center gap-4 text-white font-medium">
+
+    {% if request.session.usuario_id %}
+        {% with rol=request.session.rol|stringformat:"s" %} {# Convertimos a string para asegurar match #}
+            {% if rol == "1" %}
+                <a href="{% url 'dashboard_admin' %}" class="bg-[#541E12] px-3 py-1 rounded hover:bg-[#72291A] transition">
+                    <i class="fa-solid fa-chart-line mr-1"></i> Dashboard Admin
+                </a>
+            {% elif rol == "2" %}
+                <a href="{% url 'dashboard_organizador' %}" class="bg-[#541E12] px-3 py-1 rounded hover:bg-[#72291A] transition">
+                    <i class="fa-solid fa-calendar-check mr-1"></i> Dashboard Eventos
+                </a>
+            {% elif rol == "3" %}
+                <a href="{% url 'dashboard_bodega' %}" class="bg-[#541E12] px-3 py-1 rounded hover:bg-[#72291A] transition">
+                    <i class="fa-solid fa-warehouse mr-1"></i> Dashboard Bodega
+                </a>
+            {% endif %}
+        {% endwith %}
+    {% endif %}
+
+{% if request.session.usuario_id %}
+
+<div class="relative user-menu">
+
+<!-- BOTON USUARIO -->
+<button onclick="toggleUserMenu(event)"
+class="p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition">
+
+<i class="fa-solid fa-user text-white"></i>
+
+</button>
+
+
+<!-- DROPDOWN -->
+<div id="userDropdown"
+class="hidden absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg py-2 text-gray-800 z-50">
+
+<div class="px-4 py-2 flex items-center gap-2">
+
+<i class="fa-solid fa-circle-user text-2xl text-gray-400"></i>
+
+<div class="flex flex-col">
+
+<strong class="text-sm">
+{{ request.session.nombre_usuario }}
+</strong>
+
+<small class="text-xs text-gray-500 italic">
+        {% with rol=request.session.rol|add:"0" %}
+            {% if rol == 1 %}Administrador
+            {% elif rol == 2 %}Organizador
+            {% elif rol == 3 %}Supervisor Bodega
+            {% elif rol == 4 %}Cliente
+            {% else %}Usuario{% endif %}
+        {% endwith %}
+    </small>
+
+</div>
+
+</div>
+
+<hr class="my-1">
+
+
+<a href="{% url 'mi_perfil' %}"
+class="block px-4 py-2 hover:bg-gray-100 flex items-center gap-2">
+
+<i class="fa-solid fa-id-badge"></i>
+Mi perfil
+
+</a>
+
+
+<a href="{% url 'cambiar_clave' %}"
+   class="block px-4 py-2 hover:bg-gray-100 flex items-center gap-2">
+    <i class="fa-solid fa-key"></i>
+    Cambiar clave
+</a>
+
+
+<hr class="my-1">
+
+
+<form action="{% url 'logout' %}" method="post">
+
+{% csrf_token %}
+
+<button type="submit"
+class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 flex items-center gap-2">
+
+<i class="fa-solid fa-right-from-bracket"></i>
+Cerrar sesión
+
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+{% endif %}
+
+</nav>
+
+</div>
+
+</header>
+
+
+<main class="">
+
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+    {% for message in messages %}
+    <div class="dark-toast alert-{{ message.tags }}">
+        <div class="dark-body">
+            <div class="dark-indicator"></div>
+            <div class="dark-text">
+                <i class="fa-solid fa-bell me-2"></i> {{ message }}
+            </div>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar-fill"></div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% block content %}
+
+{% endblock %}
+
+</main>
+
+
+<script>
+
+function toggleUserMenu(event) {
+
+event.stopPropagation()
+
+const menu = document.getElementById("userDropdown")
+
+menu.classList.toggle("hidden")
+
+}
+
+document.addEventListener("click", function (event) {
+
+const userMenu = document.querySelector(".user-menu")
+
+const dropdown = document.getElementById("userDropdown")
+
+if (userMenu && !userMenu.contains(event.target)) {
+
+dropdown.classList.add("hidden")
+
+}
+
+})
+
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+        // Seleccionamos todos los mensajes que aparezcan
+        const toasts = document.querySelectorAll('.glass-toast, .dark-toast, .minimal-toast');
+        
+        toasts.forEach(toast => {
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(20px)';
+                toast.style.transition = 'all 0.5s ease';
+                setTimeout(() => toast.remove(), 500);
+            }, 5000); // 5 segundos de vida
+        });
+    });
+</script>
+
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

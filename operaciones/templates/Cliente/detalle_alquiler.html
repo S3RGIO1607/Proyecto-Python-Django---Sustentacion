@@ -1,0 +1,679 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    /* Tu paleta de colores y estilos base */
+    .detalle-section {
+        padding: 140px 20px 100px;
+        background: #0f172a; 
+        min-height: 100vh;
+    }
+
+    .detalle-container {
+        max-width: 800px;
+        margin: auto;
+    }
+
+    .detalle-card {
+        background: var(--bg-card);
+        border-radius: 16px;
+        padding: 40px;
+        border: 1px solid var(--border);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .detalle-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 35px;
+        padding-bottom: 25px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .detalle-header h2 {
+        margin: 0;
+        color: #fff;
+        font-size: 1.8rem;
+        font-weight: 800;
+    }
+
+    /* Estados dinámicos */
+    .estado {
+        padding: 6px 16px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .reservado { background: rgba(0, 150, 255, 0.1); color: #0096ff; border: 1px solid #0096ff; }
+    .confirmado { background: rgba(0, 255, 128, 0.1); color: #00ff80; border: 1px solid #00ff80; }
+    .finalizado { background: rgba(255, 255, 255, 0.05); color: #ccc; border: 1px solid #444; }
+
+    .section { margin-bottom: 35px; }
+
+    .section h4 {
+        margin-bottom: 20px;
+        color: var(--accent);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section h4::after {
+        content: "";
+        height: 1px;
+        flex-grow: 1;
+        background: var(--border);
+    }
+
+    .item-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        color: var(--text-muted);
+        font-size: 1rem;
+    }
+
+    .item-row span:last-child {
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .info-alquiler-box {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .info-alquiler-box i { color: var(--accent); font-size: 1.5rem; }
+
+    .info-alquiler-box div strong {
+        display: block;
+        color: #fff;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    /* Estilo para la Alerta de Mora */
+    .alerta-mora {
+        grid-column: 1 / -1;
+        margin-top: 15px;
+        background: linear-gradient(135deg, rgba(251, 192, 45, 0.1) 0%, rgba(251, 192, 45, 0.02) 100%);
+        border: 1px solid rgba(251, 192, 45, 0.2);
+        border-left: 4px solid var(--accent);
+        padding: 16px 20px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        backdrop-filter: blur(10px);
+    }
+
+    .alerta-mora i {
+        color: var(--accent);
+        font-size: 1.3rem;
+        animation: pulse-icon 2s infinite;
+    }
+
+    @keyframes pulse-icon {
+        0% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(1.1); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Tabla de productos */
+    .producto-item {
+        display: grid;
+        grid-template-columns: 60px 1fr auto;
+        gap: 15px;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .producto-img {
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid var(--border);
+    }
+
+    /* Caja de totales */
+    .total-box {
+        background: rgba(241, 210, 121, 0.05);
+        margin: 0 -40px -40px -40px; 
+        padding: 40px;
+        border-top: 1px dashed var(--border);
+        border-radius: 0 0 16px 16px;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .total-amount {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--accent);
+    }
+
+    .btn-pagar-main {
+        width: 100%;
+        margin-top: 30px;
+        padding: 18px;
+        background: var(--accent);
+        color: #000;
+        border: none;
+        border-radius: 8px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .btn-pagar-main:hover {
+        background: #fff;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    /* Caja de detalles de pago ya realizado */
+    .comprobante-pago-box {
+        background: rgba(0, 255, 128, 0.03);
+        border: 1px solid rgba(0, 255, 128, 0.2);
+        border-radius: 12px;
+        padding: 25px;
+        margin-top: 30px;
+    }
+
+    .comprobante-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #00ff80;
+        font-weight: 700;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        letter-spacing: 1px;
+    }
+
+    .comprobante-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    .comprobante-item {
+        font-size: 0.95rem;
+        color: var(--text-muted);
+    }
+
+    .comprobante-item strong {
+        display: block;
+        color: #fff;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        margin-top: 2px;
+    }
+
+    .btn-volver {
+        display: inline-flex;
+        align-items: center;
+        margin-top: 40px;
+        text-decoration: none;
+        color: var(--text-muted);
+        font-weight: 600;
+        gap: 10px;
+        transition: 0.3s;
+    }
+
+    .btn-volver:hover { color: var(--accent); transform: translateX(-5px); }
+
+    /* ==========================================================================
+       CORRECCIÓN PASARELA DE PAGO (MODAL PREMIUM)
+       ========================================================================== */
+    .modal-content-premium {
+        background: #111827 !important; /* Fondo ultra oscuro integrado */
+        border: 1px solid #374151 !important;
+        border-radius: 16px !important;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .modal-header-pago {
+        border-bottom: 1px solid #2d3748 !important;
+    }
+
+    /* Esconder el radio button nativo rústico */
+    .method-radio {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    /* Tarjetas de los métodos de pago */
+    .payment-method-card {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 14px 20px;
+        background: #1f2937;
+        border: 2px solid #374151;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .payment-method-card:hover {
+        background: #2563eb10;
+        border-color: #4b5563;
+    }
+
+    /* Estado cuando el Input Radio está seleccionado */
+    .method-radio:checked + .payment-method-card {
+        border-color: var(--accent) !important;
+        background: rgba(251, 192, 45, 0.05) !important;
+        box-shadow: 0 0 12px rgba(251, 192, 45, 0.15);
+    }
+
+    /* Inputs de escritura dentro del modal */
+    .payment-input-premium {
+        background: #1f2937 !important;
+        border: 1px solid #374151 !important;
+        color: #fff !important;
+        border-radius: 10px !important;
+        padding: 12px !important;
+        font-size: 0.95rem;
+    }
+    .payment-input-premium:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 8px rgba(251, 192, 45, 0.2) !important;
+    }
+
+    /* Selectores desplegables dentro del modal */
+    .payment-select-premium {
+        background: #1f2937 url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") no-repeat right .75rem center/16px 12px !important;
+        border: 1px solid #374151 !important;
+        color: #fff !important;
+        border-radius: 10px !important;
+        padding: 12px !important;
+    }
+    .payment-select-premium:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 8px rgba(251, 192, 45, 0.2) !important;
+    }
+
+    /* Alerta informativa de Efectivo */
+    .badge-info-efectivo {
+        background: rgba(251, 192, 45, 0.05);
+        border: 1px dashed rgba(251, 192, 45, 0.3);
+        border-radius: 12px;
+        padding: 15px;
+    }
+
+    /* Botón de confirmación final */
+    .btn-confirmar-pago {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, var(--accent) 0%, #f5b041 100%);
+        color: #000;
+        border: none;
+        border-radius: 10px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .btn-confirmar-pago:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(251, 192, 45, 0.3);
+        filter: brightness(1.1);
+    }
+</style>
+
+<section class="detalle-section">
+    <div class="detalle-container">
+        
+        <div class="detalle-card">
+            
+            <div class="detalle-header">
+                <div>
+                    <h2>Alquiler #{{ alquiler.id }}</h2>
+                    <p style="color: var(--text-muted); margin: 5px 0 0 0;">Solicitado por {{ alquiler.usuario.nombre }}</p>
+                </div>
+                <span class="estado 
+                    {% if alquiler.estado == 'Reservado' %}reservado{% endif %}
+                    {% if alquiler.estado == 'Confirmado' %}confirmado{% endif %}
+                    {% if alquiler.estado == 'Finalizado' %}finalizado{% endif %}
+                ">
+                    {{ alquiler.estado }}
+                </span>
+            </div>
+
+            <div class="section">
+                <h4>Cronograma de Alquiler</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="info-alquiler-box">
+                        <i class="fa-solid fa-calendar-arrow-up"></i>
+                        <div>
+                            <strong>Fecha Entrega</strong>
+                            <span>{{ alquiler.fecha_inicio }}</span>
+                        </div>
+                    </div>
+                    <div class="info-alquiler-box">
+                        <i class="fa-solid fa-calendar-arrow-down"></i>
+                        <div>
+                            <strong>Fecha Límite</strong>
+                            <span>{{ alquiler.fecha_limite }}</span>
+                        </div>
+                    </div>
+
+                    <div class="alerta-mora">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <div>
+                            <p style="margin: 0; color: #fff; font-size: 0.9rem; font-weight: 600;">Aviso Importante</p>
+                            <p style="margin: 0; color: rgba(255,255,255,0.6); font-size: 0.8rem; line-height: 1.2;">
+                                Evita costos adicionales devolviendo los productos antes de la fecha límite. Después de este plazo, se aplicará un recargo por mora.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h4>Productos Solicitados</h4>
+                {% for item in alquiler.alquilerproducto_set.all %}
+                <div class="producto-item">
+                    {% if item.producto.imagen %}
+                        <img src="{{ item.producto.imagen.url }}" class="producto-img">
+                    {% widthratio 1 1 1 as true %}
+                    {% else %}
+                        <div class="producto-img" style="display:flex; align-items:center; justify-content:center; background:#1e293b;"><i class="fa-solid fa-box"></i></div>
+                    {% endif %}
+                    <div>
+                        <span style="color: #fff; font-weight: 600; display: block;">{{ item.producto.nombre_producto }}</span>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">Cantidad: {{ item.cantidad_contratada }} unidades</span>
+                        
+                        {% if item.cantidad_danada > 0 %}
+                            <br><span style="font-size: 0.8rem; color: #ff4d4d; background: rgba(255, 77, 77, 0.1); padding: 2px 8px; border-radius: 4px; margin-top: 5px; display: inline-block;">
+                                <i class="fa-solid fa-triangle-exclamation"></i> {{ item.cantidad_danada }} unidad(es) reportada(s) con daño
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="color: #fff; font-weight: 600;">$ {{ item.precio_alquiler_fijado|floatformat:0|intcomma }}</span>
+                        <small style="display: block; color: var(--text-muted); font-size: 0.7rem;">Por unidad</small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="total-box">
+                <div class="item-row" style="opacity: 0.8;">
+                    <span>Subtotal Alquiler</span>
+                    <span>$ {{ alquiler.valor_alquiler|floatformat:0|intcomma }}</span>
+                </div>
+
+                {% if alquiler.incluye_transporte %}
+                <div class="item-row" style="opacity: 0.8;">
+                    <span><i class="fa-solid fa-truck-fast me-2" style="color: var(--accent);"></i> Servicio de Transporte</span>
+                    <span>+ $ {{ alquiler.costo_transporte|floatformat:0|intcomma }}</span>
+                </div>
+                {% endif %}
+
+                <div class="item-row" style="color: var(--accent); opacity: 0.9;">
+                    <span>Depósito de Garantía <i class="fa-solid fa-circle-info" style="font-size: 0.7rem;" title="Reembolsable"></i></span>
+                    <span>+ $ {{ alquiler.deposito_garantia|floatformat:0|intcomma }}</span>
+                </div>
+
+                <div class="total-row">
+                    <span style="color: #fff; font-size: 1.2rem; font-weight: 700;">Monto Total</span>
+                    <span class="total-amount">$ {{ alquiler.total_final|floatformat:0|intcomma }}</span>
+                </div>
+
+                {% if alquiler.estado == 'Reservado' %}
+                    <button type="button" class="btn-pagar-main" data-bs-toggle="modal" data-bs-target="#modalPago">
+                        <i class="fa-solid fa-credit-card"></i> Proceder al Pago
+                    </button>
+                
+                {% elif alquiler.estado != 'Cancelado' %}
+                    <div class="comprobante-pago-box">
+                        <div class="comprobante-header">
+                            <i class="fa-solid fa-circle-check"></i> Pago Confirmado y Registrado
+                        </div>
+                        <div class="comprobante-grid">
+                            <div class="comprobante-item">
+                                Método utilizado:
+                                <strong>{{ pago.metodo_pago }}</strong>
+                            </div>
+                            <div class="comprobante-item">
+                                Monto abonado:
+                                <strong>$ {{ pago.monto|floatformat:0|intcomma }} COP</strong>
+                            </div>
+
+                            {% if pago.metodo_pago == 'Transferencia' %}
+                                <div class="comprobante-item">
+                                    Banco / Plataforma:
+                                    <strong>{{ pago.transferencia_banco }}</strong>
+                                </div>
+                                <div class="comprobante-item">
+                                    Cuenta origen (Ultimos dígitos):
+                                    <strong>{{ pago.transferencia_numero }}</strong>
+                                </div>
+                            {% elif pago.metodo_pago == 'Tarjeta' %}
+                                <div class="comprobante-item">
+                                    Franquicia:
+                                    <strong>{{ pago.tarjeta_tipo }}</strong>
+                                </div>
+                                <div class="comprobante-item">
+                                    Titular:
+                                    <strong>{{ pago.tarjeta_titular }}</strong>
+                                </div>
+                            {% else %}
+                                <div class="comprobante-item" style="grid-column: 1 / -1;">
+                                    Detalle de Recepción:
+                                    <strong>Efectivo procesado en Caja de Sucursal</strong>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <a href="{% url 'mis_reservas' %}" class="btn-volver">
+            <i class="fa-solid fa-arrow-left"></i> Volver a mi panel
+        </a>
+    </div>
+</section>
+
+{% if alquiler.estado == 'Reservado' %}
+<div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-premium text-white">
+            <div class="modal-header modal-header-pago">
+                <div>
+                    <h5 class="modal-title" style="color: var(--accent); font-weight: 800; font-size: 1.4rem;">Finalizar Pago</h5>
+                    <p class="text-muted small mb-0">Alquiler #{{ alquiler.id }}</p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form action="{% url 'registrar_pago_cliente' 'alquiler' alquiler.id %}" method="POST" id="form-pasarela-pago">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div style="background: rgba(255,255,255,0.03); border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.08);" class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold">Monto del Alquiler:</span>
+                            <span style="color: var(--accent); font-weight: 700;">$ {{ alquiler.total_final|floatformat:0|intcomma }}</span>
+                        </div>
+                    </div>
+
+                    <label class="form-label small text-uppercase fw-bold mb-3" style="color: var(--accent); letter-spacing: 1px;">Selecciona Medio de Pago</label>
+                    
+                    <div class="payment-methods mb-4">
+                        <label class="w-100">
+                            <input type="radio" name="metodo" value="Transferencia" class="method-radio" checked>
+                            <div class="payment-method-card">
+                                <div style="color:var(--accent); font-size: 1.2rem;"><i class="fa-solid fa-building-columns"></i></div>
+                                <div><span class="d-block fw-bold text-white">Transferencia</span><small class="text-muted">Bancolombia / Nequi / Daviplata</small></div>
+                            </div>
+                        </label>
+
+                        <label class="w-100">
+                            <input type="radio" name="metodo" value="Tarjeta" class="method-radio">
+                            <div class="payment-method-card">
+                                <div style="color:var(--accent); font-size: 1.2rem;"><i class="fa-solid fa-credit-card"></i></div>
+                                <div><span class="d-block fw-bold text-white">Tarjeta Crédito/Débito</span><small class="text-muted">Procesamiento seguro</small></div>
+                            </div>
+                        </label>
+
+                        <label class="w-100">
+                            <input type="radio" name="metodo" value="Efectivo" class="method-radio">
+                            <div class="payment-method-card">
+                                <div style="color:var(--accent); font-size: 1.2rem;"><i class="fa-solid fa-money-bill-wave"></i></div>
+                                <div><span class="d-block fw-bold text-white">Efectivo</span><small class="text-muted">Pago en sucursal o contra entrega</small></div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div id="panel-transferencia" class="payment-dynamic-panel mb-3">
+                        <div class="mb-3">
+                            <label class="form-label small text-white-50 fw-bold">Plataforma Financiera</label>
+                            <select name="transferencia_banco" id="id_trans_banco" class="form-select payment-select-premium" required>
+                                <option value="" disabled selected>Selecciona una opción...</option>
+                                <option value="Bancolombia">Bancolombia (Cuenta)</option>
+                                <option value="Nequi">Nequi</option>
+                                <option value="Daviplata">Daviplata</option>
+                                <option value="Davivienda">Davivienda</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label small text-white-50 fw-bold">Tipo de Cuenta</label>
+                                <select name="transferencia_tipo" id="id_trans_tipo" class="form-select payment-select-premium" required>
+                                    <option value="Ahorros" selected>Ahorros</option>
+                                    <option value="Corriente">Corriente</option>
+                                    <option value="Monedero">Depósito Digital</option>
+                                </select>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label class="form-label small text-white-50 fw-bold">Número de Cuenta</label>
+                                <input type="text" name="transferencia_numero" id="id_trans_numero" 
+                                       class="form-control payment-input-premium" required
+                                       placeholder="Ej. 3001234567" pattern="\d+" title="Ingrese únicamente dígitos numéricos"
+                                       minlength="10" maxlength="20">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="panel-tarjeta" class="payment-dynamic-panel d-none mb-3">
+                        <div class="mb-3">
+                            <label class="form-label small text-white-50 fw-bold">Tipo de Tarjeta</label>
+                            <select name="tarjeta_tipo" id="id_tarjeta_tipo" class="form-select payment-select-premium">
+                                <option value="" disabled selected>Selecciona franquicia...</option>
+                                <option value="Credito - Visa">Crédito Visa</option>
+                                <option value="Credito - Mastercard">Crédito Mastercard</option>
+                                <option value="Credito - Amex">Crédito American Express</option>
+                                <option value="Debito - Visa/Mastercard">Débito (Visa / MC)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-white-50 fw-bold">Nombre Completo del Titular</label>
+                            <input type="text" name="tarjeta_titular" id="id_tarjeta_titular" 
+                                   class="form-control payment-input-premium text-uppercase"
+                                   placeholder="Como aparece en la tarjeta" minlength="4" maxlength="60">
+                        </div>
+                    </div>
+
+                    <div id="panel-efectivo" class="payment-dynamic-panel d-none mb-3">
+                        <div class="badge-info-efectivo">
+                            <p class="mb-2 text-warning fw-bold small text-uppercase"><i class="fa-solid fa-circle-info me-1"></i> Instrucciones de Recaudo</p>
+                            <span class="d-block small text-white-50" style="line-height: 1.4;">
+                                El desembolso debe completarse directamente en nuestros puntos físicos de atención o reportarse ante su asesor logístico asignado en un plazo máximo de 24 horas para garantizar la reserva del inventario.
+                            </span>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="monto" value="{{ alquiler.total_final }}">
+                </div>
+
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="submit" class="btn-confirmar-pago">
+                        <i class="fa-solid fa-lock me-2"></i> CONFIRMAR PAGO AHORA
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const radios = document.querySelectorAll('input[name="metodo"]');
+    const panelTransferencia = document.getElementById('panel-transferencia');
+    const panelTarjeta = document.getElementById('panel-tarjeta');
+    const panelEfectivo = document.getElementById('panel-efectivo');
+    
+    const inputsTransferencia = [
+        document.getElementById('id_trans_banco'),
+        document.getElementById('id_trans_tipo'),
+        document.getElementById('id_trans_numero')
+    ];
+    
+    const inputsTarjeta = [
+        document.getElementById('id_tarjeta_tipo'),
+        document.getElementById('id_tarjeta_titular')
+    ];
+
+    function conmutarPasarela() {
+        let metodoSeleccionado = "";
+        radios.forEach(r => { if (r.checked) metodoSeleccionado = r.value; });
+
+        panelTransferencia.classList.add('d-none');
+        panelTarjeta.classList.add('d-none');
+        panelEfectivo.classList.add('d-none');
+
+        inputsTransferencia.forEach(input => input.removeAttribute('required'));
+        inputsTarjeta.forEach(input => input.removeAttribute('required'));
+
+        if (metodoSeleccionado === "Transferencia") {
+            panelTransferencia.classList.remove('d-none');
+            inputsTransferencia.forEach(input => input.setAttribute('required', 'required'));
+        } 
+        else if (metodoSeleccionado === "Tarjeta") {
+            panelTarjeta.classList.remove('d-none');
+            inputsTarjeta.forEach(input => input.setAttribute('required', 'required'));
+        } 
+        else if (metodoSeleccionado === "Efectivo") {
+            panelEfectivo.classList.remove('d-none');
+        }
+    }
+
+    radios.forEach(radio => radio.addEventListener('change', conmutarPasarela));
+    conmutarPasarela();
+});
+</script>
+{% endif %}
+{% endblock %}

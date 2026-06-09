@@ -1,0 +1,153 @@
+/* ================== CONFIGURACIÓN GENERAL ================== */
+body {
+    background-color: #ffffff;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* ================== HEADER PRINCIPAL ================== */
+header {
+    background-color: #111827 !important;
+    border-bottom: 3px solid #541E12 !important;
+}
+
+/* Logo sin filtros ni colores */
+header img {
+    width: 130px !important; /* Ajustado: 40x40 px es 160px reales, es muy grande. 80 es más equilibrado */
+    height: 130px !important;
+    transition: transform 0.3s ease;
+}
+header img:hover {
+    transform: rotate(5deg) scale(1.1);
+}
+
+/* Texto del header */
+header span {
+    color: white !important;
+}
+
+/* ================== BOTONES DEL HEADER ================== */
+header a[href*="dashboard"] {
+    background-color: #374151 !important;
+    color: white !important;
+    padding: 8px 14px !important;
+    border-radius: 6px !important;
+    transition: 0.3s ease;
+}
+
+header a[href*="dashboard"]:hover {
+    background-color: #1E40AF !important;
+}
+
+/* ================== MENÚ USUARIO HEADER ================== */
+.user-menu {
+    position: relative;
+}
+
+.user-button {
+    background-color: #374151;
+    border: none;
+    border-radius: 50%;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.user-button i {
+    color: white;
+    font-size: 18px;
+}
+
+.user-button:hover {
+    background-color: #1E40AF;
+}
+
+/* Dropdown del Usuario (Estilo Moderno) */
+.user-dropdown {
+    position: absolute;
+    right: 0;
+    top: 60px;
+    background: white;
+    min-width: 220px;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    display: none;
+    z-index: 50;
+    border: 1px solid #e5e7eb;
+}
+
+.user-info {
+    padding: 15px;
+    color: black;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f9fafb;
+    border-radius: 12px 12px 0 0;
+}
+
+.user-info i { font-size: 24px; color: #541E12; }
+
+.user-dropdown a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    color: #374151;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.user-dropdown a:hover {
+    background-color: #f3f4f6;
+    color: #541E12;
+}
+
+.logout-link {
+    color: #dc2626 !important;
+    font-weight: 600;
+}
+
+.user-button {
+    background: #541E12;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid rgba(255,255,255,0.2);
+    cursor: pointer;
+}
+
+/* Separadores */
+.user-dropdown hr {
+    border: none;
+    height: 1px;
+    background-color: #e5e7eb;
+    margin: 0;
+}
+
+/* ================== TÍTULO ================== */
+.titulo-bienvenida {
+    text-align: center;
+    margin: 0 auto 1rem;
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+    border-bottom: 3px solid #7C1D24;
+    display: block;
+    padding-bottom: 0.5rem;
+}
+
+/* ================== CONTENEDOR PRINCIPAL ================== */
+.contenedor-main {
+    padding: 20px;
+}

@@ -1,0 +1,114 @@
+{% extends "base2.html" %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-10">
+    <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+        <div>
+            <span class="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600 mb-2 block">Warehouse Logistics</span>
+            <h1 class="text-5xl font-black tracking-tighter text-gray-900">
+                CONTROL <span class="text-emerald-600">STOCK</span>
+            </h1>
+        </div>
+        <div class="text-right">
+            <p class="text-xs font-bold text-gray-400 uppercase">Supervisor de Bodega</p>
+            <p class="text-sm font-black text-gray-800">{{ user.nombre }}</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
+        <a href="{% url 'listar_productos' %}" class="lg:col-span-8 bg-slate-900 p-10 text-white relative overflow-hidden group shadow-2xl min-h-[280px] flex flex-col justify-between rounded-[2.5rem] transition-all hover:scale-[1.01]">
+            <div class="relative z-10">
+                <div class="w-14 h-14 bg-white/10 backdrop-blur-lg rounded-2xl flex items-center justify-center mb-6">
+                    <i class="fa-solid fa-boxes-stacked text-2xl text-emerald-400"></i>
+                </div>
+                <h2 class="text-4xl font-black mb-3 italic">Inventario Real</h2>
+                <p class="text-slate-400 max-w-sm text-lg leading-relaxed">Auditoría de existencias y control de daños en bodega.</p>
+            </div>
+            <div class="relative z-10 flex items-center gap-6">
+                <span class="bg-emerald-500 hover:bg-emerald-400 text-white px-6 py-3 rounded-full font-bold text-sm transition-colors">Gestionar Stock</span>
+                <span class="text-sm font-bold text-emerald-400 italic">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i> {{ productos_bajo_stock }} en alerta
+                </span>
+            </div>
+            <i class="fa-solid fa-box-open absolute -right-16 -bottom-16 text-[18rem] opacity-5 group-hover:rotate-6 transition-transform duration-700"></i>
+        </a>
+
+        <a href="{% url 'listar_alquileres' %}" class="lg:col-span-4 bg-orange-600 p-10 text-white relative overflow-hidden group shadow-2xl flex flex-col justify-between rounded-[2.5rem] transition-all hover:scale-[1.01]">
+            <div class="relative z-10">
+                <h2 class="text-3xl font-black mb-2 italic">Retornos</h2>
+                <p class="text-orange-100 text-sm">Alquileres activos que deben reingresar.</p>
+            </div>
+            <div class="text-7xl font-black">{{ retornos_hoy }}</div>
+            <div class="relative z-10">
+                <span class="text-xs font-bold bg-white/20 px-3 py-1 rounded-full uppercase">Pendientes</span>
+            </div>
+            <i class="fa-solid fa-rotate-left absolute -right-10 -bottom-10 text-[12rem] opacity-20 group-hover:-rotate-12 transition-transform"></i>
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="p-8 bg-white shadow-xl rounded-[2.5rem] border border-gray-100">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-xs font-black uppercase tracking-widest text-gray-400">Stock Crítico</h3>
+                <i class="fa-solid fa-arrow-down-wide-short text-red-500"></i>
+            </div>
+            <div class="space-y-6">
+                {% for p in productos_alerta %}
+                <div class="flex justify-between items-center group">
+                    <div>
+                        <p class="text-sm font-bold text-gray-800 group-hover:text-emerald-600 transition-colors">{{ p.nombre_producto }}</p>
+                        <p class="text-[10px] text-gray-400 uppercase font-black">Disponible</p>
+                    </div>
+                    <span class="w-10 h-10 flex items-center justify-center bg-red-50 text-red-600 rounded-xl text-xs font-black border border-red-100">
+                        {{ p.stock_disponible }}
+                    </span>
+                </div>
+                {% empty %}
+                <p class="text-gray-400 text-sm italic">No hay productos en alerta.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 p-8 bg-white shadow-xl rounded-[2.5rem] border border-gray-100">
+            <h3 class="text-xs font-black uppercase tracking-widest mb-8 text-gray-400">Últimos Movimientos (Kardex)</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="text-gray-400 border-b border-gray-50">
+                            <th class="pb-4 font-black">PRODUCTO</th>
+                            <th class="pb-4 font-black text-center">TIPO</th>
+                            <th class="pb-4 font-black text-right">CANTIDAD</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        {% for mov in ultimos_movimientos %}
+                        <tr class="group hover:bg-slate-50/50 transition-colors">
+                            <td class="py-4 font-bold text-gray-700">{{ mov.producto.nombre_producto }}</td>
+                            <td class="py-4 text-center">
+                                <span class="px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-tighter
+                                    {% if mov.tipo == 'SALIDA' %}bg-blue-100 text-blue-600{% else %}bg-emerald-100 text-emerald-600{% endif %}">
+                                    {{ mov.tipo }}
+                                </span>
+                            </td>
+                            <td class="py-4 text-right font-black text-gray-900 text-lg">{{ mov.cantidad }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="py-8 text-center text-gray-400 italic">No se registran movimientos recientes.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Efecto de elevación para las tablas */
+    .shadow-xl {
+        box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.03);
+    }
+</style>
+{% endblock %}

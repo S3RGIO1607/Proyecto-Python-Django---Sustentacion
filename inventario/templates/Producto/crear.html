@@ -1,0 +1,365 @@
+{% extends "base2.html" %}
+
+{% block content %}
+
+<style>
+/* Contenedor Elegante */
+.product-create-card {
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.form-body {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 2rem;
+    padding: 2.5rem;
+}
+
+/* Estilos de Inputs */
+.form-group-modern {
+    margin-bottom: 1.5rem;
+}
+
+.label-modern {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.input-modern {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    transition: all 0.3s;
+    outline: none;
+}
+
+.input-modern:focus {
+    border-color: #541E12;
+    box-shadow: 0 0 0 4px rgba(84, 30, 18, 0.1);
+}
+
+/* Zona de Carga de Imagen */
+.upload-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    background: #f8fafc;
+    transition: all 0.3s;
+    position: relative;
+    cursor: pointer;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.upload-zone:hover {
+    border-color: #541E12;
+    background: #fff;
+}
+
+#image-preview {
+    width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    border-radius: 15px;
+    display: none;
+    margin-top: 1rem;
+}
+
+/* Iconos de moneda */
+.currency-input {
+    position: relative;
+}
+
+.currency-input::before {
+    content: "$";
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-weight: bold;
+}
+
+.currency-input input {
+    padding-left: 25px;
+}
+
+/* Botonera */
+.form-footer {
+    background: #f8fafc;
+    padding: 1.5rem 2.5rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.btn-save-product {
+    background: #541E12;
+    color: white;
+    padding: 0.8rem 2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    transition: 0.3s;
+    border: none;
+}
+
+.btn-save-product:hover {
+    background: #3d150d;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px rgba(84, 30, 18, 0.2);
+}
+
+@media (max-width: 850px) {
+    .form-body { grid-template-columns: 1fr; }
+}
+
+.contenedor-main { background: transparent !important; box-shadow: none !important; }
+</style>
+
+
+<div class="max-w-5xl mx-auto pb-12" style="max-width: 1000px; margin: 0 auto;">
+
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-black text-gray-800" style="font-size: 1.8rem; font-weight: 900;">
+            Registrar <span class="text-[#541E12]">Producto</span>
+        </h1>
+        <p class="text-gray-500">Añada un nuevo artículo al catálogo de eventos</p>
+    </div>
+
+    <div id="contenedor-alertas" class="mb-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #fecaca; font-weight: bold;">
+                    <i class="fa-solid fa-triangle-exclamation mr-2"></i> {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="product-create-card">
+
+        <form action="{% url 'registrar_producto' %}" method="POST" enctype="multipart/form-data" id="formProducto">
+
+            {% csrf_token %}
+
+            <div class="form-body">
+
+                <div>
+                    <div class="form-group-modern">
+                        <label class="label-modern">
+                            <i class="fa-solid fa-tag mr-1"></i> Nombre del Producto
+                        </label>
+                        <input type="text" name="txt_nombre" id="txt_nombre" class="input-modern"
+                               placeholder="Ej: Silla Tiffany Blanca" minlength="3" maxlength="30" required>
+                    </div>
+
+                    <div class="form-group-modern">
+                        <label class="label-modern">
+                            <i class="fa-solid fa-align-left mr-1"></i> Descripción Detallada
+                        </label>
+                        <textarea name="txt_descripcion" id="txt_descripcion" class="input-modern"
+                                  rows="3" minlength="25" maxlength="350"
+                                  placeholder="Material, dimensiones, estado (Mínimo 25 caracteres)..."
+                                  required></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+
+                        <div class="form-group-modern">
+                            <label class="label-modern">Precio de Compra</label>
+                            <div class="currency-input">
+                                <input type="number" step="1" min="0"
+                                       name="txt_precio_compra" id="txt_precio_compra"
+                                       class="input-modern no-negativos" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group-modern">
+                            <label class="label-modern">Precio de Alquiler</label>
+                            <div class="currency-input">
+                                <input type="number" step="1" min="0"
+                                       name="txt_precio_alquiler" id="txt_precio_alquiler"
+                                       class="input-modern no-negativos" required>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="form-group-modern">
+                        <label class="label-modern">
+                            <i class="fa-solid fa-warehouse mr-1"></i> Stock Inicial Total
+                        </label>
+                        <input type="number" step="1" min="0" name="txt_stock_total" id="txt_stock_total"
+                               class="input-modern no-negativos"
+                               placeholder="Cantidad disponible"
+                               required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="label-modern text-center">Fotografía del Producto</label>
+
+                    <div class="upload-zone" onclick="document.getElementById('imagen').click()">
+                        <div id="upload-placeholder">
+                            <i class="fa-solid fa-cloud-arrow-up text-4xl text-gray-300 mb-2" style="font-size: 2.5rem; color: #cbd5e1;"></i>
+                            <p class="text-sm text-gray-500 font-medium">Click para subir imagen</p>
+                            <p class="text-xs text-gray-400 mt-1">PNG, JPG o JPEG</p>
+                        </div>
+
+                        <img id="image-preview" src="#" alt="Vista previa">
+
+                        <input id="imagen"
+                               type="file"
+                               name="txt_imagen"
+                               accept="image/png, image/jpeg, image/jpg"
+                               style="display: none;"
+                               required
+                               onchange="previewImage(this)">
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="form-footer">
+                <a href="{% url 'listar_productos' %}"
+                   class="px-6 py-2.5 text-gray-500 font-bold hover:text-gray-800 transition" style="text-decoration: none; padding-top: 10px;">
+                    Cancelar
+                </a>
+
+                <button type="submit" class="btn-save-product">
+                    <i class="fa-solid fa-floppy-disk mr-2"></i>
+                    Registrar Producto
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+function previewImage(input) {
+    const preview = document.getElementById('image-preview');
+    const placeholder = document.getElementById('upload-placeholder');
+
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('formProducto');
+    const contenedorAlertas = document.getElementById('contenedor-alertas');
+
+    function mostrarAlerta(mensaje) {
+        contenedorAlertas.innerHTML = `
+            <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #fecaca; font-weight: bold;">
+                <i class="fa-solid fa-circle-exclamation mr-2"></i> ${mensaje}
+            </div>
+        `;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 1. Bloquear teclas no numéricas o de fraccionamiento en inputs numéricos enteros
+    document.querySelectorAll('.no-negativos').forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            if (['-', '+', 'e', 'E', '.', ','].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+        
+        // Corregir si el usuario pega un texto inválido o usa las flechas hacia abajo
+        input.addEventListener('change', function() {
+            let valor = parseInt(this.value);
+            if (isNaN(valor) || valor < 0) {
+                this.value = 0;
+            }
+        });
+    });
+
+    // 2. Interceptación del Submit para validaciones complejas (Regex y Longitudes)
+    form.addEventListener('submit', function(e) {
+        let valido = true;
+        let mensaje = "";
+
+        // Captura de valores de los inputs
+        const nombre = document.getElementById('txt_nombre').value.trim();
+        const descripcion = document.getElementById('txt_descripcion').value.trim();
+        const precioCompra = parseInt(document.getElementById('txt_precio_compra').value);
+        const precioAlquiler = parseInt(document.getElementById('txt_precio_alquiler').value);
+        const stock = parseInt(document.getElementById('txt_stock_total').value);
+        const imagenInput = document.getElementById('imagen');
+
+        // REGEX: Alfanumérico con espacios, tildes y letra Ñ
+        const regexAlfanumerico = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s,.\-]+$/;
+
+        // Validaciones del Nombre
+        if (nombre.length < 3 || nombre.length > 30) {
+            valido = false;
+            mensaje = "El nombre del producto debe tener entre 3 y 30 caracteres.";
+        } else if (!regexAlfanumerico.test(nombre)) {
+            valido = false;
+            mensaje = "El nombre contiene caracteres no permitidos. Solo se aceptan letras, números y espacios.";
+        }
+
+        // Validaciones de la Descripción
+        else if (descripcion.length < 25 || descripcion.length > 350) {
+            valido = false;
+            mensaje = `La descripción debe tener entre 25 y 350 caracteres. (Llevas ${descripcion.length})`;
+        } else if (!regexAlfanumerico.test(descripcion)) {
+            valido = false;
+            mensaje = "La descripción contiene caracteres especiales no válidos.";
+        }
+
+        // Validaciones Numéricas Enteras
+        else if (isNaN(precioCompra) || precioCompra < 0) {
+            valido = false;
+            mensaje = "El precio de compra debe ser un número entero mayor o igual a 0.";
+        }
+        else if (isNaN(precioAlquiler) || precioAlquiler < 0) {
+            valido = false;
+            mensaje = "El precio de alquiler debe ser un número entero mayor o igual a 0.";
+        }
+        else if (isNaN(stock) || stock < 0) {
+            valido = false;
+            mensaje = "El stock inicial debe ser un número entero mayor o igual a 0.";
+        }
+
+        // Validación de Imagen Obligatoria
+        else if (!imagenInput.files || imagenInput.files.length === 0) {
+            valido = false;
+            mensaje = "La fotografía del producto es totalmente obligatoria.";
+        }
+
+        if (!valido) {
+            e.preventDefault(); // Detiene el envío
+            mostrarAlerta(mensaje);
+        }
+    });
+});
+</script>
+{% endblock %}

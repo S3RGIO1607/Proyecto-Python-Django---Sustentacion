@@ -1,0 +1,205 @@
+{% extends 'base2.html' %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    :root {
+        --bg-main: #fdfaf6;
+        --bg-card: #ffffff;
+        --border-soft: #ede9e3;
+        --primary: #b45309; 
+        --secondary: #541E12; 
+        --text-main: #1c1917;
+    }
+
+    .main-wrapper { 
+        background: var(--bg-main); 
+        min-height: 100vh; 
+        padding: 3rem 0; 
+    }
+
+    .expediente-header {
+        background: linear-gradient(135deg, var(--secondary) 0%, #2d0a04 100%);
+        color: white;
+        border-radius: 32px;
+        padding: 3.5rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 25px 50px -12px rgba(84, 30, 18, 0.25);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-movimientos {
+        background: var(--bg-card);
+        border-radius: 28px;
+        border: 1px solid var(--border-soft);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+        overflow: hidden;
+    }
+
+    /* AJUSTE DE TABLA PARA ELIMINAR ESPACIO VACÍO */
+    .table-kardex {
+        width: 100%;
+        margin-bottom: 0;
+        table-layout: fixed; /* Ayuda a controlar el ancho real */
+    }
+
+    .table-kardex thead th {
+        background: #faf8f5;
+        color: var(--secondary);
+        font-size: 0.7rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        padding: 1.5rem 1rem;
+        border-bottom: 2px solid var(--border-soft);
+    }
+
+    /* Definición de anchos por columna */
+    .col-fecha { width: 15%; }
+    .col-producto { width: 25%; }
+    .col-tipo { width: 15%; }
+    .col-cant { width: 10%; }
+    .col-ref { width: 15%; }
+    .col-obs { width: 20%; }
+
+    .table-kardex tbody td {
+        padding: 1.5rem 1rem;
+        border-bottom: 1px solid var(--border-soft);
+        word-wrap: break-word; /* Evita que el texto se salga */
+    }
+
+    .tipo-badge {
+        font-size: 0.65rem;
+        font-weight: 900;
+        padding: 8px 12px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
+
+    .bg-entrada { background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
+    .bg-salida { background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; }
+    .bg-ajuste { background: #fffbeb; color: #d97706; border: 1px solid #fef3c7; }
+    .bg-compra { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
+
+    .qty-text {
+        font-size: 1.1rem;
+        font-weight: 900;
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    .product-icon-box {
+        width: 40px;
+        height: 40px;
+        background: var(--bg-main);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+</style>
+
+<div class="main-wrapper">
+    <div class="container-fluid px-5">
+        
+        <div class="expediente-header d-flex justify-content-between align-items-center">
+            <div style="position: relative; z-index: 1;">
+                <span class="badge mb-3 px-3 py-2 text-uppercase" style="background: rgba(255,255,255,0.1); font-size: 0.6rem; letter-spacing: 3px;">
+                    Control de Inventario
+                </span>
+                <h1 class="fw-black mb-1 italic text-uppercase" style="font-size: 3rem; letter-spacing: -2px;">
+                    Kardex <span style="opacity: 0.6; font-weight: 300;">Arron</span>
+                </h1>
+                <p class="opacity-75 mb-0">Historial completo de movimientos de mercancía.</p>
+            </div>
+            <div class="text-end">
+                <a href="{% url 'listar_productos' %}" class="text-white opacity-50 hover:opacity-100 transition-all text-decoration-none">
+                    <i class="fa-solid fa-circle-left fa-2x"></i>
+                    <p class="small mt-2 font-bold uppercase tracking-widest" style="font-size: 10px;">Volver</p>
+                </a>
+            </div>
+        </div>
+
+        <div class="card-movimientos">
+            <div class="table-responsive">
+                <table class="table table-kardex align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="col-fecha ps-5">Fecha</th>
+                            <th class="col-producto">Producto</th>
+                            <th class="col-tipo text-center">Tipo</th>
+                            <th class="col-cant text-center">Cant.</th>
+                            <th class="col-ref">Referencia</th>
+                            <th class="col-obs pe-5">Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mov in movimientos %}
+                        <tr>
+                            <td class="ps-5">
+                                <div class="text-dark font-black" style="font-size: 0.85rem;">{{ mov.fecha|date:"d M, Y" }}</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">{{ mov.fecha|date:"H:i" }} HRS</div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="product-icon-box me-3 d-none d-xl-flex">
+                                        <i class="fa-solid fa-box text-secondary opacity-25"></i>
+                                    </div>
+                                    <div class="text-truncate">
+                                        <div class="font-black text-dark text-truncate" title="{{ mov.producto.nombre_producto }}" style="font-size: 0.9rem;">
+                                            {{ mov.producto.nombre_producto }}
+                                        </div>
+                                        <div class="text-muted uppercase" style="font-size: 0.6rem; font-weight: 800;">ID: #{{ mov.producto.id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="tipo-badge 
+                                    {% if mov.tipo == 'ENTRADA' %}bg-entrada
+                                    {% elif mov.tipo == 'SALIDA' %}bg-salida
+                                    {% elif mov.tipo == 'AJUSTE_DANO' %}bg-ajuste
+                                    {% elif mov.tipo == 'COMPRA' %}bg-compra{% endif %}">
+                                    {{ mov.get_tipo_display }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="qty-text {% if mov.tipo == 'ENTRADA' or mov.tipo == 'COMPRA' %}text-emerald-600{% else %}text-red-600{% endif %}">
+                                    {% if mov.tipo == 'ENTRADA' or mov.tipo == 'COMPRA' %}+{% else %}-{% endif %}{{ mov.cantidad }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if mov.alquiler %}
+                                    <div class="ref-pill d-inline-block text-truncate" style="max-width: 100%;">
+                                        Alquiler #{{ mov.alquiler.id }}
+                                    </div>
+                                {% elif mov.reserva %}
+                                    <div class="ref-pill d-inline-block text-truncate" style="max-width: 100%; border-color: #fecaca; color: #dc2626;">
+                                        Evento #{{ mov.reserva.id }}
+                                    </div>
+                                {% else %}
+                                    <span class="text-gray-300 small italic">Manual</span>
+                                {% endif %}
+                            </td>
+                            <td class="pe-5">
+                                <div class="text-muted small italic" style="line-height: 1.2;">
+                                    {{ mov.observacion|default:"---" }}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted italic">No hay movimientos registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,201 @@
+{% extends "base2.html" %}
+
+{% block content %}
+    <style>
+        /* Contenedor principal de la ficha */
+        .profile-card {
+            background: white;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f5f9;
+        }
+
+        /* Cabecera del perfil */
+        .profile-header {
+            background: linear-gradient(135deg, #541E12 0%, #2D0A05 100%);
+            padding: 3rem 2rem;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #541E12;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+            border: 4px solid rgba(255,255,255,0.2);
+        }
+
+        /* Bloques de información */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            padding: 2.5rem;
+        }
+
+        .info-item {
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 0.75rem;
+        }
+
+        .info-label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            color: #1e293b;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-value i {
+            color: #541E12;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* Badge de Rol */
+        .role-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 0.8rem;
+            backdrop-filter: blur(4px);
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+
+        /* Botonera inferior */
+        .profile-actions {
+            background: #f8fafc;
+            padding: 1.5rem 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .info-grid { grid-template-columns: 1fr; }
+        }
+
+        .contenedor-main { background: transparent !important; box-shadow: none !important; }
+    </style>
+
+    <div class="max-w-3xl mx-auto pb-12">
+        
+        <div class="profile-card">
+            
+            <div class="profile-header">
+                <div class="profile-avatar">
+                    <i class="fa-solid fa-circle-user"></i>
+                </div>
+                <h2 class="text-3xl font-black">{{ usuario.nombre }}</h2>
+                <div class="role-badge">
+                    <i class="fa-solid fa-shield-halved mr-1"></i>
+                    <span>{{ usuario.rol.nombre }}</span>
+                </div>
+                <p class="mt-2 opacity-70 text-sm">ID de Registro: #<span>{{ usuario.id }}</span></p>
+            </div>
+
+            <div class="info-grid">
+                
+                <div class="info-item">
+                    <span class="info-label">Correo Electrónico</span>
+                    <div class="info-value">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>{{ usuario.correo }}</span>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">Teléfono de Contacto</span>
+                    <div class="info-value">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>{{ usuario.telefono|default:"No registrado" }}</span>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">Dirección de Residencia</span>
+                    <div class="info-value">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>{{ usuario.direccion|default:"No registrada" }}</span>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">Seguridad Social (EPS)</span>
+                    <div class="info-value">
+                        <i class="fa-solid fa-hospital"></i>
+                        <span>{{ usuario.eps|default:"No registrada" }}</span>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">Nivel Educativo</span>
+                    <div class="info-value">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <span>{{ usuario.nivel_educativo|default:"No definido" }}</span>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">Referencia Personal</span>
+                    <div class="info-value">
+                        <i class="fa-solid fa-user-group"></i>
+                        <span>{{ usuario.referencia_personal|default:"No registrada" }}</span>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <span class="info-label">Teléfono Referencia</span>
+                    <div class="info-value">
+                        <i class="fa-solid fa-phone-volume"></i>
+                        <span>{{ usuario.telefono_referencia_personal|default:"No registrado" }}</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="profile-actions">
+                <a href="{% url 'listar_usuarios' %}" class="text-slate-500 hover:text-slate-800 font-bold flex items-center gap-2 transition">
+                    <i class="fa-solid fa-arrow-left"></i> Volver al listado
+                </a>
+
+                <div class="flex gap-3">
+                    <a href="{% url 'pre_editar_usuario' usuario.id %}"
+                       class="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold shadow-lg shadow-amber-200 transition flex items-center gap-2">
+                        <i class="fa-solid fa-pen"></i> Editar
+                    </a>
+
+                    <a href="{% url 'eliminar_usuario' usuario.id %}" 
+                       onclick="return confirm('¿Está seguro de eliminar permanentemente este usuario?')"
+                       class="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold shadow-lg shadow-rose-200 transition flex items-center gap-2">
+                        <i class="fa-solid fa-trash"></i> Eliminar
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
