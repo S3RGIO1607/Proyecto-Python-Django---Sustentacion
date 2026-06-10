@@ -302,19 +302,19 @@ def listar_usuarios(request):
         'usuarios_inactivos': usuarios_inactivos
     }
 
-    return render(request, 'usuarios/index.html', data)
+    return render(request, 'Usuarios/index.html', data)
 
 def mostrar_detalle_usuario(request, id):
     roles=Rol.objects.all()
     usuario=Usuario.objects.get(id=id)
     data={'roles':roles, 'usuario':usuario}
-    return render(request,'usuarios/consultar.html',data)
+    return render(request,'Usuarios/consultar.html',data)
 
 
 def mostrar_registro_usuario(request):
     roles=Rol.objects.all()
     data={'roles':roles}
-    return render(request,'usuarios/crear.html',data)
+    return render(request,'Usuarios/crear.html',data)
 
 def registrar_usuario(request):
     if request.method == 'POST':
@@ -356,12 +356,12 @@ def registrar_usuario(request):
         # 1. Validar si el correo ya existe
         if Usuario.objects.filter(correo=correo).exists():
             contexto_error['error'] = f'El correo electrónico "{correo}" ya está registrado por otro usuario.'
-            return render(request, 'usuarios/crear.html', contexto_error)
+            return render(request, 'Usuarios/crear.html', contexto_error)
 
         # 2. Validar si el documento ya existe
         if Usuario.objects.filter(numero_documento=numero_documento).exists():
             contexto_error['error'] = f'El número de documento "{numero_documento}" ya está registrado.'
-            return render(request, 'usuarios/crear.html', contexto_error)
+            return render(request, 'Usuarios/crear.html', contexto_error)
 
 
         # --- TUS VALIDACIONES DE SEGURIDAD DE CONTRASEÑA ---
@@ -369,18 +369,18 @@ def registrar_usuario(request):
         # A. Evitar que la clave sea igual al documento
         if contrasena == numero_documento:
             contexto_error['error'] = "La contraseña no puede ser igual al número de documento."
-            return render(request, 'usuarios/crear.html', contexto_error)
+            return render(request, 'Usuarios/crear.html', contexto_error)
 
         # B. Forzar longitud mínima (8 caracteres)
         if len(contrasena) < 8:
             contexto_error['error'] = "La contraseña debe tener al menos 8 caracteres."
-            return render(request, 'usuarios/crear.html', contexto_error)
+            return render(request, 'Usuarios/crear.html', contexto_error)
 
         # C. Validar complejidad (al menos un número, una mayúscula, una minúscula y un carácter especial)
         # Ajustado para acoplarse al 100% con los requisitos visuales que pusimos en el HTML
         if not re.search(r'[a-z]', contrasena) or not re.search(r'[A-Z]', contrasena) or not re.search(r'\d', contrasena) or not re.search(r'[^A-Za-z0-9]', contrasena):
             contexto_error['error'] = "La contraseña no cumple con los requisitos: debe incluir mayúscula, minúscula, número y un símbolo."
-            return render(request, 'usuarios/crear.html', contexto_error)
+            return render(request, 'Usuarios/crear.html', contexto_error)
 
         # --- FIN DE VALIDACIONES ---
 
@@ -407,17 +407,17 @@ def registrar_usuario(request):
 
         except Exception as e:
             contexto_error['error'] = f"Error inesperado al guardar en el sistema: {e}"
-            return render(request, 'usuarios/crear.html', contexto_error)
+            return render(request, 'Usuarios/crear.html', contexto_error)
             
     # Si entran por GET (Carga inicial de la página)
     roles = Rol.objects.all()
-    return render(request, 'usuarios/crear.html', {'roles': roles})
+    return render(request, 'Usuarios/crear.html', {'roles': roles})
 
 def pre_editar_usuario(request,id):
     Rols=Rol.objects.all()
     usuario=Usuario.objects.get(id=id)
     data={'usuario':usuario, 'roles':Rols}
-    return render(request,'usuarios/editar.html',data)
+    return render(request,'Usuarios/editar.html',data)
 
 def editar_usuario(request):
     if request.method=='POST':
@@ -498,24 +498,24 @@ def registro_cliente(request):
         # --- VALIDACIONES CONTRA LA BASE DE DATOS ---
         if Usuario.objects.filter(numero_documento=numero_documento).exists():
             contexto_error["error"] = f"El número de documento '{numero_documento}' ya se encuentra registrado."
-            return render(request, "cliente/registro.html", contexto_error)
+            return render(request, "Cliente/registro.html", contexto_error)
 
         if Usuario.objects.filter(correo=correo).exists():
             contexto_error["error"] = f"El correo electrónico '{correo}' ya está registrado por otro usuario."
-            return render(request, "cliente/registro.html", contexto_error)
+            return render(request, "Cliente/registro.html", contexto_error)
 
         # --- VALIDACIONES DE COMPLEJIDAD DE CONTRASEÑA ---
         if contrasena == numero_documento:
             contexto_error["error"] = "La contraseña no puede ser idéntica a tu número de documento."
-            return render(request, "cliente/registro.html", contexto_error)
+            return render(request, "Cliente/registro.html", contexto_error)
 
         if len(contrasena) < 8:
             contexto_error["error"] = "La contraseña debe tener un mínimo de 8 caracteres."
-            return render(request, "cliente/registro.html", contexto_error)
+            return render(request, "Cliente/registro.html", contexto_error)
 
         if not re.search(r'[a-z]', contrasena) or not re.search(r'[A-Z]', contrasena) or not re.search(r'\d', contrasena) or not re.search(r'[^A-Za-z0-9]', contrasena):
             contexto_error["error"] = "La contraseña debe incluir por lo menos una letra minúscula, una mayúscula, un número y un símbolo especial."
-            return render(request, "cliente/registro.html", contexto_error)
+            return render(request, "Cliente/registro.html", contexto_error)
 
         # --- COMPLETADO DE REGISTRO EN BD ---
         try:
@@ -537,6 +537,6 @@ def registro_cliente(request):
 
         except Exception as e:
             contexto_error["error"] = f"Error en la base de datos al crear la cuenta: {e}"
-            return render(request, "cliente/registro.html", contexto_error)
+            return render(request, "Cliente/registro.html", contexto_error)
 
-    return render(request, "cliente/registro.html")
+    return render(request, "Cliente/registro.html")
