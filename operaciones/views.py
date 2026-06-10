@@ -56,7 +56,7 @@ def mostrar_detalle_alquiler(request, id):
     # Obtenemos los productos asociados a este alquiler
     productos_alquilados = AlquilerProducto.objects.filter(alquiler=alquiler)
     
-    return render(request, 'alquileres/consultar.html', {
+    return render(request, 'Alquileres/consultar.html', {
         'alquiler': alquiler,
         'productos_alquilados': productos_alquilados
     })
@@ -77,7 +77,7 @@ def listar_reservas(request):
         estado="Finalizado"
     ).select_related('usuario', 'paquete').order_by('-fecha_evento')[:10]
 
-    return render(request, "reserva/index.html", {
+    return render(request, "Reserva/index.html", {
         "reservas_pendientes": todas.filter(estado="Reservado"),
         "reservas_confirmadas": todas.filter(estado__in=["Confirmado", "En Preparacion"]), 
         "eventos_activos": todas.filter(estado="Evento Activo"),
@@ -108,7 +108,7 @@ def mostrar_registro_reserva(request):
     servicios = Servicio.objects.filter(estado='A')
     usuarios = Usuario.objects.filter(estado='A', rol__id=4)  # Solo clientes
 
-    return render(request, 'reserva/crear.html', {
+    return render(request, 'Reserva/crear.html', {
         'paquetes': paquetes,
         'servicios': servicios,
         'usuarios': usuarios
@@ -167,7 +167,7 @@ def registrar_reserva(request):
         "paquetes": paquetes,
         "servicios": servicios
     }
-    return render(request, "reserva/crear.html", context)
+    return render(request, "Reserva/crear.html", context)
 
 
 
@@ -180,7 +180,7 @@ def mostrar_detalle_reserva(request, id):
         "servicios": servicios
     }
 
-    return render(request, "reserva/consultar.html", context)
+    return render(request, "Reserva/consultar.html", context)
 
 
 def pre_editar_reserva(request, id):
@@ -199,7 +199,7 @@ def pre_editar_reserva(request, id):
         "usuarios": usuarios
     }
 
-    return render(request, "reserva/editar.html", context)
+    return render(request, "Reserva/editar.html", context)
 
 
 def editar_reserva(request, id):
@@ -271,7 +271,7 @@ def editar_reserva(request, id):
         "usuarios": usuarios
     }
 
-    return render(request, "reserva/editar.html", context)
+    return render(request, "Reserva/editar.html", context)
 
 
 
@@ -298,7 +298,7 @@ def mis_reservas(request):
         "alquileres": alquileres,
     }
 
-    return render(request, "cliente/mis_reservas.html", context)
+    return render(request, "Cliente/mis_reservas.html", context)
 
 
 def crear_reserva_cliente(request, paquete_id):
@@ -346,30 +346,30 @@ def crear_reserva_cliente(request, paquete_id):
             
             if dt_aware < timezone.now():
                 contexto_error["error"] = "No puedes programar eventos para fechas u horas pasadas."
-                return render(request, "cliente/crear_reserva.html", contexto_error)
+                return render(request, "Cliente/crear_reserva.html", contexto_error)
         except (ValueError, TypeError):
             contexto_error["error"] = "Formato de fecha u hora no válido."
-            return render(request, "cliente/crear_reserva.html", contexto_error)
+            return render(request, "Cliente/crear_reserva.html", contexto_error)
 
         # 2. Validación Numérica Rigurosa de Invitados
         try:
             asistentes = int(asistentes_input)
             if asistentes < paquete.capacidad_base:
                 contexto_error["error"] = f"La cantidad de invitados no puede ser menor a la capacidad base del paquete ({paquete.capacidad_base} personas)."
-                return render(request, "cliente/crear_reserva.html", contexto_error)
+                return render(request, "Cliente/crear_reserva.html", contexto_error)
         except (ValueError, TypeError):
             contexto_error["error"] = "El número de asistentes debe ser un dígito numérico válido."
-            return render(request, "cliente/crear_reserva.html", contexto_error)
+            return render(request, "Cliente/crear_reserva.html", contexto_error)
 
         # 3. Validación de Locación frente al Aforo de Invitados
         if not lugar_id:
             contexto_error["error"] = "Es obligatorio seleccionar un lugar para la celebración de tu evento."
-            return render(request, "cliente/crear_reserva.html", contexto_error)
+            return render(request, "Cliente/crear_reserva.html", contexto_error)
             
         lugar_seleccionado = get_object_or_404(Lugar, id=lugar_id)
         if asistentes > lugar_seleccionado.capacidad_maxima:
             contexto_error["error"] = f"El lugar '{lugar_seleccionado.nombre}' no tiene suficiente espacio para albergar a {asistentes} invitados (Máx: {lugar_seleccionado.capacidad_maxima})."
-            return render(request, "cliente/crear_reserva.html", contexto_error)
+            return render(request, "Cliente/crear_reserva.html", contexto_error)
 
         # 4. Guardado Transaccional Atómico
         try:
@@ -416,7 +416,7 @@ def crear_reserva_cliente(request, paquete_id):
         except ValidationErr as e:
             error_final = e.message_dict.get('_all_', [str(e)])[0] if hasattr(e, 'message_dict') else str(e)
             contexto_error["error"] = error_final
-            return render(request, "cliente/crear_reserva.html", contexto_error)
+            return render(request, "Cliente/crear_reserva.html", contexto_error)
 
         except Exception as e:
             error_str = str(e)
@@ -424,9 +424,9 @@ def crear_reserva_cliente(request, paquete_id):
             if error_final.startswith("_all_:"):
                 error_final = error_final.replace("_all_:", "").strip()
             contexto_error["error"] = error_final
-            return render(request, "cliente/crear_reserva.html", contexto_error)
+            return render(request, "Cliente/crear_reserva.html", contexto_error)
 
-    return render(request, "cliente/crear_reserva.html", {
+    return render(request, "Cliente/crear_reserva.html", {
         "paquete": paquete, "servicios": servicios_disponibles,
         "menus": menus, "lugares": lugares, "hoy": hoy
     })
@@ -455,7 +455,7 @@ def detalle_reserva(request, reserva_id):
         'pago': pago  # <--- Enviamos el pago directamente
     }
 
-    return render(request, "cliente/detalle_reserva.html", context)
+    return render(request, "Cliente/detalle_reserva.html", context)
 
 
 def cancelar_reserva_cliente(request, reserva_id):
@@ -586,7 +586,7 @@ def evaluar_evento_inventario(request, id):
 
         # Si hubo algún error en los datos, volvemos a renderizar la página sin guardar nada
         if error_encontrado:
-            return render(request, 'reserva/evaluar_evento.html', {
+            return render(request, 'Reserva/evaluar_evento.html', {
                 'reserva': reserva,
                 'productos_reserva': productos_reserva
             })
@@ -615,7 +615,7 @@ def evaluar_evento_inventario(request, id):
         messages.success(request, "Evaluación de daños guardada de forma segura. Ahora puedes finalizar el evento.")
         return redirect('mostrar_detalle_reserva', reserva.id)
 
-    return render(request, 'reserva/evaluar_evento.html', {
+    return render(request, 'Reserva/evaluar_evento.html', {
         'reserva': reserva,
         'productos_reserva': productos_reserva
     })
@@ -645,7 +645,7 @@ def liquidar_deposito(request, id):  # Este es el paso final después de evaluar
         messages.success(request, f"Liquidación completada. Saldo devuelto: ${saldo_a_devolver}")
         return redirect('mostrar_detalle_reserva', reserva.id)
 
-    return render(request, 'reserva/liquidar_deposito.html', {
+    return render(request, 'Reserva/liquidar_deposito.html', {
         'reserva': reserva,
         'total_danos': total_danos,
         'saldo_a_devolver': saldo_a_devolver,
@@ -909,7 +909,7 @@ def detalle_alquiler(request, id):
         'pago': pago  # <--- Enviamos el pago directamente
     }
 
-    return render(request, 'cliente/detalle_alquiler.html', context)
+    return render(request, 'Cliente/detalle_alquiler.html', context)
 
 
 
@@ -1026,7 +1026,7 @@ def registrar_retorno(request, id):
         except Exception as e:
             messages.error(request, f"Error inesperado: {str(e)}")
             
-    return render(request, 'alquileres/registrar_retorno.html', {
+    return render(request, 'Alquileres/registrar_retorno.html', {
         'alquiler': alquiler, 
         'productos_alquilados': productos_alquilados
     })
@@ -1048,7 +1048,7 @@ def liquidar_alquiler(request, id):
         - alquiler.valor_mora
     )
 
-    return render(request, 'alquileres/liquidar_deposito.html', {
+    return render(request, 'Alquileres/liquidar_deposito.html', {
         'alquiler': alquiler,
         'detalles_danos': detalles_danos,
         'saldo_reembolso': saldo,
@@ -1128,7 +1128,7 @@ def descargar_comprobante_pdf(request, tipo, obj_id):
         'logo_path': os.path.join(settings.BASE_DIR, 'static', 'imagenes', 'logo2.png'),
     }
 
-    html_string = render_to_string('cliente/pdf_comprobante.html', context)
+    html_string = render_to_string('Cliente/pdf_comprobante.html', context)
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="Comprobante_Arron_{obj_id}.pdf"'
     HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf(response)
@@ -1154,7 +1154,7 @@ def mostrar_registro_menu(request):
 
     if "usuario_id" not in request.session:
         return redirect("iniciar_sesion")
-    return render(request, 'menu/crear.html')
+    return render(request, 'Menu/crear.html')
 
 def registrar_menu(request):
     if request.method == "POST":
@@ -1172,12 +1172,12 @@ def registrar_menu(request):
         # 1. VALIDACIÓN: Nombre (Solo letras y espacios, largo de 2 a 50)
         if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{2,50}$', nombre):
             messages.error(request, "El nombre del menú debe contener únicamente letras y tener entre 2 y 50 caracteres.")
-            return render(request, 'menu/crear.html', {'valores_previos': valores_previos})
+            return render(request, 'Menu/crear.html', {'valores_previos': valores_previos})
 
         # 2. VALIDACIÓN: Descripción (Longitud de 20 a 250 caracteres)
         if len(descripcion) < 20 or len(descripcion) > 250:
             messages.error(request, "La descripción del menú debe tener entre 20 y 250 caracteres.")
-            return render(request, 'menu/crear.html', {'valores_previos': valores_previos})
+            return render(request, 'Menu/crear.html', {'valores_previos': valores_previos})
 
         # 3. VALIDACIÓN: Precio (Número entero no negativo)
         try:
@@ -1186,7 +1186,7 @@ def registrar_menu(request):
                 raise ValueError
         except ValueError:
             messages.error(request, "El precio por persona debe ser un número entero válido sin decimales ni signos negativos.")
-            return render(request, 'menu/crear.html', {'valores_previos': valores_previos})
+            return render(request, 'Menu/crear.html', {'valores_previos': valores_previos})
 
         # Registro exitoso tras superar todas las defensas
         MenuComida.objects.create(
@@ -1199,7 +1199,7 @@ def registrar_menu(request):
         messages.success(request, "Nueva propuesta gastronómica registrada exitosamente.")
         return redirect('gestionar_catalogos')
 
-    return render(request, 'menu/crear.html')
+    return render(request, 'Menu/crear.html')
 
 def pre_editar_menu(request, id):
     #Formulario
@@ -1207,7 +1207,7 @@ def pre_editar_menu(request, id):
         return redirect("iniciar_sesion")
         
     menu = MenuComida.objects.get(id=id)
-    return render(request, 'menu/editar.html', {
+    return render(request, 'Menu/editar.html', {
         'menu': menu
     })
 
@@ -1235,12 +1235,12 @@ def editar_menu(request):
         # 1. VALIDACIÓN: Nombre alfabético (2 a 50 letras y espacios)
         if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{2,50}$', nombre):
             messages.error(request, "Error de actualización: El nombre debe contener solo letras y cumplir con una extensión de 2 a 50 caracteres.")
-            return render(request, 'menu/editar.html', {'menu': menu})
+            return render(request, 'Menu/editar.html', {'menu': menu})
 
         # 2. VALIDACIÓN: Composición del Menú (20 a 250 caracteres)
         if len(descripcion) < 20 or len(descripcion) > 250:
             messages.error(request, "Error de actualización: La composición de platos debe poseer de 20 a 250 caracteres.")
-            return render(request, 'menu/editar.html', {'menu': menu})
+            return render(request, 'Menu/editar.html', {'menu': menu})
 
         # 3. VALIDACIÓN: Tarifa por Persona (Entero válido y positivo)
         try:
@@ -1250,7 +1250,7 @@ def editar_menu(request):
             menu.precio_por_persona = precio_valido  # Seteamos el número entero limpio
         except ValueError:
             messages.error(request, "Error de actualización: La tarifa debe ser un número entero válido sin decimales.")
-            return render(request, 'menu/editar.html', {'menu': menu})
+            return render(request, 'Menu/editar.html', {'menu': menu})
 
         # Guardado definitivo tras pasar los filtros de seguridad
         menu.save()
@@ -1287,7 +1287,7 @@ def mostrar_registro_lugar(request):
 
     if "usuario_id" not in request.session:
         return redirect("iniciar_sesion")
-    return render(request, 'lugar/crear.html')
+    return render(request, 'Lugar/crear.html')
 
 def registrar_lugar(request):
     if request.method == "POST":
@@ -1308,23 +1308,23 @@ def registrar_lugar(request):
         # 1. VALIDACIÓN: Nombre de la sede (Alfanumérico de 3 a 60 caracteres)
         if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚñÑ0-9\s]{3,60}$', nombre):
             messages.error(request, "El nombre de la sede debe ser alfanumérico y contener entre 3 y 60 caracteres.")
-            return render(request, 'lugar/crear.html', {'valores_previos': valores_previos})
+            return render(request, 'Lugar/crear.html', {'valores_previos': valores_previos})
 
         # 2. VALIDACIÓN: Imagen obligatoria y formato válido
         if not imagen:
             messages.error(request, "Es obligatorio subir una fotografía representativa para la locación.")
-            return render(request, 'lugar/crear.html', {'valores_previos': valores_previos})
+            return render(request, 'Lugar/crear.html', {'valores_previos': valores_previos})
         
         extensiones_validas = ['jpg', 'jpeg', 'png', 'webp']
         ext = imagen.name.split('.')[-1].lower()
         if ext not in extensiones_validas:
             messages.error(request, "Formato de imagen inválido. Solo se permiten archivos JPG, JPEG, PNG o WEBP.")
-            return render(request, 'lugar/crear.html', {'valores_previos': valores_previos})
+            return render(request, 'Lugar/crear.html', {'valores_previos': valores_previos})
 
         # 3. VALIDACIÓN: Dirección (Mínimo 10 y máximo 150 caracteres)
         if len(direccion) < 10 or len(direccion) > 150:
             messages.error(request, "La dirección debe ser clara y detallada (entre 10 y 150 caracteres).")
-            return render(request, 'lugar/crear.html', {'valores_previos': valores_previos})
+            return render(request, 'Lugar/crear.html', {'valores_previos': valores_previos})
 
         # 4. VALIDACIÓN: Capacidad Máxima (Entero mayor a cero)
         try:
@@ -1333,7 +1333,7 @@ def registrar_lugar(request):
                 raise ValueError
         except ValueError:
             messages.error(request, "La capacidad máxima debe ser un número entero mayor a cero.")
-            return render(request, 'lugar/crear.html', {'valores_previos': valores_previos})
+            return render(request, 'Lugar/crear.html', {'valores_previos': valores_previos})
 
         # 5. VALIDACIÓN: Costo de Renta (Entero mayor a cero)
         try:
@@ -1342,7 +1342,7 @@ def registrar_lugar(request):
                 raise ValueError
         except ValueError:
             messages.error(request, "El costo de renta debe ser un número entero superior a cero.")
-            return render(request, 'lugar/crear.html', {'valores_previos': valores_previos})
+            return render(request, 'Lugar/crear.html', {'valores_previos': valores_previos})
 
         # Si todo está en orden, guardamos en la BD
         Lugar.objects.create(
@@ -1357,7 +1357,7 @@ def registrar_lugar(request):
         messages.success(request, f"La locación '{nombre}' ha sido registrada con éxito en el catálogo.")
         return redirect('gestionar_catalogos')
 
-    return render(request, 'lugar/crear.html')
+    return render(request, 'Lugar/crear.html')
 
 def pre_editar_lugar(request, id):
     #Formulario
@@ -1365,7 +1365,7 @@ def pre_editar_lugar(request, id):
         return redirect("iniciar_sesion")
         
     lugar = Lugar.objects.get(id=id)
-    return render(request, 'lugar/editar.html', {
+    return render(request, 'Lugar/editar.html', {
         'lugar': lugar
     })
 
@@ -1395,12 +1395,12 @@ def editar_lugar(request):
         # 1. VALIDACIÓN: Nombre de la Sede (Alfanumérico de 3 a 60 caracteres)
         if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚñÑ0-9\s]{3,60}$', nombre):
             messages.error(request, "Error: El nombre de la sede debe ser alfanumérico y contener entre 3 y 60 caracteres.")
-            return render(request, 'lugar/editar.html', {'lugar': lugar})
+            return render(request, 'Lugar/editar.html', {'lugar': lugar})
 
         # 2. VALIDACIÓN: Dirección (Mínimo 10 y máximo 150 caracteres)
         if len(direccion) < 10 or len(direccion) > 150:
             messages.error(request, "Error: La ubicación requiere una descripción clara (entre 10 y 150 caracteres).")
-            return render(request, 'lugar/editar.html', {'lugar': lugar})
+            return render(request, 'Lugar/editar.html', {'lugar': lugar})
 
         # 3. VALIDACIÓN: Capacidad Máxima (Entero positivo mayor a 0)
         try:
@@ -1410,7 +1410,7 @@ def editar_lugar(request):
             lugar.capacidad_maxima = capacidad_maxima
         except ValueError:
             messages.error(request, "Error: La capacidad del salón debe ser un número entero estrictamente mayor a cero.")
-            return render(request, 'lugar/editar.html', {'lugar': lugar})
+            return render(request, 'Lugar/editar.html', {'lugar': lugar})
 
         # 4. VALIDACIÓN: Costo de Renta (Entero limpio positivo)
         try:
@@ -1420,7 +1420,7 @@ def editar_lugar(request):
             lugar.precio_renta = precio_renta
         except ValueError:
             messages.error(request, "Error: El costo de renta mensual/diario debe ser un número entero mayor a cero.")
-            return render(request, 'lugar/editar.html', {'lugar': lugar})
+            return render(request, 'Lugar/editar.html', {'lugar': lugar})
 
         # Pasadas las compuertas de seguridad, se ejecuta el guardado definitivo
         lugar.save()
