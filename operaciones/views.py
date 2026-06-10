@@ -42,7 +42,7 @@ def listar_alquileres(request):
         estado__in=['Devuelto', 'Finalizado', 'Cancelado']
     ).order_by('-id')
 
-    return render(request, 'alquileres/index.html', {
+    return render(request, 'Alquileres/index.html', {
         'alquileres_activos': alquileres_activos,
         'alquileres_historial': alquileres_historial
     })
