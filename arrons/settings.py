@@ -82,11 +82,12 @@ WSGI_APPLICATION = 'arrons.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('MYSQLDATABASE', 'proyecto_arron_django'),
-        'USER': os.getenv('MYSQLUSER', 'root'),
-        'PASSWORD': os.getenv('MYSQLPASSWORD', '123456789*'),
-        'HOST': os.getenv('MYSQLHOST', 'localhost'),
-        'PORT': os.getenv('MYSQLPORT', '3307'),
+        # Intentará leer la configuración oficial de Railway. Si no existe, usará los datos de tu PC local.
+        'NAME': os.getenv('MYSQLDATABASE' or 'MYSQL_DATABASE', 'proyecto_arron_django'),
+        'USER': os.getenv('MYSQLUSER' or 'MYSQL_USER', 'root'),
+        'PASSWORD': os.getenv('MYSQLPASSWORD' or 'MYSQL_PASSWORD', '123456789*'),
+        'HOST': os.getenv('MYSQLHOST' or 'MYSQL_HOST', '127.0.0.1'), 
+        'PORT': os.getenv('MYSQLPORT' or 'MYSQL_PORT', '3307'),
     }
 }
 
