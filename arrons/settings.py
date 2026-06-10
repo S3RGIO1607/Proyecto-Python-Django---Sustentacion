@@ -82,15 +82,13 @@ WSGI_APPLICATION = 'arrons.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        # Intentará leer la configuración oficial de Railway. Si no existe, usará los datos de tu PC local.
-        'NAME': os.getenv('MYSQLDATABASE' or 'MYSQL_DATABASE', 'proyecto_arron_django'),
-        'USER': os.getenv('MYSQLUSER' or 'MYSQL_USER', 'root'),
-        'PASSWORD': os.getenv('MYSQLPASSWORD' or 'MYSQL_PASSWORD', '123456789*'),
-        'HOST': os.getenv('MYSQLHOST' or 'MYSQL_HOST', '127.0.0.1'), 
-        'PORT': os.getenv('MYSQLPORT' or 'MYSQL_PORT', '3307'),
+        'NAME': os.getenv('MYSQLDATABASE') or os.getenv('MYSQL_DATABASE') or 'proyecto_arron_django',
+        'USER': os.getenv('MYSQLUSER') or os.getenv('MYSQL_USER') or 'root',
+        'PASSWORD': os.getenv('MYSQLPASSWORD') or os.getenv('MYSQL_PASSWORD') or '123456789*',
+        'HOST': os.getenv('MYSQLHOST') or os.getenv('MYSQL_HOST') or '127.0.0.1', 
+        'PORT': os.getenv('MYSQLPORT') or os.getenv('MYSQL_PORT') or '3307',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
