@@ -37,7 +37,7 @@ body {
 /* Hover más pro */
 .premium-card:hover {
     transform: translateY(-6px) scale(1.01);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.06); /* Ajustado para que combine mejor con el fondo claro */
+    box-shadow: 0 20px 40px rgba(0,0,0,0.06); 
 }
 
 .bg-gradient-blue {
@@ -106,7 +106,7 @@ body {
                 <p class="text-xs font-bold text-gray-400 uppercase">{{ user.rol.nombre }}</p>
                 <p class="text-sm font-black text-gray-800">{{ user.nombre }}</p>
             </div>
-            </div>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
@@ -128,7 +128,7 @@ body {
         <a href="{% url 'listar_reservas' %}" class="lg:col-span-5 premium-card bg-gradient-gold p-10 text-white relative overflow-hidden group shadow-2xl min-h-[300px] flex flex-col justify-between">
             <div class="relative z-10">
                 <div class="w-14 h-14 bg-black/10 backdrop-blur-lg rounded-2xl flex items-center justify-center mb-6">
-                    <i class="fa-solid fa-clinking-glasses text-2xl text-white"></i>
+                    <i class="fa-solid fa-glass-cheers text-2xl text-white"></i>
                 </div>
                 <h2 class="text-4xl font-black mb-3 italic">Eventos</h2>
                 <p class="text-amber-100 max-w-xs text-lg">Planificación de gala y experiencias integrales.</p>
@@ -136,7 +136,7 @@ body {
             <div class="relative z-10">
                 <span class="bg-black/20 backdrop-blur-md border border-white/30 text-white px-6 py-3 rounded-full font-black text-xs uppercase tracking-widest group-hover:bg-white group-hover:text-amber-700 transition-all">Ver Calendario</span>
             </div>
-            <i class="fa-solid fa-calendar-check absolute -right-16 -bottom-16 text-[18rem] opacity-10 group-hover:-rotate-12 transition-transform duration-1000"></i>
+            <i class="fa-solid fa-calendar-days absolute -right-16 -bottom-16 text-[18rem] opacity-10 group-hover:-rotate-12 transition-transform duration-1000"></i>
         </a>
     </div>
 
