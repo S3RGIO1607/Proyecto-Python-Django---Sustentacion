@@ -59,7 +59,7 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
                 {% with rol=request.session.rol|stringformat:"s" %}
                     {% if rol == "1" %}
                         <a href="{% url 'dashboard_admin' %}" class="bg-[#541E12] px-2 py-1.5 sm:px-3 sm:py-1 rounded text-xs sm:text-sm hover:bg-[#72291A] transition flex items-center whitespace-nowrap">
-                            <i class="fa-solid fa-chart-line mr-1"></i> <span class="hidden xs:inline">Dashboard</span><span class="hidden md:inline">&nbsp;Admin</span>
+                            <i class="fa-solid fa-chart-line mr-1"></i> <span class="hidden xs:inline">Dashboard</span><span class="hidden md:inline">&nbsp;Administrador</span>
                         </a>
                     {% elif rol == "2" %}
                         <a href="{% url 'dashboard_organizador' %}" class="bg-[#541E12] px-2 py-1.5 sm:px-3 sm:py-1 rounded text-xs sm:text-sm hover:bg-[#72291A] transition flex items-center whitespace-nowrap">
