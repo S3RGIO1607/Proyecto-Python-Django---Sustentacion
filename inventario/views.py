@@ -71,7 +71,7 @@ def exportar_productos_pdf(request):
         }
     }
     
-    html_string = render_to_string('producto/reporte_pdf.html', context)
+    html_string = render_to_string('Producto/reporte_pdf.html', context)
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="Reporte_Gerencial_Aaron.pdf"'
     
@@ -96,7 +96,7 @@ def reporte_productos(request):
         'categorias_counts': [c['total'] for c in data_cat],
     }
 
-    return render(request, 'reserva/reporte_productos.html', context)
+    return render(request, 'Reserva/reporte_productos.html', context)
 
 
 
@@ -110,7 +110,7 @@ def listar_productos(request):
     productos_activos = Producto.objects.filter(estado="A")
     productos_inactivos = Producto.objects.filter(estado="I")
     
-    return render(request, 'producto/index.html', {
+    return render(request, 'Producto/index.html', {
         'productos': productos_activos,
         'productos_inactivos': productos_inactivos
     })
@@ -120,7 +120,7 @@ def mostrar_registro_producto(request):
     #Formulario
     if "usuario_id" not in request.session:
         return redirect("iniciar_sesion")
-    return render(request, 'producto/crear.html')
+    return render(request, 'Producto/crear.html')
 
 
 def registrar_producto(request):
@@ -185,7 +185,7 @@ def registrar_producto(request):
 
     # Si es un método GET u otro, redirige al formulario limpio
     # Nota: Asegúrate de mapear bien esta ruta en tus URLs
-    return render(request, 'producto/crear.html')
+    return render(request, 'Producto/crear.html')
 
 def mostrar_detalle_producto(request, id):
     #Formulario
@@ -193,7 +193,7 @@ def mostrar_detalle_producto(request, id):
         return redirect("iniciar_sesion")
     
     producto = Producto.objects.get(id=id)
-    return render(request, 'producto/consultar.html', {
+    return render(request, 'Producto/consultar.html', {
         'producto': producto
     })
 
@@ -204,7 +204,7 @@ def pre_editar_producto(request, id):
         return redirect("iniciar_sesion")
         
     producto = Producto.objects.get(id=id)
-    return render(request, 'producto/editar.html', {
+    return render(request, 'Producto/editar.html', {
         'producto': producto
     })
 
@@ -304,7 +304,7 @@ def listar_movimientos(request):
         'producto', 'alquiler', 'reserva'
     ).order_by('-fecha')
     
-    return render(request, 'producto/movimientos.html', {'movimientos': movimientos})
+    return render(request, 'Producto/movimientos.html', {'movimientos': movimientos})
 
 
 
