@@ -35,7 +35,7 @@ def listar_paquetes(request):
     paquetes = Paquete.objects.filter(estado="A")
     paquetes_inactivos = Paquete.objects.filter(estado="I")
 
-    return render(request, "paquete/index.html", {
+    return render(request, "Paquete/index.html", {
         "paquetes": paquetes,
         "paquetes_inactivos": paquetes_inactivos
     })
@@ -47,7 +47,7 @@ def mostrar_registro_paquete(request):
 
     if "usuario_id" not in request.session:
         return redirect("iniciar_sesion")
-    return render(request, 'paquete/crear.html', {
+    return render(request, 'Paquete/crear.html', {
         'productos': productos,
         'servicios': servicios
     })
@@ -90,35 +90,35 @@ def registrar_paquete(request):
         # A. Validaciones del Nombre
         if len(nombre) < 15 or len(nombre) > 60:
             contexto_error['error'] = "El nombre del paquete debe tener entre 15 y 60 caracteres."
-            return render(request, 'paquete/crear.html', contexto_error)
+            return render(request, 'Paquete/crear.html', contexto_error)
 
         if not re.match(r'^[a-zA-ZÁÉÍÓÚÑáéíóúñ\s]+$', nombre):
             contexto_error['error'] = "El nombre del paquete solo puede contener letras y espacios."
-            return render(request, 'paquete/crear.html', contexto_error)
+            return render(request, 'Paquete/crear.html', contexto_error)
 
         if Paquete.objects.filter(nombre__iexact=nombre).exists():
             contexto_error['error'] = f"Ya existe un paquete registrado con el nombre '{nombre}'."
-            return render(request, 'paquete/crear.html', contexto_error)
+            return render(request, 'Paquete/crear.html', contexto_error)
 
         # B. Validaciones de la Descripción
         if len(descripcion) < 20 or len(descripcion) > 250:
             contexto_error['error'] = "La descripción debe tener entre 20 y 250 caracteres."
-            return render(request, 'paquete/crear.html', contexto_error)
+            return render(request, 'Paquete/crear.html', contexto_error)
 
         # C. Validaciones de la Duración
         try:
             duracion = int(duracion_str)
             if duracion < 2 or duracion > 15:
                 contexto_error['error'] = "La duración debe estar entre las 2 y las 15 horas máximo."
-                return render(request, 'paquete/crear.html', contexto_error)
+                return render(request, 'Paquete/crear.html', contexto_error)
         except ValueError:
             contexto_error['error'] = "La duración introducida debe ser un número entero válido."
-            return render(request, 'paquete/crear.html', contexto_error)
+            return render(request, 'Paquete/crear.html', contexto_error)
 
         # 🆕 VALIDACIÓN CRÍTICA: Al menos un producto seleccionado
         if not productos_ids:
             contexto_error['error'] = "Debes seleccionar al menos un producto del inventario para poder crear el paquete."
-            return render(request, 'paquete/crear.html', contexto_error)
+            return render(request, 'Paquete/crear.html', contexto_error)
 
         # D. Validaciones de Cantidades del Inventario
         for pid in productos_ids:
@@ -127,10 +127,10 @@ def registrar_paquete(request):
                 cantidad = int(cant_str or 0)
                 if cantidad < 1:
                     contexto_error['error'] = "Cada producto seleccionado debe tener una cantidad mínima de 1."
-                    return render(request, 'paquete/crear.html', contexto_error)
+                    return render(request, 'Paquete/crear.html', contexto_error)
             except ValueError:
                 contexto_error['error'] = "Las cantidades de los productos deben ser números enteros."
-                return render(request, 'paquete/crear.html', contexto_error)
+                return render(request, 'Paquete/crear.html', contexto_error)
 
 
         # --- PROCESO DE CÁLCULO FINAL Y GUARDADO SEGURO ---
@@ -183,14 +183,14 @@ def registrar_paquete(request):
 
         except Exception as e:
             contexto_error['error'] = f"Error crítico al guardar en el sistema: {e}"
-            return render(request, 'paquete/crear.html', contexto_error)
+            return render(request, 'Paquete/crear.html', contexto_error)
 
     # Carga limpia de la página por método GET
     contexto_inicial = {
         'productos': Producto.objects.all(),
         'servicios': Servicio.objects.all()
     }
-    return render(request, 'paquete/crear.html', contexto_inicial)
+    return render(request, 'Paquete/crear.html', contexto_inicial)
 
 
 def mostrar_detalle_paquete(request, id):
@@ -199,7 +199,7 @@ def mostrar_detalle_paquete(request, id):
         return redirect("iniciar_sesion")
     
     paquete = Paquete.objects.get(id=id)
-    return render(request, 'paquete/consultar.html', {
+    return render(request, 'Paquete/consultar.html', {
         'paquete': paquete
     })
 
@@ -212,7 +212,7 @@ def pre_editar_paquete(request, id):
     productos = Producto.objects.filter(estado='A')
     servicios = Servicio.objects.filter(estado='A')
 
-    return render(request, 'paquete/editar.html', {
+    return render(request, 'Paquete/editar.html', {
         'paquete': paquete,
         'productos': productos,
         'servicios': servicios
@@ -260,35 +260,35 @@ def editar_paquete(request, id):
         # A. Validaciones del Nombre (Excluyendo el ID actual)
         if len(nombre) < 15 or len(nombre) > 60:
             contexto_error['error'] = "El nombre del paquete debe tener entre 15 y 60 caracteres."
-            return render(request, "paquete/editar.html", contexto_error)
+            return render(request, "Paquete/editar.html", contexto_error)
 
         if not re.match(r'^[a-zA-ZÁÉÍÓÚÑáéíóúñ\s]+$', nombre):
             contexto_error['error'] = "El nombre del paquete solo puede contener letras y espacios."
-            return render(request, "paquete/editar.html", contexto_error)
+            return render(request, "Paquete/editar.html", contexto_error)
 
         if Paquete.objects.filter(nombre__iexact=nombre).exclude(id=paquete.id).exists():
             contexto_error['error'] = f"Ya existe otro paquete registrado con el nombre '{nombre}'."
-            return render(request, "paquete/editar.html", contexto_error)
+            return render(request, "Paquete/editar.html", contexto_error)
 
         # B. Validaciones de la Descripción
         if len(descripcion) < 20 or len(descripcion) > 250:
             contexto_error['error'] = "La descripción debe tener entre 20 y 250 caracteres."
-            return render(request, "paquete/editar.html", contexto_error)
+            return render(request, "Paquete/editar.html", contexto_error)
 
         # C. Validaciones de la Duración
         try:
             duracion = int(duracion_str)
             if duracion < 2 or duracion > 15:
                 contexto_error['error'] = "La duración debe estar entre las 2 y las 15 horas máximo."
-                return render(request, "paquete/editar.html", contexto_error)
+                return render(request, "Paquete/editar.html", contexto_error)
         except ValueError:
             contexto_error['error'] = "La duración introducida debe ser un número entero válido."
-            return render(request, "paquete/editar.html", contexto_error)
+            return render(request, "Paquete/editar.html", contexto_error)
 
         # 🆕 VALIDACIÓN CRÍTICA: Al menos un producto seleccionado
         if not productos_ids:
             contexto_error['error'] = "Debes seleccionar al menos un producto del inventario para poder actualizar el paquete."
-            return render(request, "paquete/editar.html", contexto_error)
+            return render(request, "Paquete/editar.html", contexto_error)
 
         # D. Validaciones de Cantidades del Inventario
         for pid in productos_ids:
@@ -297,10 +297,10 @@ def editar_paquete(request, id):
                 cantidad = int(cant_str or 0)
                 if cantidad < 1:
                     contexto_error['error'] = "Cada producto seleccionado debe tener una cantidad mínima de 1."
-                    return render(request, "paquete/editar.html", contexto_error)
+                    return render(request, "Paquete/editar.html", contexto_error)
             except ValueError:
                 contexto_error['error'] = "Las cantidades de los productos deben ser números enteros."
-                return render(request, "paquete/editar.html", contexto_error)
+                return render(request, "Paquete/editar.html", contexto_error)
 
         # --- GUARDADO PROGRESIVO Y SEGURO ---
         try:
@@ -335,7 +335,7 @@ def editar_paquete(request, id):
 
         except Exception as e:
             contexto_error['error'] = f"Error crítico al actualizar en el sistema: {e}"
-            return render(request, "paquete/editar.html", contexto_error)
+            return render(request, "Paquete/editar.html", contexto_error)
 
     # -------- RENDEREADO POR GET (CARGA INICIAL) --------
     productos_paquete = PaqueteProducto.objects.filter(paquete=paquete)
@@ -362,7 +362,7 @@ def editar_paquete(request, id):
         "productos_seleccionados": productos_seleccionados,
         "servicios_seleccionados": servicios_seleccionados
     }
-    return render(request, "paquete/editar.html", context)
+    return render(request, "Paquete/editar.html", context)
 
 
 def eliminar_paquete(request, id):
@@ -392,7 +392,7 @@ def mostrar_registro_servicio(request):
 
     if "usuario_id" not in request.session:
         return redirect("iniciar_sesion")
-    return render(request, 'servicio/crear.html')
+    return render(request, 'Servicio/crear.html')
 
 def registrar_servicio(request):
     if request.method == "POST":
@@ -411,12 +411,12 @@ def registrar_servicio(request):
         # ^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{2,50}$
         if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{2,50}$', nombre):
             messages.error(request, "El nombre debe ser estrictamente alfabético y tener entre 2 y 50 caracteres.")
-            return render(request, 'servicio/crear.html', {'valores_previos': valores_previos})
+            return render(request, 'Servicio/crear.html', {'valores_previos': valores_previos})
 
         # 2. VALIDACIÓN: Descripción (Longitud entre 20 y 250 caracteres)
         if len(descripcion) < 20 or len(descripcion) > 250:
             messages.error(request, "La descripción debe tener una extensión obligatoria de entre 20 y 250 caracteres.")
-            return render(request, 'servicio/crear.html', {'valores_previos': valores_previos})
+            return render(request, 'Servicio/crear.html', {'valores_previos': valores_previos})
 
         # 3. VALIDACIÓN: Costo (Entero positivo)
         try:
@@ -425,7 +425,7 @@ def registrar_servicio(request):
                 raise ValueError
         except ValueError:
             messages.error(request, "El costo del servicio debe ser un número entero válido no negativo.")
-            return render(request, 'servicio/crear.html', {'valores_previos': valores_previos})
+            return render(request, 'Servicio/crear.html', {'valores_previos': valores_previos})
 
         # Si supera con éxito todos los filtros, persistimos la información
         Servicio.objects.create(
@@ -438,7 +438,7 @@ def registrar_servicio(request):
         messages.success(request, "Servicio registrado exitosamente en el catálogo global.")
         return redirect('gestionar_catalogos')
         
-    return render(request, 'servicio/crear.html')
+    return render(request, 'Servicio/crear.html')
 
 def pre_editar_servicio(request, id):
     #Formulario
@@ -446,7 +446,7 @@ def pre_editar_servicio(request, id):
         return redirect("iniciar_sesion")
         
     servicio = Servicio.objects.get(id=id)
-    return render(request, 'servicio/editar.html', {
+    return render(request, 'Servicio/editar.html', {
         'servicio': servicio
     })
 
@@ -474,12 +474,12 @@ def editar_servicio(request):
         # 1. VALIDACIÓN: Nombre alfabético (2 a 50 caracteres)
         if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{2,50}$', nombre):
             messages.error(request, "Error al actualizar: El nombre debe poseer solo caracteres alfabéticos (entre 2 y 50 letras).")
-            return render(request, 'servicio/editar.html', {'servicio': servicio})
+            return render(request, 'Servicio/editar.html', {'servicio': servicio})
 
         # 2. VALIDACIÓN: Descripción (Extensión entre 20 y 250)
         if len(descripcion) < 20 or len(descripcion) > 250:
             messages.error(request, "Error al actualizar: La descripción tiene que cumplir obligatoriamente entre 20 y 250 caracteres.")
-            return render(request, 'servicio/editar.html', {'servicio': servicio})
+            return render(request, 'Servicio/editar.html', {'servicio': servicio})
 
         # 3. VALIDACIÓN: Tarifa (Entero positivo)
         try:
@@ -489,7 +489,7 @@ def editar_servicio(request):
             servicio.precio = precio_valido # Convertimos ahora sí a entero real
         except ValueError:
             messages.error(request, "Error al actualizar: El costo debe ser un valor numérico entero y no negativo.")
-            return render(request, 'servicio/editar.html', {'servicio': servicio})
+            return render(request, 'Servicio/editar.html', {'servicio': servicio})
 
         # Guardado final seguro tras pasar todos los filtros
         servicio.save()
