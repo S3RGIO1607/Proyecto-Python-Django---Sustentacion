@@ -37,7 +37,7 @@ body {
 /* Hover más pro */
 .premium-card:hover {
     transform: translateY(-6px) scale(1.01);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.06); /* Ajustado para que combine mejor con el fondo claro */
 }
 
 .bg-gradient-blue {
@@ -81,25 +81,6 @@ body {
     transform: scale(1.2);
 }
 
-/* 🌙 Dark mode real */
-.dark-mode {
-    /* 🌙 Dark - Estilo tech */
-    --bg-main: #020617;
-    --bg-card: rgba(15, 23, 42, 0.9);
-    --border-soft: rgba(255,255,255,0.08);
-
-    --primary: #3b82f6;   /* azul eléctrico */
-    --secondary: #8b5cf6; /* violeta */
-    --accent: #22c55e;    /* verde neón */
-
-    --text-main: #e5e7eb;
-    --text-muted: #94a3b8;
-}
-
-.dark-mode .premium-card {
-    background: rgba(15, 23, 42, 0.6);
-}
-
 /* ✨ Animación suave */
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(15px); }
@@ -125,10 +106,7 @@ body {
                 <p class="text-xs font-bold text-gray-400 uppercase">{{ user.rol.nombre }}</p>
                 <p class="text-sm font-black text-gray-800">{{ user.nombre }}</p>
             </div>
-            <button onclick="toggleDarkMode()" class="w-12 h-12 premium-card flex items-center justify-center text-gray-500 hover:text-blue-600 transition-colors">
-                <i class="fa-solid fa-expand" id="darkIcon"></i>
-            </button>
-        </div>
+            </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
@@ -164,24 +142,24 @@ body {
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-12">
         <div class="lg:col-span-1 space-y-6">
-    <div class="premium-card p-8 text-center bg-white">
-        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Ingresos del Mes</p>
-        <p class="text-4xl font-black text-blue-600">${{ total_pagos_mes|floatformat:0|intcomma }}</p>
-        <div class="mt-4 h-1 w-12 bg-blue-100 mx-auto rounded-full"></div>
-    </div>
+            <div class="premium-card p-8 text-center bg-white">
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Ingresos del Mes</p>
+                <p class="text-4xl font-black text-blue-600">${{ total_pagos_mes|floatformat:0|intcomma }}</p>
+                <div class="mt-4 h-1 w-12 bg-blue-100 mx-auto rounded-full"></div>
+            </div>
 
-    <div class="space-y-4">
-        <div class="premium-card p-5 flex items-center gap-5 bg-gradient-slate text-white border-none">
-            <div class="text-3xl font-black text-amber-500">{{ eventos_proximos }}</div>
-            <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 leading-tight">Eventos<br>esta semana</div>
-        </div>
+            <div class="space-y-4">
+                <div class="premium-card p-5 flex items-center gap-5 bg-gradient-slate text-gray-800 border-none">
+                    <div class="text-3xl font-black text-amber-500">{{ eventos_proximos }}</div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 leading-tight">Eventos<br>esta semana</div>
+                </div>
 
-        <div class="premium-card p-5 flex items-center gap-5 bg-white border-soft">
-            <div class="text-3xl font-black text-blue-600">{{ alquileres_proximos }}</div>
-            <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 leading-tight">Alquileres<br>próximas 48h</div>
+                <div class="premium-card p-5 flex items-center gap-5 bg-white border-soft">
+                    <div class="text-3xl font-black text-blue-600">{{ alquileres_proximos }}</div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 leading-tight">Alquileres<br>próximas 48h</div>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
         <div class="lg:col-span-3 premium-card p-8">
             <div class="flex justify-between items-center mb-8">
@@ -216,30 +194,30 @@ body {
 
         <div class="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-6">
             <a href="{% url 'listar_productos' %}" class="premium-card p-8 flex flex-col items-center justify-center group">
-                <i class="fa-solid fa-boxes-stacked text-3xl text-gray-400 icon-hover"></i>
-                <span class="text-[10px] font-black uppercase tracking-widest">Inventario</span>
+                <i class="fa-solid fa-boxes-stacked text-3xl text-gray-400 icon-hover animate-in"></i>
+                <span class="text-[10px] font-black uppercase tracking-widest mt-4">Inventario</span>
             </a>
             <a href="{% url 'listar_usuarios' %}" class="premium-card p-8 flex flex-col items-center justify-center group">
                 <i class="fa-solid fa-user-gear text-3xl text-gray-300 group-hover:text-blue-600 transition-colors mb-4"></i>
                 <span class="text-[10px] font-black uppercase tracking-widest">Staff</span>
             </a>
             <div class="premium-card p-4 flex flex-col gap-2 bg-gray-50/50">
-        <p class="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 ml-2">Catálogos</p>
-        <div class="grid grid-cols-1 gap-2">
-            <a href="{% url 'gestionar_catalogos' %}" class="flex items-center gap-3 p-3 bg-white rounded-xl hover:bg-blue-600 group/item transition-all shadow-sm">
-                <i class="fa-solid fa-bell-concierge text-gray-400 group-hover/item:text-white"></i>
-                <span class="text-[9px] font-bold uppercase group-hover/item:text-white">Servicios</span>
-            </a>
-            <a href="{% url 'gestionar_catalogos' %}" class="flex items-center gap-3 p-3 bg-white rounded-xl hover:bg-amber-500 group/item transition-all shadow-sm">
-                <i class="fa-solid fa-utensils text-gray-400 group-hover/item:text-white"></i>
-                <span class="text-[9px] font-bold uppercase group-hover/item:text-white">Menús</span>
-            </a>
-            <a href="{% url 'gestionar_catalogos' %}" class="flex items-center gap-3 p-3 bg-white rounded-xl hover:bg-emerald-600 group/item transition-all shadow-sm">
-                <i class="fa-solid fa-location-dot text-gray-400 group-hover/item:text-white"></i>
-                <span class="text-[9px] font-bold uppercase group-hover/item:text-white">Lugares</span>
-            </a>
-        </div>
-    </div>
+                <p class="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 ml-2">Catálogos</p>
+                <div class="grid grid-cols-1 gap-2">
+                    <a href="{% url 'gestionar_catalogos' %}" class="flex items-center gap-3 p-3 bg-white rounded-xl hover:bg-blue-600 group/item transition-all shadow-sm">
+                        <i class="fa-solid fa-bell-concierge text-gray-400 group-hover/item:text-white"></i>
+                        <span class="text-[9px] font-bold uppercase group-hover/item:text-white">Servicios</span>
+                    </a>
+                    <a href="{% url 'gestionar_catalogos' %}" class="flex items-center gap-3 p-3 bg-white rounded-xl hover:bg-amber-500 group/item transition-all shadow-sm">
+                        <i class="fa-solid fa-utensils text-gray-400 group-hover/item:text-white"></i>
+                        <span class="text-[9px] font-bold uppercase group-hover/item:text-white">Menús</span>
+                    </a>
+                    <a href="{% url 'gestionar_catalogos' %}" class="flex items-center gap-3 p-3 bg-white rounded-xl hover:bg-emerald-600 group/item transition-all shadow-sm">
+                        <i class="fa-solid fa-location-dot text-gray-400 group-hover/item:text-white"></i>
+                        <span class="text-[9px] font-bold uppercase group-hover/item:text-white">Lugares</span>
+                    </a>
+                </div>
+            </div>
             <a href="{% url 'listar_paquetes' %}" class="col-span-full premium-card p-6 flex justify-between items-center px-10 hover:bg-gray-50 transition-all group">
                 <div class="flex items-center gap-6">
                     <i class="fa-solid fa-receipt text-xl text-gray-400 group-hover:text-blue-600"></i>
@@ -253,15 +231,9 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    function toggleDarkMode() {
-        document.body.classList.toggle('dark-mode');
-    }
-
     document.addEventListener('DOMContentLoaded', function() {
-        // Obtenemos el contexto del canvas
         const ctx = document.getElementById('chartMixto').getContext('2d');
         
-        // Datos desde Django con filtro safe
         const labelsDias = {{ meses_labels|safe }};
         const dataEventos = {{ data_eventos|safe }};
         const dataAlquileres = {{ data_alquileres|safe }};
@@ -295,7 +267,7 @@ body {
                 },
                 scales: {
                     x: { 
-                        stacked: false, // Barras una al lado de la otra
+                        stacked: false,
                         grid: { display: false },
                         ticks: { 
                             autoSkip: true,
