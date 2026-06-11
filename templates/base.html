@@ -32,69 +32,68 @@
 <body>
 
                 <header class="navbar-custom">
-                    <div class="header-container">
-                        <div class="logo-area">
-                            <a href="{% url 'home' %}"><img src="{% static 'imagenes/logo2.png' %}" alt="Logo Arron"></a>
+    <div class="header-container">
+        <div class="logo-area">
+            <a href="{% url 'home' %}"><img src="{% static 'imagenes/logo2.png' %}" alt="Logo Arron"></a>
+        </div>
+
+        <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <nav id="nav">
+            <ul class="nav-links">
+                <li><a href="{% url 'home' %}"><i class="bi bi-house"></i> Inicio</a></li>
+                <li><a href="{% url 'nosotros' %}">Nosotros</a></li>
+                <li><a href="{% url 'productos_catalogo' %}">Productos</a></li>
+                <li><a href="{% url 'paquetes_catalogo' %}">Eventos</a></li>
+                <li><a href="#Contactenos">Contacto</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                {% if request.session.usuario_id and request.session.rol == 4 %}
+                <a href="{% url 'ver_carrito' %}" class="nav-item-custom badge">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span>{{ request.session.carrito|length|default:0 }}</span>
+                </a>
+                {% endif %}
+
+                {% if request.session.usuario_id %}
+                <a href="{% url 'mis_reservas' %}" class="nav-item-custom">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span>Mis Reservas</span>
+                </a>
+                {% endif %}
+
+                {% if not request.session.usuario_id %}
+                    <a href="{% url 'iniciar_sesion' %}" class="btn-login">Ingresar</a>
+                {% else %}
+                    <div class="user-dropdown-container">
+                        <div class="user-profile-trigger" id="userDropdownBtn">
+                            <i class="fa-regular fa-circle-user"></i>
+                            <span>{{ request.session.nombre_usuario }}</span>
+                            <i class="fa-solid fa-chevron-down arrow-icon"></i>
                         </div>
 
-                        <nav id="nav">
-                            <ul class="nav-links">
-                                <li><a href="{% url 'home' %}"><i class="bi bi-house"></i> Inicio</a></li>
-                                <li><a href="{% url 'nosotros' %}">Nosotros</a></li>
-                                <li><a href="{% url 'productos_catalogo' %}">Productos</a></li>
-                                <li><a href="{% url 'paquetes_catalogo' %}">Eventos</a></li>
-                                <li><a href="#Contactenos">Contacto</a></li>
-                            </ul>
+                        <div class="user-dropdown-menu" id="userDropdownMenu">
+                            <div class="dropdown-header"> <small>Sesión de</small>
+                                <strong>{{ request.session.nombre_usuario }}</strong>
+                            </div>
+                            
+                            <a href="{% url 'mi_perfil' %}" class="dropdown-link">
+                                <i class="fa-solid fa-user-gear"></i> Mi Información
+                            </a>
 
-                            <div class="nav-actions">
-                                <!-- CARRITO: Solo para clientes (Rol 4) -->
-                                {% if request.session.usuario_id and request.session.rol == 4 %}
-                                <a href="{% url 'ver_carrito' %}" class="nav-item-custom badge">
-                                    <i class="fa-solid fa-cart-shopping"></i>
-                                    <span>{{ request.session.carrito|length|default:0 }}</span>
-                                </a>
-                                {% endif %}
+                            <div class="dropdown-divider"></div>
 
-                                <!-- MIS RESERVAS: Solo si está logueado -->
-                                {% if request.session.usuario_id %}
-                                <a href="{% url 'mis_reservas' %}" class="nav-item-custom">
-                                    <i class="fa-solid fa-calendar-check"></i>
-                                    <span>Mis Reservas</span>
-                                </a>
-                                {% endif %}
-
-                            <!-- Lógica de Usuario con Dropdown -->
-                                {% if not request.session.usuario_id %}
-                                    <a href="{% url 'iniciar_sesion' %}" class="btn-login">Ingresar</a>
-                                {% else %}
-                                    <div class="user-dropdown-container">
-                    <div class="user-profile-trigger" id="userDropdownBtn">
-                        <i class="fa-regular fa-circle-user"></i>
-                        <span>{{ request.session.nombre_usuario }}</span>
-                        <i class="fa-solid fa-chevron-down arrow-icon"></i>
-                    </div>
-
-                    <div class="user-dropdown-menu" id="userDropdownMenu">
-                        <div class="dropdown-header-name">
-                            <small>Sesión de</small>
-                            <strong>{{ request.session.nombre_usuario }}</strong>
+                            <form action="{% url 'logout' %}" method="post" style="margin:0;">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-link logout-item logout-btn"> <i class="fa-solid fa-power-off"></i> Cerrar Sesión
+                                </button>
+                            </form>
                         </div>
-                        
-                        <a href="{% url 'mi_perfil' %}" class="dropdown-link">
-                            <i class="fa-solid fa-user-gear"></i> Mi Información
-                        </a>
-
-                        <div class="dropdown-divider"></div>
-
-                        <form action="{% url 'logout' %}" method="post" style="margin:0;">
-                            {% csrf_token %}
-                            <button type="submit" class="dropdown-link logout-item">
-                                <i class="fa-solid fa-power-off"></i> Cerrar Sesión
-                            </button>
-                        </form>
                     </div>
-                </div>
-            {% endif %}
+                {% endif %}
             </div>
         </nav>
     </div>
@@ -147,6 +146,56 @@
 </footer>
 
 <script>
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Código para controlar la apertura del menú móvil
+    const menuToggle = document.getElementById('menu-toggle');
+    const nav = document.getElementById('nav');
+    const toggleIcon = menuToggle.querySelector('i');
+
+    if (menuToggle && nav) {
+        menuToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            nav.classList.toggle('show');
+            
+            // Intercambia el icono entre las barras (hamburger) y la X de cerrar
+            if (nav.classList.contains('show')) {
+                toggleIcon.className = 'fa-solid fa-xmark';
+            } else {
+                toggleIcon.className = 'fa-solid fa-bars';
+            }
+        });
+    }
+
+    // Código existente del dropdown de usuario (se mantiene intacto)...
+    const btn = document.getElementById('userDropdownBtn');
+    const menu = document.getElementById('userDropdownMenu');
+
+    if (btn && menu) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            menu.classList.toggle('active');
+            const arrow = btn.querySelector('.arrow-icon');
+            if(arrow) {
+                arrow.style.transform = menu.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0deg)';
+            }
+        });
+    }
+
+    // Cerrar todo al hacer clic en cualquier parte fuera de la barra
+    document.addEventListener('click', function(e) {
+        if (nav && nav.classList.contains('show') && !nav.contains(e.target) && !menuToggle.contains(e.target)) {
+            nav.classList.remove('show');
+            toggleIcon.className = 'fa-solid fa-bars';
+        }
+        if (btn && menu && !btn.contains(e.target) && !menu.contains(e.target)) {
+            menu.classList.remove('active');
+            const arrow = btn.querySelector('.arrow-icon');
+            if(arrow) arrow.style.transform = 'rotate(0deg)';
+        }
+    });
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     const btn = document.getElementById('userDropdownBtn');
     const menu = document.getElementById('userDropdownMenu');

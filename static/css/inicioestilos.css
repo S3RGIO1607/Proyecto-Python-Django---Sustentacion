@@ -504,3 +504,112 @@ margin-top:40px;
 font-size:.8rem;
 color:var(--text-muted);
 }
+
+
+
+
+
+
+/*/////////////////////////////////////////////////////
+
+/* Botón hamburguesa oculto por defecto en computadoras */
+.menu-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.menu-toggle:hover {
+    color: var(--accent);
+}
+
+/* 📱 Estilos adaptativos para Tablets y Celulares */
+@media (max-width: 992px) {
+    .menu-toggle {
+        display: block; /* Muestra la hamburguesa */
+    }
+
+    .header-container {
+        padding: 12px 20px; /* Reduce relleno para ganar espacio */
+    }
+
+    .logo-area img {
+        height: 65px; /* Reducción de tamaño del logo en móviles */
+    }
+
+    /* Transformación del menú horizontal a un panel vertical desplegable */
+    #nav {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: rgba(10, 10, 11, 0.98);
+        backdrop-filter: blur(15px);
+        border-bottom: 1px solid var(--border);
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 20px;
+        display: none; /* Oculto por defecto */
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
+    }
+
+    /* Clase activa que inyectará JavaScript para abrir el menú */
+    #nav.show {
+        display: flex;
+        animation: fadeInDown 0.3s ease-out;
+    }
+
+    .nav-links {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        gap: 0;
+        margin-bottom: 20px;
+    }
+
+    .nav-links li {
+        width: 100%;
+    }
+
+    .nav-links a {
+        display: block;
+        padding: 12px 5px;
+        font-size: 1.05rem;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+
+    /* Acciones del menú (Carrito, login, perfil) ordenados verticalmente */
+    .nav-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+        width: 100%;
+        padding-top: 10px;
+    }
+
+    .nav-item-custom, .btn-login, .user-profile-trigger {
+        justify-content: center;
+        width: 100%;
+        padding: 12px;
+    }
+
+    .user-dropdown-menu {
+        position: static; /* El dropdown fluye de forma nativa en la lista vertical */
+        width: 100%;
+        margin-top: 8px;
+        box-shadow: none;
+        background: rgba(255,255,255,0.02);
+    }
+}
+
+/* Animación de entrada */
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
