@@ -11,7 +11,9 @@
 }
 
 * {
-    margin: 0; padding: 0; box-sizing: border-box;
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box;
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
@@ -21,414 +23,146 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
+    overflow-x: hidden;
     position: relative;
     color: var(--text-main);
 }
 
-/* Orbes decorativos de fondo (Estilo Lujo) */
+/* ==========================================================================
+   ELEMENTOS DE FONDO (ORBES LUXURY)
+   ========================================================================== */
 .circle {
     position: absolute;
     border-radius: 50%;
     filter: blur(100px);
     z-index: -1;
-    opacity: 0.15;
+    opacity: 0.12;
+    pointer-events: none;
 }
 .shape1 { width: 500px; height: 500px; background: var(--accent); top: -15%; left: -10%; }
 .shape2 { width: 400px; height: 400px; background: #634f1a; bottom: -10%; right: -5%; }
 
-.main-wrapper {
-    width: 100%;
-    max-width: 1100px;
-    padding: 20px;
-    z-index: 1;
-}
-
-.glass-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    display: flex;
-    box-shadow: 0 50px 100px rgba(0, 0, 0, 0.6);
-    overflow: hidden;
-    min-height: 600px;
-}
-
-/* LADO IZQUIERDO: INFORMACIÓN */
-.info-side {
-    flex: 1;
-    background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
-                url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070&auto=format&fit=crop') center/cover;
-    padding: 60px;
-    display: flex;
-    align-items: center;
-    border-right: 1px solid var(--border);
-}
-
-.info-side h1 {
-    font-size: 3rem;
-    font-weight: 800;
-    margin-bottom: 20px;
-    letter-spacing: -1px;
-}
-
-.info-side p {
-    font-size: 1.1rem;
-    color: var(--text-muted);
-    margin-bottom: 40px;
-    line-height: 1.6;
-}
-
-.register-prompt {
-    margin-top: 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.register-prompt span {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-}
-
-.btn-outline {
-    display: inline-block;
-    padding: 12px 25px;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    text-decoration: none;
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    transition: var(--transition);
-    width: fit-content;
-}
-
-.btn-outline:hover {
-    background: var(--accent);
-    color: var(--bg-dark);
-}
-
-/* LADO DERECHO: FORMULARIO */
-.form-side {
-    flex: 1.2;
-    padding: 60px;
-    background: #0d0d0f;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.form-header { margin-bottom: 40px; }
-.form-header h2 { font-size: 2rem; font-weight: 700; margin-bottom: 10px; }
-.form-header p { color: var(--text-muted); font-size: 0.95rem; }
-
-/* Inputs */
-.input-box { margin-bottom: 25px; }
-.input-box label {
-    display: block;
-    margin-bottom: 10px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--accent);
-    letter-spacing: 1px;
-}
-
-.input-field { position: relative; display: flex; align-items: center; }
-
-.input-field i:not(.toggle-pass) {
-    position: absolute;
-    left: 15px;
-    color: var(--accent);
-    opacity: 0.7;
-}
-
-.input-field input {
-    width: 100%;
-    padding: 15px 15px 15px 45px;
-    background: rgba(255,255,255,0.02);
-    border: 1px solid var(--border);
-    color: white;
-    font-size: 1rem;
-    transition: var(--transition);
-}
-
-.input-field input:focus {
-    outline: none;
-    border-color: var(--accent);
-    background: rgba(212, 175, 55, 0.03);
-}
-
-.toggle-pass {
-    position: absolute;
-    right: 15px;
-    cursor: pointer;
-    color: var(--text-muted);
-    transition: var(--transition);
-}
-
-.toggle-pass:hover { color: var(--accent); }
-
-/* Botones */
-.btn-primary {
-    width: 100%;
-    padding: 18px;
-    background: var(--accent);
-    color: var(--bg-dark);
-    border: none;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    cursor: pointer;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.btn-primary:hover {
-    background: #f1d279;
-    transform: translateY(-3px);
-}
-
-.back-link {
-    display: block;
-    text-align: center;
-    margin-top: 30px;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    transition: var(--transition);
-}
-
-.back-link:hover { color: var(--accent); }
-
-/* Alertas */
-.alert {
-    padding: 15px;
-    margin-bottom: 25px;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: rgba(220, 38, 38, 0.1);
-    color: #ef4444;
-    border: 1px solid rgba(220, 38, 38, 0.2);
-}
-
-/* RESPONSIVE */
-@media (max-width: 900px) {
-    .glass-card { flex-direction: column; }
-    .info-side { padding: 40px; border-right: none; border-bottom: 1px solid var(--border); }
-    .form-side { padding: 40px; }
-    .main-wrapper { padding: 10px; }
-}
-
-
-
-/* CONTENEDOR GENERAL */
+/* ==========================================================================
+   ESTRUCTURA DE CONTENEDOR Y TARJETA
+   ========================================================================== */
 .registro-container {
+    width: 100%;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-dark);
-    padding: 20px;
+    padding: 24px 16px;
 }
 
-/* TARJETA */
 .registro-card {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    width: 900px;
+    width: 100%;
+    max-width: 960px;
     background: var(--bg-card);
-    border-radius: 20px;
+    border-radius: 24px;
     overflow: hidden;
     border: 1px solid var(--border);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5);
 }
 
-/* FORM */
+/* ==========================================================================
+   SECCIÓN IZQUIERDA: FORMULARIO
+   ========================================================================== */
 .registro-form {
-    padding: 40px;
+    padding: 50px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .registro-form h2 {
-    font-size: 1.8rem;
-    margin-bottom: 5px;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
 }
 
 .subtext {
     color: var(--text-muted);
-    margin-bottom: 25px;
+    font-size: 0.95rem;
+    margin-bottom: 30px;
 }
 
-/* INPUTS */
+/* INPUTS CON LABEL FLOTANTE */
 .input-group {
     position: relative;
-    margin-bottom: 18px;
+    margin-bottom: 22px;
 }
 
 .input-group i {
     position: absolute;
-    left: 12px;
+    left: 14px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--accent);
+    z-index: 2;
+    transition: var(--transition);
 }
 
 .input-group input {
     width: 100%;
-    padding: 12px 12px 12px 38px;
-    border-radius: 10px;
+    padding: 14px 14px 14px 42px;
+    border-radius: 12px;
     border: 1px solid var(--border);
-    background: transparent;
+    background: rgba(255, 255, 255, 0.01);
     color: white;
     outline: none;
-    transition: 0.3s;
+    font-size: 0.95rem;
+    transition: var(--transition);
 }
 
 .input-group input:focus {
     border-color: var(--accent);
+    background: rgba(212, 175, 55, 0.02);
 }
 
-/* LABEL FLOTANTE */
+/* Control del Label */
 .input-group label {
     position: absolute;
-    left: 38px;
+    left: 42px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-muted);
-    font-size: 0.85rem;
-    transition: 0.3s;
+    font-size: 0.9rem;
+    transition: var(--transition);
     pointer-events: none;
+    z-index: 1;
 }
 
 .input-group input:focus + label,
 .input-group input:valid + label {
-    top: -8px;
-    font-size: 0.7rem;
+    top: -6px;
+    font-size: 0.75rem;
     color: var(--accent);
-    background: var(--bg-card);
-    padding: 0 5px;
+    background: #17171a; /* Color exacto para tapar el borde trasero */
+    padding: 0 6px;
 }
 
-/* BOTÓN */
-.btn-registro {
-    width: 100%;
-    padding: 12px;
-    background: var(--accent);
-    color: black;
-    border: none;
-    border-radius: 10px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.btn-registro:hover {
-    background: #f1d279;
-    transform: translateY(-2px);
-}
-
-/* LINK */
-.login-link {
-    margin-top: 15px;
-    font-size: 0.9rem;
-}
-
-.login-link a {
-    color: var(--accent);
-    text-decoration: none;
-}
-
-/* PANEL DERECHO */
-.registro-info {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 40px;
-
-    /* 🔥 Imagen elegante (eventos) */
-    background: 
-        linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.85)),
-        url('https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
-
-    color: white;
-}
-
-/* ✨ EFECTO DE LUZ DORADA */
-.registro-info::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at top right, rgba(212, 175, 55, 0.15), transparent 60%);
-    pointer-events: none;
-}
-
-.registro-info h1 {
-    font-size: 2rem;
-    margin-bottom: 10px;
-}
-
-.registro-info p {
-    color: #ddd;
-}
-
-.badge {
-    margin-top: 20px;
-    padding: 8px 15px;
-    border-radius: 20px;
-    background: rgba(255,255,255,0.1);
-    font-size: 0.8rem;
-}
-
-/* ERROR */
-.error-box {
-    background: #7f1d1d;
-    padding: 10px;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    font-size: 0.85rem;
-}
-
-/* RESPONSIVE */
-@media(max-width: 768px){
-    .registro-card {
-        grid-template-columns: 1fr;
-    }
-
-    .registro-info {
-        display: none;
-    }
-}
-
-
-
-/* Contenedor padre de todo el bloque de contraseña */
+/* ==========================================================================
+   SECCIÓN DE SEGURIDAD DE CONTRASEÑA
+   ========================================================================== */
 .password-group {
     display: flex;
     flex-direction: column;
-    position: relative;
 }
 
-/* Nuevo contenedor específico para el Input, Icono y Label */
 .input-field-wrapper {
-    position: relative; /* Este es el ancla para el icono y el label */
+    position: relative;
     width: 100%;
-    height: 50px; /* Altura fija para que no se mueva al expandir lo de abajo */
+    height: 52px;
     display: flex;
     align-items: center;
 }
 
-/* Ajuste de iconos para que siempre estén centrados en el input-field-wrapper */
 .input-field-wrapper i {
     position: absolute;
-    left: 12px;
+    left: 14px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--accent);
@@ -438,79 +172,75 @@ body {
 .input-field-wrapper input {
     width: 100%;
     height: 100%;
-    padding: 12px 12px 12px 38px;
-    border-radius: 10px;
+    padding: 14px 14px 14px 42px;
+    border-radius: 12px;
     border: 1px solid var(--border);
-    background: transparent;
+    background: rgba(255,255,255,0.01);
     color: white;
     outline: none;
 }
 
-/* Ajuste del Label Flotante */
 .input-field-wrapper label {
     position: absolute;
-    left: 38px;
+    left: 42px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-muted);
-    font-size: 0.85rem;
-    transition: 0.3s;
+    font-size: 0.9rem;
+    transition: var(--transition);
     pointer-events: none;
     z-index: 1;
 }
 
-/* Movimiento del label al enfocar */
 .input-field-wrapper input:focus + label,
 .input-field-wrapper input:valid + label {
-    top: -5px; /* Se mueve hacia arriba del input-field-wrapper */
-    font-size: 0.7rem;
+    top: -5px;
+    font-size: 0.75rem;
     color: var(--accent);
-    background: var(--bg-card);
-    padding: 0 5px;
-    transform: translateY(0); /* Evita el conflicto con el centrado inicial */
+    background: #17171a;
+    padding: 0 6px;
+    transform: translateY(0);
 }
 
-/* El wrapper de seguridad se mantiene igual, empujando lo que esté debajo de .password-group */
 #password-security-wrapper {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.4s ease, opacity 0.3s ease;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
     opacity: 0;
 }
 
 #password-security-wrapper.visible {
-    max-height: 250px;
+    max-height: 260px;
     opacity: 1;
-    margin-top: 10px;
+    margin-top: 12px;
+    margin-bottom: 10px;
 }
 
-/* Barra de fuerza más elegante */
 .strength-meter {
-    height: 4px;
+    height: 5px;
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    margin-bottom: 4px;
+    border-radius: 6px;
+    margin-bottom: 6px;
 }
 
 #password-strength-bar {
     height: 100%;
     width: 0%;
-    border-radius: 10px;
-    transition: width 0.5s ease, background-color 0.5s ease;
+    border-radius: 6px;
+    transition: width 0.4s ease, background-color 0.4s ease;
 }
 
 #strength-label {
-    font-size: 0.6rem;
+    font-size: 0.7rem;
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
-/* Tarjeta de requisitos integrada (No flota, se queda en el flujo) */
 .req-inline-card {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(255, 255, 255, 0.01);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 12px;
+    padding: 14px;
     margin-top: 10px;
 }
 
@@ -519,29 +249,28 @@ body {
     color: var(--accent);
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
 .req-list {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 10px;
     list-style: none;
 }
 
 .req-item {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     transition: color 0.3s ease;
 }
 
-/* Iconos de validación */
 .req-item i {
-    font-size: 0.5rem; /* Puntos pequeños */
-    transition: transform 0.3s ease;
+    font-size: 0.55rem;
+    transition: var(--transition);
 }
 
 .req-item.valid {
@@ -550,5 +279,155 @@ body {
 
 .req-item.valid i {
     color: var(--accent);
-    transform: scale(1.2);
+    transform: scale(1.1);
+}
+
+/* ==========================================================================
+   BOTONES Y ELEMENTOS DE SALIDA
+   ========================================================================== */
+.btn-registro {
+    width: 100%;
+    padding: 15px;
+    background: var(--accent);
+    color: #000000;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: var(--transition);
+    margin-top: 10px;
+}
+
+.btn-registro:hover {
+    background: #f1d279;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15);
+}
+
+.login-link {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.login-link a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+/* ==========================================================================
+   SECCIÓN DERECHA: PANEL INFORMATIVO (OCULTABLE EN MÓVIL)
+   ========================================================================== */
+.registro-info {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 60px 40px;
+    background: linear-gradient(rgba(10, 10, 11, 0.75), rgba(10, 10, 11, 0.88)),
+                url('https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
+    color: white;
+    border-left: 1px solid var(--border);
+}
+
+.registro-info::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(212, 175, 55, 0.12), transparent 60%);
+    pointer-events: none;
+}
+
+.registro-info h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+    letter-spacing: -1px;
+}
+
+.registro-info p {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    line-height: 1.5;
+    max-width: 320px;
+}
+
+.badge {
+    margin-top: 25px;
+    padding: 8px 18px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   ALERTAS Y CAJA DE ERROR DJANGO
+   ========================================================================== */
+.error-box {
+    background-color: #fef2f2;
+    border-left: 4px solid #ef4444;
+    color: #991b1b;
+    padding: 14px;
+    border-radius: 0 12px 12px 0;
+    margin-bottom: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.animate-error {
+    animation: fadeInDown 0.3s ease-out;
+}
+
+/* ==========================================================================
+   📱 MEDIAS QUERIES (ADAPTACIÓN COMPLETA)
+   ========================================================================== */
+
+/* Tablets */
+@media (max-width: 900px) {
+    .registro-card {
+        max-width: 500px;
+        grid-template-columns: 1fr;
+    }
+    .registro-info {
+        display: none; /* Oculta panel decorativo pesado en pantallas medianas/chicas */
+    }
+}
+
+/* Celulares Pequeños */
+@media (max-width: 480px) {
+    .registro-container {
+        padding: 10px;
+    }
+    .registro-form {
+        padding: 30px 20px;
+    }
+    .req-list {
+        grid-template-columns: 1fr; /* Requisitos en una sola columna si la pantalla es muy angosta */
+    }
+}
+
+/* Animación de entrada */
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
 }

@@ -3,30 +3,30 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro - Arron</title>
-
     <link rel="stylesheet" href="{% static 'css/iniciosesion.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
-
 <body>
 
 <main class="registro-container">
+    <div class="circle shape1"></div>
+    <div class="circle shape2"></div>
 
     <section class="registro-card">
-
+        
         <div class="registro-form">
-
             <h2>Crear Cuenta</h2>
             <p class="subtext">Completa tus datos</p>
 
             {% if error %}
-            <div class="error-box" style="background-color: #fef2f2; border-left: 4px solid #ef4444; color: #991b1b; padding: 1rem; border-radius: 0 12px 12px 0; margin-bottom: 1.5rem; font-size: 0.85rem; font-weight: bold;">
-                <i class="fa-solid fa-circle-exclamation" style="margin-right: 8px;"></i> {{ error }}
+            <div class="error-box animate-error">
+                <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
             </div>
             {% endif %}
 
-            <form method="POST">
+            <form method="POST" autocomplete="off">
                 {% csrf_token %}
 
                 <div class="input-group">
@@ -94,7 +94,6 @@
                     ¿Ya tienes cuenta?
                     <a href="{% url 'iniciar_sesion' %}">Inicia sesión</a>
                 </p>
-
             </form>
         </div>
 
@@ -105,7 +104,6 @@
         </div>
 
     </section>
-
 </main>
 
 <script>
@@ -164,9 +162,9 @@
             label.innerText = 'Seguridad: Media';
             label.style.color = '#f59e0b';
         } else {
-            bar.style.backgroundColor = '#541E12'; // Cambiado al tono principal de Arron
+            bar.style.backgroundColor = 'var(--accent)'; 
             label.innerText = 'Seguridad: Excelente';
-            label.style.color = '#541E12';
+            label.style.color = 'var(--accent)';
         }
     });
 
@@ -176,13 +174,11 @@
         }
     });
 
-    // ==========================================
-    // BLOQUEO DE NEGATIVOS Y ESCRITURA EN VIVO
-    // ==========================================
+    // Bloqueo de caracteres extraños en inputs numéricos
     const numericInputs = document.querySelectorAll('input[type="number"]');
     numericInputs.forEach(input => {
         input.addEventListener('keydown', function(e) {
-            if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E' || e.key === '.') {
+            if (['-', '+', 'e', 'E', '.'].includes(e.key)) {
                 e.preventDefault();
             }
         });
@@ -194,7 +190,7 @@
     const nameInput = document.querySelector('.style-name');
     nameInput.addEventListener('keydown', function(e) {
         const isValidKey = /^[a-zA-ZÁÉÍÓÚÑáéíóúñ\s]$/.test(e.key) || 
-                           ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key);
+                            ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key);
         if (!isValidKey) {
             e.preventDefault();
         }
