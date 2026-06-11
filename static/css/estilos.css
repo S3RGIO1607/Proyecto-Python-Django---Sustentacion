@@ -12,6 +12,14 @@ header {
     border-bottom: 3px solid #541E12 !important;
 }
 
+/* Manejo controlado de animación del logo */
+header .generic-logo {
+    transition: transform 0.3s ease;
+}
+header .generic-logo:hover {
+    transform: rotate(5deg) scale(1.05);
+}
+
 /* Logo sin filtros ni colores */
 header img {
     width: 130px !important; /* Ajustado: 40x40 px es 160px reales, es muy grande. 80 es más equilibrado */
@@ -132,6 +140,10 @@ header a[href*="dashboard"]:hover {
     height: 1px;
     background-color: #e5e7eb;
     margin: 0;
+}
+
+#userDropdown h1, #userDropdown p, #userDropdown a, #userDropdown strong {
+    font-family: sans-serif;
 }
 
 /* ================== TÍTULO ================== */
