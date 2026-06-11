@@ -43,18 +43,20 @@ body {
 .shape2 { width: 400px; height: 400px; background: #634f1a; bottom: -10%; right: -5%; }
 
 /* ==========================================================================
-   ESTRUCTURA DE CONTENEDOR Y TARJETA
+   ESTRUCTURA COMPARTIDA (PORTABILIDAD LOGIN Y REGISTRO)
    ========================================================================== */
-.registro-container {
+.registro-container, .main-wrapper {
     width: 100%;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 24px 16px;
+    z-index: 1;
 }
 
-.registro-card {
+/* Tarjetas principales de ambas vistas */
+.registro-card, .glass-card {
     display: grid;
     grid-template-columns: 1fr 1fr;
     width: 100%;
@@ -64,38 +66,78 @@ body {
     overflow: hidden;
     border: 1px solid var(--border);
     box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+    min-height: 600px;
 }
 
-/* ==========================================================================
-   SECCIÓN IZQUIERDA: FORMULARIO
-   ========================================================================== */
-.registro-form {
+/* Columnas Izquierda/Derecha unificadas */
+.registro-form, .form-side {
     padding: 50px 40px;
+    background: #0d0d0f;
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
 
-.registro-form h2 {
-    font-size: 2rem;
+.registro-info, .info-side {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 60px 40px;
+    background: linear-gradient(rgba(10, 10, 11, 0.75), rgba(10, 10, 11, 0.88)),
+                url('https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
+    color: white;
+    border-left: 1px solid var(--border);
+}
+
+/* Ajuste específico por si el login usa otra imagen */
+.info-side {
+    background: linear-gradient(rgba(10,10,11,0.75), rgba(10,10,11,0.88)), 
+                url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
+    border-right: 1px solid var(--border);
+    border-left: none;
+}
+
+.registro-info::after, .info-side::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, rgba(212, 175, 55, 0.12), transparent 60%);
+    pointer-events: none;
+}
+
+/* ==========================================================================
+   TEXTOS Y TIPOGRAFÍA
+   ========================================================================== */
+.registro-form h2, .form-header h2, .info-side h1, .registro-info h1 {
     font-weight: 800;
-    margin-bottom: 6px;
-    letter-spacing: -0.5px;
+    letter-spacing: -1px;
 }
 
-.subtext {
+.registro-form h2, .form-header h2 { font-size: 2rem; margin-bottom: 6px; }
+.info-side h1, .registro-info h1 { font-size: 2.4rem; margin-bottom: 12px; }
+
+.subtext, .form-header p, .info-side p, .registro-info p {
     color: var(--text-muted);
-    font-size: 0.95rem;
-    margin-bottom: 30px;
+    line-height: 1.5;
 }
 
-/* INPUTS CON LABEL FLOTANTE */
-.input-group {
+.subtext, .form-header p { font-size: 0.95rem; margin-bottom: 30px; }
+.info-side p, .registro-info p { font-size: 1.05rem; max-width: 320px; }
+
+/* ==========================================================================
+   INPUTS DE AMBOS FORMULARIOS
+   ========================================================================== */
+.input-group, .input-box {
     position: relative;
     margin-bottom: 22px;
+    width: 100%;
 }
 
-.input-group i {
+/* Soporte para estructura con contenedor .input-field o directa */
+.input-group i, .input-field i {
     position: absolute;
     left: 14px;
     top: 50%;
@@ -105,7 +147,7 @@ body {
     transition: var(--transition);
 }
 
-.input-group input {
+.input-group input, .input-field input {
     width: 100%;
     padding: 14px 14px 14px 42px;
     border-radius: 12px;
@@ -117,12 +159,23 @@ body {
     transition: var(--transition);
 }
 
-.input-group input:focus {
+.input-group input:focus, .input-field input:focus {
     border-color: var(--accent);
     background: rgba(212, 175, 55, 0.02);
 }
 
-/* Control del Label */
+/* Labels tradicionales del Login */
+.input-box label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--accent);
+    letter-spacing: 1px;
+}
+
+/* Labels Flotantes del Registro */
 .input-group label {
     position: absolute;
     left: 42px;
@@ -140,152 +193,41 @@ body {
     top: -6px;
     font-size: 0.75rem;
     color: var(--accent);
-    background: #17171a; /* Color exacto para tapar el borde trasero */
+    background: #0d0d0f; /* Color exacto del fondo del formulario */
     padding: 0 6px;
 }
 
 /* ==========================================================================
-   SECCIÓN DE SEGURIDAD DE CONTRASEÑA
+   SEGURIDAD DE CONTRASEÑA (REGISTRO)
    ========================================================================== */
-.password-group {
-    display: flex;
-    flex-direction: column;
-}
+.password-group { display: flex; flex-direction: column; }
+.input-field-wrapper { position: relative; width: 100%; height: 52px; display: flex; align-items: center; }
+.input-field-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--accent); z-index: 2; }
+.input-field-wrapper input { width: 100%; height: 100%; padding: 14px 14px 14px 42px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.01); color: white; outline: none; }
+.input-field-wrapper label { position: absolute; left: 42px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; transition: var(--transition); pointer-events: none; z-index: 1; }
+.input-field-wrapper input:focus + label, .input-field-wrapper input:valid + label { top: -5px; font-size: 0.75rem; color: var(--accent); background: #0d0d0f; padding: 0 6px; transform: translateY(0); }
 
-.input-field-wrapper {
-    position: relative;
-    width: 100%;
-    height: 52px;
-    display: flex;
-    align-items: center;
-}
+#password-security-wrapper { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease; opacity: 0; }
+#password-security-wrapper.visible { max-height: 260px; opacity: 1; margin-top: 12px; margin-bottom: 10px; }
+.strength-meter { height: 5px; background: rgba(255, 255, 255, 0.05); border-radius: 6px; margin-bottom: 6px; }
+#password-strength-bar { height: 100%; width: 0%; border-radius: 6px; transition: width 0.4s ease, background-color 0.4s ease; }
+#strength-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; }
+.req-inline-card { background: rgba(255, 255, 255, 0.01); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-top: 10px; }
+.req-header { font-size: 0.65rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.req-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; list-style: none; }
+.req-item { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; transition: color 0.3s ease; }
+.req-item i { font-size: 0.55rem; transition: var(--transition); }
+.req-item.valid { color: var(--text-main); }
+.req-item.valid i { color: var(--accent); transform: scale(1.1); }
 
-.input-field-wrapper i {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--accent);
-    z-index: 2;
-}
-
-.input-field-wrapper input {
-    width: 100%;
-    height: 100%;
-    padding: 14px 14px 14px 42px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: rgba(255,255,255,0.01);
-    color: white;
-    outline: none;
-}
-
-.input-field-wrapper label {
-    position: absolute;
-    left: 42px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    transition: var(--transition);
-    pointer-events: none;
-    z-index: 1;
-}
-
-.input-field-wrapper input:focus + label,
-.input-field-wrapper input:valid + label {
-    top: -5px;
-    font-size: 0.75rem;
-    color: var(--accent);
-    background: #17171a;
-    padding: 0 6px;
-    transform: translateY(0);
-}
-
-#password-security-wrapper {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-    opacity: 0;
-}
-
-#password-security-wrapper.visible {
-    max-height: 260px;
-    opacity: 1;
-    margin-top: 12px;
-    margin-bottom: 10px;
-}
-
-.strength-meter {
-    height: 5px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 6px;
-    margin-bottom: 6px;
-}
-
-#password-strength-bar {
-    height: 100%;
-    width: 0%;
-    border-radius: 6px;
-    transition: width 0.4s ease, background-color 0.4s ease;
-}
-
-#strength-label {
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-}
-
-.req-inline-card {
-    background: rgba(255, 255, 255, 0.01);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px;
-    margin-top: 10px;
-}
-
-.req-header {
-    font-size: 0.65rem;
-    color: var(--accent);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 10px;
-}
-
-.req-list {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    list-style: none;
-}
-
-.req-item {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: color 0.3s ease;
-}
-
-.req-item i {
-    font-size: 0.55rem;
-    transition: var(--transition);
-}
-
-.req-item.valid {
-    color: var(--text-main);
-}
-
-.req-item.valid i {
-    color: var(--accent);
-    transform: scale(1.1);
-}
+/* Ver contraseña ojo icon */
+.toggle-pass { position: absolute; right: 15px; cursor: pointer; color: var(--text-muted); transition: var(--transition); z-index: 5; }
+.toggle-pass:hover { color: var(--accent); }
 
 /* ==========================================================================
-   BOTONES Y ELEMENTOS DE SALIDA
+   BOTONES Y ELEMENTOS DE ENLACE
    ========================================================================== */
-.btn-registro {
+.btn-registro, .btn-primary {
     width: 100%;
     padding: 15px;
     background: var(--accent);
@@ -294,6 +236,8 @@ body {
     border-radius: 12px;
     font-size: 0.95rem;
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -303,67 +247,40 @@ body {
     margin-top: 10px;
 }
 
-.btn-registro:hover {
+.btn-registro:hover, .btn-primary:hover {
     background: #f1d279;
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15);
 }
 
-.login-link {
+.login-link, .back-link, .register-prompt {
     margin-top: 20px;
     text-align: center;
     font-size: 0.9rem;
     color: var(--text-muted);
 }
 
-.login-link a {
+.login-link a, .back-link a, .register-prompt a, .btn-outline {
     color: var(--accent);
     text-decoration: none;
     font-weight: 600;
     transition: var(--transition);
 }
 
-.login-link a:hover {
-    text-decoration: underline;
+.btn-outline {
+    display: inline-block;
+    padding: 12px 25px;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 10px;
 }
 
-/* ==========================================================================
-   SECCIÓN DERECHA: PANEL INFORMATIVO (OCULTABLE EN MÓVIL)
-   ========================================================================== */
-.registro-info {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 60px 40px;
-    background: linear-gradient(rgba(10, 10, 11, 0.75), rgba(10, 10, 11, 0.88)),
-                url('https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat;
-    color: white;
-    border-left: 1px solid var(--border);
-}
-
-.registro-info::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at top right, rgba(212, 175, 55, 0.12), transparent 60%);
-    pointer-events: none;
-}
-
-.registro-info h1 {
-    font-size: 2.4rem;
-    font-weight: 800;
-    margin-bottom: 12px;
-    letter-spacing: -1px;
-}
-
-.registro-info p {
-    color: var(--text-muted);
-    font-size: 1.05rem;
-    line-height: 1.5;
-    max-width: 320px;
+.btn-outline:hover {
+    background: var(--accent);
+    color: #000;
 }
 
 .badge {
@@ -374,13 +291,12 @@ body {
     border: 1px solid rgba(255,255,255,0.05);
     font-size: 0.8rem;
     font-weight: 600;
-    letter-spacing: 0.5px;
 }
 
 /* ==========================================================================
-   ALERTAS Y CAJA DE ERROR DJANGO
+   ALERTAS Y CAJAS DE ERROR
    ========================================================================== */
-.error-box {
+.error-box, .alert {
     background-color: #fef2f2;
     border-left: 4px solid #ef4444;
     color: #991b1b;
@@ -392,41 +308,36 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-}
-
-.animate-error {
     animation: fadeInDown 0.3s ease-out;
 }
 
 /* ==========================================================================
-   📱 MEDIAS QUERIES (ADAPTACIÓN COMPLETA)
+   📱 MEDIAS QUERIES COMPARTIDAS (RESPONSIVE PERFECTO)
    ========================================================================== */
 
-/* Tablets */
 @media (max-width: 900px) {
-    .registro-card {
+    .registro-card, .glass-card {
         max-width: 500px;
         grid-template-columns: 1fr;
+        min-height: auto;
     }
-    .registro-info {
-        display: none; /* Oculta panel decorativo pesado en pantallas medianas/chicas */
+    .registro-info, .info-side {
+        display: none; /* Oculta ambos páneles decorativos pesados en móvil */
+    }
+    .registro-form, .form-side {
+        padding: 40px 25px;
     }
 }
 
-/* Celulares Pequeños */
 @media (max-width: 480px) {
-    .registro-container {
+    .registro-container, .main-wrapper {
         padding: 10px;
     }
-    .registro-form {
-        padding: 30px 20px;
-    }
     .req-list {
-        grid-template-columns: 1fr; /* Requisitos en una sola columna si la pantalla es muy angosta */
+        grid-template-columns: 1fr;
     }
 }
 
-/* Animación de entrada */
 @keyframes fadeInDown {
     from { opacity: 0; transform: translateY(-8px); }
     to { opacity: 1; transform: translateY(0); }
