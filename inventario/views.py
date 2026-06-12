@@ -2,10 +2,12 @@ import re
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
+from decimal import Decimal
 from datetime import datetime
 from django.db.models import Count
 from django.db.models import Sum, F, Q
 from django.template.loader import render_to_string
+from django.views.decorators.http import require_POST
 from weasyprint import HTML
 from inventario.models import Producto, MovimientoProducto
 import datetime
@@ -305,6 +307,93 @@ def listar_movimientos(request):
     ).order_by('-fecha')
     
     return render(request, 'Producto/movimientos.html', {'movimientos': movimientos})
+
+
+def interfaz_registro_manual(request):
+    """
+    Muestra la lista de productos activos para ejecutar operaciones de Compra o Daño.
+    Mapeada a: {% url 'interfaz_registro_manual' %}
+    """
+    if "usuario_id" not in request.session:
+        return redirect("iniciar_sesion")
+
+    # Obtenemos únicamente productos activos para evitar ajustes sobre mercancía dada de baja
+    productos_listado = Producto.objects.filter(estado="A").order_by('nombre_producto')
+    
+    return render(request, 'Producto/registro_movimiento_manual.html', {
+        'productos_listado': productos_listado
+    })
+
+
+@require_POST
+def registrar_movimiento_manual(request):
+    """
+    Procesa el formulario POST enviado desde el modal de ajustes manuales.
+    Mapeada a: {% url 'registrar_movimiento_manual' %}
+    """
+    if "usuario_id" not in request.session:
+        return redirect("iniciar_sesion")
+
+    producto_id = request.POST.get('producto_id')
+    tipo_movimiento = request.POST.get('tipo_movimiento')  # Recibe: 'COMPRA' o 'DANO'
+    cantidad = int(request.POST.get('cantidad', 0))
+    observacion = request.POST.get('observacion', '').strip()
+    
+    producto = get_object_or_404(Producto, id=producto_id)
+    
+    try:
+        if tipo_movimiento == 'COMPRA':
+            # Tus validaciones manejan enteros para los precios según el método registrar_producto
+            precio_compra_nuevo = int(float(request.POST.get('precio_compra', 0)))
+            
+            # 1. Modificar stocks en cascada (Suma)
+            producto.stock_total += cantidad
+            producto.stock_disponible += cantidad
+            
+            # 2. Recalcular precio de alquiler automáticamente si cambió el costo base
+            if precio_compra_nuevo != producto.precio_compra:
+                producto.precio_compra = precio_compra_nuevo
+                # Regla de negocio de Arron Eventos: El alquiler representa el 15% del costo de adquisición
+                producto.precio_alquiler = int(precio_compra_nuevo * 0.15)
+            
+            producto.save()
+            
+            # 3. Insertar el registro histórico en MovimientoProducto
+            MovimientoProducto.objects.create(
+                producto=producto,
+                tipo='COMPRA',  # Asegúrate de que este choice exista en tu modelo
+                cantidad=cantidad,
+                observacion=observacion
+            )
+            messages.success(request, f"Abastecimiento registrado. Se sumaron {cantidad} unidades a '{producto.nombre_producto}'.")
+            
+        elif tipo_movimiento == 'DANO':
+            # Validación lógica crítica: No dar de baja más unidades de las disponibles físicamente
+            if cantidad > producto.stock_disponible:
+                messages.error(request, f"Error: No puedes reportar {cantidad} unidades dañadas porque solo hay {producto.stock_disponible} disponibles.")
+                return redirect('interfaz_registro_manual')
+            
+            # 1. Modificar stocks en cascada (Resta)
+            producto.stock_total -= cantidad
+            producto.stock_disponible -= cantidad
+            producto.save()
+            
+            # 2. Insertar el registro histórico en MovimientoProducto
+            MovimientoProducto.objects.create(
+                producto=producto,
+                tipo='AJUSTE_DANO',  # Coincide con tu etiqueta 'bg-ajuste' del badge HTML
+                cantidad=cantidad,
+                observacion=observacion
+            )
+            messages.success(request, f"Baja por daño interno procesada con éxito para '{producto.nombre_producto}'.")
+        else:
+            messages.error(request, "Error: Operación de inventario no permitida.")
+            
+    except Exception as e:
+        messages.error(request, f"Error imprevisto en la base de datos de inventario: {str(e)}")
+
+    # Redirige de vuelta al historial general (Kardex) para validar la inserción
+    return redirect('movimientos_producto')
 
 
 

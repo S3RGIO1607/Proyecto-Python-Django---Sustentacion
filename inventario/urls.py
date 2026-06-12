@@ -19,6 +19,8 @@ urlpatterns = [
     # //////////// REPORTES Y MOVIMIENTOS ////////////
     path('productos/reporte-pdf/', views.exportar_productos_pdf, name='exportar_productos_pdf'),
     path('productos/movimientos/', views.listar_movimientos, name='movimientos_producto'),
+    path('productos/movimientos/registrar/', views.interfaz_registro_manual, name='interfaz_registro_manual'),
+    path('productos/movimientos/registrar-manual/', views.registrar_movimiento_manual, name='registrar_movimiento_manual'),
 
     # //////////// SUPER CARGA DESDE CSV ////////////
     path('super-carga/', views.ejecutar_super_carga, name='ejecutar_super_carga'),

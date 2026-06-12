@@ -1,0 +1,460 @@
+{% extends 'base2.html' %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    :root {
+        --bg-main: #fdfaf6; /* Fondo premium unificado del catálogo */
+        --bg-card: #ffffff;
+        --border-soft: #ede9e3;
+        --primary: #b45309; /* Dorado Arron */
+        --secondary: #541E12; /* Vinotinto Arron */
+        --text-main: #1c1917;
+        --text-muted: #78716c;
+        --danger: #ef4444;
+        --emerald: #10b981;
+    }
+
+    body { background: var(--bg-main); color: var(--text-main); }
+
+    .main-wrapper { 
+        min-height: 100vh; 
+        padding: 2.5rem 0; 
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* Contenedor principal con ancho controlado */
+    .kardex-max-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Estructura de Tabla Flotante Adaptada del catálogo */
+    .table-modern {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 12px;
+        table-layout: fixed;
+    }
+
+    .table-modern thead th {
+        color: var(--text-main);
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        font-weight: 900;
+        letter-spacing: 0.1em;
+        padding: 1rem 1.5rem;
+        border-bottom: 2px solid var(--primary);
+    }
+
+    /* Proporciones de columnas */
+    .col-detalle { width: 45%; }
+    .col-total { width: 15%; }
+    .col-disponible { width: 15%; }
+    .col-acciones { width: 25%; }
+
+    .table-modern tbody tr {
+        background-color: white;
+        transition: all 0.3s ease;
+    }
+
+    .table-modern tbody tr:hover {
+        transform: scale(1.005);
+        box-shadow: 0 15px 30px rgba(180, 83, 9, 0.05);
+    }
+
+    .table-modern td {
+        padding: 1.25rem 1.5rem;
+        vertical-align: middle;
+        border-top: 1px solid var(--border-soft);
+        border-bottom: 1px solid var(--border-soft);
+        word-wrap: break-word;
+    }
+
+    .table-modern td:first-child { border-left: 1px solid var(--border-soft); border-radius: 16px 0 0 16px; }
+    .table-modern td:last-child { border-right: 1px solid var(--border-soft); border-radius: 0 16px 16px 0; }
+
+    /* Botones Superiores Estilizados */
+    .btn-nav-premium {
+        padding: 12px 24px;
+        border-radius: 16px;
+        font-weight: 800;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: 0.4s;
+        text-decoration: none;
+    }
+
+    .btn-outline { border: 2px solid var(--border-soft); color: var(--text-main); background: white; }
+    .btn-nav-premium:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(0,0,0,0.06); }
+
+    /* Botones de acción dentro de la tabla */
+    .btn-action-kardex {
+        padding: 10px 16px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+
+    .btn-action-compra { background: #fef3c7; color: #d97706; }
+    .btn-action-compra:hover { background: var(--primary); color: white; }
+
+    .btn-action-dano { background: #fee2e2; color: #dc2626; }
+    .btn-action-dano:hover { background: var(--danger); color: white; }
+
+    /* Avatares y Badges */
+    .product-avatar-mini {
+        width: 42px;
+        height: 42px;
+        background: var(--bg-main);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: var(--secondary);
+        border: 1px solid var(--border-soft);
+    }
+
+    .stock-pill {
+        font-family: monospace;
+        font-size: 0.85rem;
+        font-weight: 700;
+        padding: 6px 12px;
+        border-radius: 10px;
+        display: inline-block;
+    }
+    .pill-dark { background: #292524; color: white; }
+    .pill-brand { background: var(--secondary); color: white; }
+
+
+    /* ==========================================
+       REDISEÑO HIGH-END DEL MODAL PREMIUM 
+       ========================================== */
+    .modal-premium {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1055;
+        width: 100%;
+        height: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
+        outline: 0;
+        background: rgba(28, 25, 23, 0.45);
+        backdrop-filter: blur(12px); /* Mayor difuminado para enfoque dramático */
+        opacity: 0;
+        transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .modal-premium.show {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        opacity: 1 !important;
+    }
+
+    .modal-premium .modal-dialog {
+        width: 100%;
+        max-width: 520px;
+        margin: 1.75rem auto;
+        padding: 0 1.25rem;
+    }
+
+    .modal-premium .modal-content {
+        border-radius: 28px; /* Bordes orgánicos más suaves */
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 30px 70px rgba(28, 25, 23, 0.22);
+        background: #ffffff;
+        overflow: hidden;
+    }
+
+    /* Cabeceras Dinámicas con Degradados Sutiles */
+    .bg-gradient-compra {
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+        border-bottom: 1px solid #fde68a !important;
+    }
+    .bg-gradient-dano {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%) !important;
+        border-bottom: 1px solid #fecaca !important;
+    }
+
+    .text-modal-compra { color: #92400e !important; }
+    .text-modal-dano { color: #991b1b !important; }
+
+    /* Estilización Avanzada de Formularios */
+    .modal-premium .form-label {
+        font-size: 11px;
+        letter-spacing: 0.8px;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .modal-premium .form-control {
+        border-radius: 14px;
+        border: 1.5px solid var(--border-soft);
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        background-color: #ffffff;
+        color: var(--text-main);
+        transition: all 0.2s ease;
+    }
+
+    /* Estados Focus inteligentes según el tipo de acción activa */
+    .modal-content.focus-compra .form-control:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 4px rgba(180, 83, 9, 0.12) !important;
+        outline: none;
+    }
+    .modal-content.focus-dano .form-control:focus {
+        border-color: var(--danger) !important;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12) !important;
+        outline: none;
+    }
+
+    /* Inputs de Solo Lectura */
+    .modal-premium .form-control[readonly] {
+        background-color: #f4efe6;
+        border-color: #e2ddd5;
+        color: var(--secondary);
+        font-weight: 700;
+    }
+
+    /* Botón cerrar elegante */
+    .btn-close-custom {
+        background: rgba(28, 25, 23, 0.05);
+        border: none;
+        color: var(--text-muted);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-close-custom:hover {
+        background: rgba(28, 25, 23, 0.1);
+        color: var(--text-main);
+    }
+
+    /* Botones de Footer Premium */
+    .btn-modal-foot {
+        padding: 14px 28px;
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        border-radius: 14px;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-modal-foot:hover {
+        transform: scale(1.02);
+    }
+</style>
+
+<div class="main-wrapper">
+    <div class="container kardex-max-container px-4">
+        
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6 d-flex flex-row justify-content-between align-items-center">
+            <div>
+                <h1 class="text-4xl font-black tracking-tighter text-gray-800" style="font-size: 2.2rem; font-weight: 900;">
+                    Ajustes de <span class="text-[var(--primary)] italic" style="color: var(--primary);">Inventario</span>
+                </h1>
+                <p class="text-gray-500 font-medium mt-1" style="color: var(--text-muted);">Abastece stock de compras o reporta bajas por daños</p>
+            </div>
+            
+            <div>
+                <a href="{% url 'movimientos_producto' %}" class="btn-nav-premium btn-outline" title="Volver al Kardex">
+                    <i class="fa-solid fa-arrow-left-long"></i> Volver al Kardex
+                </a>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="table-modern">
+                <thead>
+                    <tr>
+                        <th class="col-detalle ps-5">Detalle del Producto</th>
+                        <th class="col-total text-center">Stock Total</th>
+                        <th class="col-disponible text-center">Stock Disponible</th>
+                        <th class="col-acciones text-end pe-5">Acciones de Ajuste</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prod in productos_listado %}
+                    <tr>
+                        <td class="ps-5">
+                            <div class="d-flex align-items-center">
+                                <div class="product-avatar-mini me-3 d-none d-md-flex" style="margin-right: 1rem;">
+                                    <i class="fa-solid fa-boxes-stacked opacity-75"></i>
+                                </div>
+                                <div class="text-truncate">
+                                    <div class="font-black text-gray-800 text-truncate" style="font-size: 0.95rem; font-weight: 800;">
+                                        {{ prod.nombre_producto }}
+                                    </div>
+                                    <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;" class="mt-0.5">
+                                        ID: #{{ prod.id }} <span class="mx-1">|</span> Costo: ${{ prod.precio_compra|intcomma }} <span class="mx-1">|</span> Alq: ${{ prod.precio_alquiler|intcomma }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <span class="stock-pill pill-dark">
+                                {{ prod.stock_total }} uds
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="stock-pill pill-brand">
+                                {{ prod.stock_disponible }} uds
+                            </span>
+                        </td>
+                        <td class="text-end pe-5">
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="btn btn-action-kardex btn-action-compra shadow-sm" 
+                                        onclick="abrirFormularioMovimiento('compra', '{{ prod.id }}', '{{ prod.nombre_producto|escapejs }}', '{{ prod.precio_compra }}')">
+                                    <i class="fa-solid fa-cart-plus me-1"></i> Compra
+                                </button>
+                                <button class="btn btn-action-kardex btn-action-dano shadow-sm" 
+                                        onclick="abrirFormularioMovimiento('dano', '{{ prod.id }}', '{{ prod.nombre_producto|escapejs }}', '0')">
+                                    <i class="fa-solid fa-burst me-1"></i> Daño
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-20" style="padding: 5rem 0;">
+                            <i class="fa-solid fa-box-open text-4xl text-gray-200 mb-4 block" style="font-size: 2.5rem; color: var(--text-muted); display: block; margin-bottom: 1rem;"></i>
+                            <p class="text-gray-400 font-bold" style="color: var(--text-muted); font-weight: 700;">No hay productos registrados en el inventario.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal modal-premium" id="modalFormularioMovimiento" tabindex="-1" aria-labelledby="modalFormularioMovimientoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" id="modalContainerStructure">
+            <form action="{% url 'registrar_movimiento_manual' %}" method="post" id="formMovimientoManual">
+                {% csrf_token %}
+                <input type="hidden" name="producto_id" id="form_producto_id">
+                <input type="hidden" name="tipo_movimiento" id="form_tipo_movimiento">
+
+                <div class="modal-header py-3.5 px-4 d-flex justify-content-between align-items-center" id="modalDynamicHeader">
+                    <h5 class="modal-title fw-black text-uppercase m-0" id="modalFormularioMovimientoLabel" style="font-size: 0.85rem; letter-spacing: 0.8px; font-weight: 900;"></h5>
+                    <button type="button" class="btn-close-custom" onclick="cerrarModalManual()"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <div class="modal-body p-4" style="background: #fafaf9;">
+                    <div class="mb-3">
+                        <label class="form-label text-uppercase text-muted">Producto Seleccionado</label>
+                        <input type="text" id="form_producto_nombre" class="form-control" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-uppercase text-dark" id="label_cantidad">Cantidad Unidades</label>
+                        <input type="number" name="cantidad" class="form-control" min="1" required placeholder="Ej. 12">
+                    </div>
+
+                    <div id="seccion_valores_compra" class="p-3 mb-3 border shadow-sm" style="display: none; background: #ffffff; border-color: #fde68a !important; border-radius: 16px;">
+                        <div class="mb-2.5">
+                            <label class="form-label text-uppercase" style="color: var(--primary);">Precio de Compra Unitario ($)</label>
+                            <input type="number" name="precio_compra" id="form_precio_compra" class="form-control font-monospace" min="0" step="any" style="border-color: #fcd34d;">
+                        </div>
+                        <span class="text-muted d-block" style="font-size: 11px; line-height: 1.4; font-weight: 500;">
+                            <i class="fa-solid fa-circle-info me-1" style="color: var(--primary);"></i> El sistema recalculará los costos bases y las tarifas con este valor.
+                        </span>
+                    </div>
+
+                    <div class="mb-1">
+                        <label class="form-label text-uppercase text-muted">Justificación / Bitácora de Auditoría</label>
+                        <textarea name="observacion" class="form-control" rows="3" required placeholder="Escribe la razón detallada de este ajuste..." style="font-size: 0.85rem; padding: 12px; resize: none;"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top p-3.5 bg-white d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-light btn-modal-foot border text-muted" onclick="cerrarModalManual()" style="background: #fafafa; border-color: var(--border-soft) !important;">Cancelar</button>
+                    <button type="submit" class="btn btn-modal-foot text-white" id="btnSubmitForm" style="box-shadow: 0 8px 20px rgba(0,0,0,0.1);"></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function abrirFormularioMovimiento(tipo, id, nombre, precioActual) {
+        const modalElement = document.getElementById('modalFormularioMovimiento');
+        const modalContainer = document.getElementById('modalContainerStructure');
+        const modalHeader = document.getElementById('modalDynamicHeader');
+        const modalTitle = document.getElementById('modalFormularioMovimientoLabel');
+        const inputId = document.getElementById('form_producto_id');
+        const inputTipo = document.getElementById('form_tipo_movimiento');
+        const inputNombre = document.getElementById('form_producto_nombre');
+        const labelCantidad = document.getElementById('label_cantidad');
+        const seccionCompra = document.getElementById('seccion_valores_compra');
+        const inputPrecio = document.getElementById('form_precio_compra');
+        const btnSubmit = document.getElementById('btnSubmitForm');
+
+        // Limpieza absoluta de clases visuales dinámicas anteriores
+        modalContainer.className = "modal-content";
+        modalHeader.className = "modal-header py-3.5 px-4 d-flex justify-content-between align-items-center";
+        modalTitle.className = "modal-title fw-black text-uppercase m-0";
+
+        document.getElementById('formMovimientoManual').reset();
+
+        inputId.value = id;
+        inputTipo.value = tipo.toUpperCase();
+        inputNombre.value = nombre;
+
+        if (tipo === 'compra') {
+            modalContainer.classList.add("focus-compra");
+            modalHeader.classList.add("bg-gradient-compra");
+            modalTitle.classList.add("text-modal-compra");
+            modalTitle.innerHTML = '<i class="fa-solid fa-cart-shopping me-2" style="color: var(--primary);"></i> Abastecer Mercancía';
+            labelCantidad.innerText = "Cantidad Ingresada (Sumará al stock)";
+            seccionCompra.style.display = "block";
+            inputPrecio.value = precioActual;
+            inputPrecio.required = true;
+
+            btnSubmit.innerText = "Registrar Entrada";
+            btnSubmit.style.backgroundColor = "var(--primary)";
+
+        } else if (tipo === 'dano') {
+            modalContainer.classList.add("focus-dano");
+            modalHeader.classList.add("bg-gradient-dano");
+            modalTitle.classList.add("text-modal-dano");
+            modalTitle.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-2" style="color: var(--danger);"></i> Reportar Baja / Daño';
+            labelCantidad.innerText = "Cantidad Dañada (Deducirá del disponible)";
+            seccionCompra.style.display = "none";
+            inputPrecio.required = false;
+
+            btnSubmit.innerText = "Aplicar Baja";
+            btnSubmit.style.backgroundColor = "var(--danger)";
+        }
+
+        modalElement.classList.add('show');
+    }
+
+    function cerrarModalManual() {
+        const modalElement = document.getElementById('modalFormularioMovimiento');
+        modalElement.classList.remove('show');
+    }
+</script>
+{% endblock %}

@@ -4,156 +4,218 @@
 {% block content %}
 <style>
     :root {
-        --bg-main: #fdfaf6;
+        --bg-main: #fdfaf6; /* Fondo premium unificado del catálogo */
         --bg-card: #ffffff;
         --border-soft: #ede9e3;
-        --primary: #b45309; 
-        --secondary: #541E12; 
+        --primary: #b45309; /* Dorado Arron */
+        --secondary: #541E12; /* Vinotinto Arron */
         --text-main: #1c1917;
+        --text-muted: #78716c;
+        --danger: #ef4444;
+        --emerald: #10b981;
     }
+
+    body { background: var(--bg-main); color: var(--text-main); }
 
     .main-wrapper { 
-        background: var(--bg-main); 
         min-height: 100vh; 
-        padding: 3rem 0; 
+        padding: 2.5rem 0; 
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
-    .expediente-header {
-        background: linear-gradient(135deg, var(--secondary) 0%, #2d0a04 100%);
-        color: white;
-        border-radius: 32px;
-        padding: 3.5rem;
-        margin-bottom: 3rem;
-        box-shadow: 0 25px 50px -12px rgba(84, 30, 18, 0.25);
-        position: relative;
-        overflow: hidden;
+    /* Contenedor principal con ancho controlado */
+    .kardex-max-container {
+        max-width: 1200px;
+        margin: 0 auto;
     }
 
-    .card-movimientos {
+    /* Caja contenedora del módulo con el mismo estilo del catálogo */
+    .inventory-card {
         background: var(--bg-card);
+        backdrop-filter: blur(16px);
         border-radius: 28px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.03);
         border: 1px solid var(--border-soft);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
-        overflow: hidden;
+        margin-bottom: 40px;
     }
 
-    /* AJUSTE DE TABLA PARA ELIMINAR ESPACIO VACÍO */
-    .table-kardex {
+    /* Estructura de Tabla Flotante Adaptada */
+    .table-modern {
         width: 100%;
-        margin-bottom: 0;
-        table-layout: fixed; /* Ayuda a controlar el ancho real */
+        border-collapse: separate;
+        border-spacing: 0 12px; /* Crea el espacio entre registros */
+        table-layout: fixed;
     }
 
-    .table-kardex thead th {
-        background: #faf8f5;
-        color: var(--secondary);
+    .table-modern thead th {
+        color: var(--text-main);
+        text-transform: uppercase;
         font-size: 0.7rem;
         font-weight: 900;
-        text-transform: uppercase;
-        letter-spacing: 0.15em;
-        padding: 1.5rem 1rem;
-        border-bottom: 2px solid var(--border-soft);
+        letter-spacing: 0.1em;
+        padding: 1rem;
+        border-bottom: 2px solid var(--primary); /* Línea dorada Arron */
     }
 
-    /* Definición de anchos por columna */
+    /* Proporciones internas ideales para lectura compacta */
     .col-fecha { width: 15%; }
-    .col-producto { width: 25%; }
-    .col-tipo { width: 15%; }
+    .col-producto { width: 27%; }
+    .col-tipo { width: 14%; }
     .col-cant { width: 10%; }
-    .col-ref { width: 15%; }
+    .col-ref { width: 14%; }
     .col-obs { width: 20%; }
 
-    .table-kardex tbody td {
-        padding: 1.5rem 1rem;
-        border-bottom: 1px solid var(--border-soft);
-        word-wrap: break-word; /* Evita que el texto se salga */
+    .table-modern tbody tr {
+        background-color: white;
+        transition: all 0.3s ease;
     }
 
+    /* Animación premium flotante idéntica al catálogo */
+    .table-modern tbody tr:hover {
+        transform: scale(1.005);
+        box-shadow: 0 15px 30px rgba(180, 83, 9, 0.06);
+    }
+
+    .table-modern td {
+        padding: 1.2rem 1rem;
+        vertical-align: middle;
+        border-top: 1px solid var(--border-soft);
+        border-bottom: 1px solid var(--border-soft);
+        word-wrap: break-word;
+    }
+
+    /* Redondeado de esquinas por fila para mantener el efecto píldora */
+    .table-modern td:first-child { border-left: 1px solid var(--border-soft); border-radius: 15px 0 0 15px; }
+    .table-modern td:last-child { border-right: 1px solid var(--border-soft); border-radius: 0 15px 15px 0; }
+
+    /* Botones Superiores e Identidad */
+    .btn-nav-premium {
+        padding: 12px 24px;
+        border-radius: 16px;
+        font-weight: 800;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: 0.4s;
+        text-decoration: none;
+    }
+
+    .btn-gold { background: var(--primary); color: white !important; box-shadow: 0 10px 20px rgba(180, 83, 9, 0.2); }
+    .btn-outline { border: 2px solid var(--border-soft); color: var(--text-main); background: white; }
+
+    .btn-nav-premium:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(0,0,0,0.1); }
+
+    /* Badges de Operación Refinados */
     .tipo-badge {
         font-size: 0.65rem;
-        font-weight: 900;
-        padding: 8px 12px;
-        border-radius: 10px;
+        font-weight: 800;
+        padding: 6px 12px;
+        border-radius: 8px;
         display: inline-flex;
         align-items: center;
         gap: 6px;
         white-space: nowrap;
     }
 
-    .bg-entrada { background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
-    .bg-salida { background: #fef2f2; color: #dc2626; border: 1px solid #fee2e2; }
-    .bg-ajuste { background: #fffbeb; color: #d97706; border: 1px solid #fef3c7; }
-    .bg-compra { background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
+    .bg-entrada { background: #e6f4ea; color: #137333; }
+    .bg-salida { background: #fce8e6; color: #c5221f; }
+    .bg-ajuste { background: #ffe2b3; color: #b06000; }
+    .bg-compra { background: #e8f0fe; color: #1a73e8; }
 
     .qty-text {
-        font-size: 1.1rem;
-        font-weight: 900;
-        font-family: 'JetBrains Mono', monospace;
+        font-size: 1.05rem;
+        font-weight: 800;
+        font-family: monospace;
     }
 
-    .product-icon-box {
-        width: 40px;
-        height: 40px;
+    .text-emerald-style { color: var(--emerald); }
+    .text-red-style { color: var(--danger); }
+
+    /* Píldoras de referencia de documentos */
+    .ref-pill {
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 5px 10px;
+        border-radius: 8px;
+        background: var(--bg-main);
+        color: #44403c;
+        border: 1px solid var(--border-soft);
+        display: inline-block;
+    }
+
+    .product-avatar {
+        width: 38px;
+        height: 38px;
         background: var(--bg-main);
         border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        color: var(--secondary);
+        border: 1px solid var(--border-soft);
+    }
+
+    @media (max-width: 992px) {
+        .table-modern { table-layout: auto; }
     }
 </style>
 
 <div class="main-wrapper">
-    <div class="container-fluid px-5">
+    <div class="container kardex-max-container px-4">
         
-        <div class="expediente-header d-flex justify-content-between align-items-center">
-            <div style="position: relative; z-index: 1;">
-                <span class="badge mb-3 px-3 py-2 text-uppercase" style="background: rgba(255,255,255,0.1); font-size: 0.6rem; letter-spacing: 3px;">
-                    Control de Inventario
-                </span>
-                <h1 class="fw-black mb-1 italic text-uppercase" style="font-size: 3rem; letter-spacing: -2px;">
-                    Kardex <span style="opacity: 0.6; font-weight: 300;">Arron</span>
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-6 d-flex flex-row justify-content-between align-items-center">
+            <div>
+                <h1 class="text-4xl font-black tracking-tighter text-gray-800" style="font-size: 2.2rem; font-weight: 900;">
+                    Auditoría de <span class="text-[var(--primary)] italic" style="color: var(--primary);">Inventario</span>
                 </h1>
-                <p class="opacity-75 mb-0">Historial completo de movimientos de mercancía.</p>
+                <p class="text-gray-500 font-medium mt-1" style="color: var(--text-muted);">Kardex Maestro de Arron Eventos</p>
             </div>
-            <div class="text-end">
-                <a href="{% url 'listar_productos' %}" class="text-white opacity-50 hover:opacity-100 transition-all text-decoration-none">
-                    <i class="fa-solid fa-circle-left fa-2x"></i>
-                    <p class="small mt-2 font-bold uppercase tracking-widest" style="font-size: 10px;">Volver</p>
+            
+            <div class="flex flex-wrap gap-3 items-center d-flex align-items-center" style="gap: 12px;">
+                <a href="{% url 'interfaz_registro_manual' %}" class="btn-nav-premium btn-gold">
+                    <i class="fa-solid fa-plus-circle"></i> Ajuste Manual
+                </a>
+                <a href="{% url 'listar_productos' %}" class="btn-nav-premium btn-outline" title="Volver al Inventario">
+                    <i class="fa-solid fa-arrow-left-long"></i> Volver
                 </a>
             </div>
         </div>
 
-        <div class="card-movimientos">
-            <div class="table-responsive">
-                <table class="table table-kardex align-middle mb-0">
+        <div class="inventory-card">
+            <div class="overflow-x-auto">
+                <table class="table-modern">
                     <thead>
                         <tr>
-                            <th class="col-fecha ps-5">Fecha</th>
-                            <th class="col-producto">Producto</th>
-                            <th class="col-tipo text-center">Tipo</th>
-                            <th class="col-cant text-center">Cant.</th>
-                            <th class="col-ref">Referencia</th>
-                            <th class="col-obs pe-5">Observaciones</th>
+                            <th class="col-fecha ps-4">Fecha / Hora</th>
+                            <th class="col-producto">Producto afectado</th>
+                            <th class="col-tipo text-center">Tipo Operación</th>
+                            <th class="col-cant text-center">Cantidad</th>
+                            <th class="col-ref">Documento Ref.</th>
+                            <th class="col-obs pe-4">Observaciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for mov in movimientos %}
                         <tr>
-                            <td class="ps-5">
-                                <div class="text-dark font-black" style="font-size: 0.85rem;">{{ mov.fecha|date:"d M, Y" }}</div>
-                                <div class="text-muted" style="font-size: 0.7rem;">{{ mov.fecha|date:"H:i" }} HRS</div>
+                            <td class="ps-4">
+                                <div class="font-black text-gray-800" style="font-size: 0.85rem; font-weight: 800;">{{ mov.fecha|date:"d M, Y" }}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">{{ mov.fecha|date:"H:i" }}</div>
                             </td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="product-icon-box me-3 d-none d-xl-flex">
-                                        <i class="fa-solid fa-box text-secondary opacity-25"></i>
+                                    <div class="product-avatar me-3 d-none d-lg-flex" style="margin-right: 1rem;">
+                                        <i class="fa-solid fa-box-archive opacity-75"></i>
                                     </div>
-                                    <div class="text-truncate">
-                                        <div class="font-black text-dark text-truncate" title="{{ mov.producto.nombre_producto }}" style="font-size: 0.9rem;">
+                                    <div style="min-width: 0; flex: 1;">
+                                        <div class="font-black text-gray-800 text-truncate" title="{{ mov.producto.nombre_producto }}" style="font-size: 0.88rem; font-weight: 800;">
                                             {{ mov.producto.nombre_producto }}
                                         </div>
-                                        <div class="text-muted uppercase" style="font-size: 0.6rem; font-weight: 800;">ID: #{{ mov.producto.id }}</div>
+                                        <div class="text-[10px] text-gray-400 uppercase tracking-widest" style="font-size: 10px; color: var(--text-muted);">ID: #{{ mov.producto.id }}</div>
                                     </div>
                                 </div>
                             </td>
@@ -167,39 +229,42 @@
                                 </span>
                             </td>
                             <td class="text-center">
-                                <span class="qty-text {% if mov.tipo == 'ENTRADA' or mov.tipo == 'COMPRA' %}text-emerald-600{% else %}text-red-600{% endif %}">
+                                <span class="qty-text {% if mov.tipo == 'ENTRADA' or mov.tipo == 'COMPRA' %}text-emerald-style{% else %}text-red-style{% endif %}">
                                     {% if mov.tipo == 'ENTRADA' or mov.tipo == 'COMPRA' %}+{% else %}-{% endif %}{{ mov.cantidad }}
                                 </span>
                             </td>
                             <td>
                                 {% if mov.alquiler %}
-                                    <div class="ref-pill d-inline-block text-truncate" style="max-width: 100%;">
+                                    <div class="ref-pill text-truncate" style="max-width: 130px;" title="Alquiler #{{ mov.alquiler.id }}">
                                         Alquiler #{{ mov.alquiler.id }}
                                     </div>
                                 {% elif mov.reserva %}
-                                    <div class="ref-pill d-inline-block text-truncate" style="max-width: 100%; border-color: #fecaca; color: #dc2626;">
-                                        Evento #{{ mov.reserva.id }}
+                                    <div class="ref-pill text-truncate" style="max-width: 130px; border-color: #fca5a5; color: #b91c1c; background: #fee2e2;" title="Reserva #{{ mov.reserva.id }}">
+                                        Reserva #{{ mov.reserva.id }}
                                     </div>
                                 {% else %}
-                                    <span class="text-gray-300 small italic">Manual</span>
+                                    <span class="text-muted small fw-bold" style="font-size: 0.75rem; padding-left: 4px; color: var(--text-muted);">Manual</span>
                                 {% endif %}
                             </td>
-                            <td class="pe-5">
-                                <div class="text-muted small italic" style="line-height: 1.2;">
+                            <td class="pe-4">
+                                <div style="line-height: 1.4; font-size: 0.8rem; color: #334155;">
                                     {{ mov.observacion|default:"---" }}
                                 </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6" class="text-center py-5 text-muted italic">No hay movimientos registrados.</td>
+                            <td colspan="6" class="text-center py-20" style="padding: 5rem 0;">
+                                <i class="fa-solid fa-folder-open text-4xl text-gray-200 mb-4 block" style="font-size: 2.5rem; color: var(--text-muted); display: block; margin-bottom: 1rem;"></i>
+                                <p class="text-gray-400 font-bold" style="color: var(--text-muted); font-weight: 700;">Ningún movimiento registrado en la bitácora todavía</p>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
-        
+
     </div>
 </div>
 {% endblock %}
