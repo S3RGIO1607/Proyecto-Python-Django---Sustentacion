@@ -282,7 +282,7 @@ def mi_perfil(request):
     
     base_template = "base.html" if usuario.rol.id == 4 else "base2.html"
 
-    return render(request, "usuarios/perfil.html", {
+    return render(request, "Usuarios/perfil.html", {
         "usuario": usuario,
         "base_to_extend": base_template  # Pasamos el nombre del archivo
     })
