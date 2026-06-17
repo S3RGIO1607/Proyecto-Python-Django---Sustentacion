@@ -328,29 +328,44 @@ def interfaz_registro_manual(request):
 @require_POST
 def registrar_movimiento_manual(request):
     """
-    Procesa el formulario POST enviado desde el modal de ajustes manuales.
-    Mapeada a: {% url 'registrar_movimiento_manual' %}
+    Procesa el formulario POST enviado desde el modal de ajustes manuales con validaciones de seguridad.
     """
     if "usuario_id" not in request.session:
         return redirect("iniciar_sesion")
 
     producto_id = request.POST.get('producto_id')
     tipo_movimiento = request.POST.get('tipo_movimiento')  # Recibe: 'COMPRA' o 'DANO'
-    cantidad = int(request.POST.get('cantidad', 0))
     observacion = request.POST.get('observacion', '').strip()
     
+    # 1. Validación de cantidad entera y positiva
+    try:
+        cantidad = int(request.POST.get('cantidad', 0))
+        if cantidad <= 0:
+            messages.error(request, "Error: La cantidad de unidades debe ser un número entero mayor a cero.")
+            return redirect('movimientos_producto')
+    except (ValueError, TypeError):
+        messages.error(request, "Error: La cantidad ingresada no es válida.")
+        return redirect('movimientos_producto')
+
     producto = get_object_or_404(Producto, id=producto_id)
     
     try:
         if tipo_movimiento == 'COMPRA':
-            # Tus validaciones manejan enteros para los precios según el método registrar_producto
-            precio_compra_nuevo = int(float(request.POST.get('precio_compra', 0)))
+            # Validación de precio de compra válido y no negativo
+            try:
+                precio_compra_nuevo = int(float(request.POST.get('precio_compra', 0)))
+                if precio_compra_nuevo < 0:
+                    messages.error(request, "Error: El precio de compra no puede ser un valor negativo.")
+                    return redirect('movimientos_producto')
+            except (ValueError, TypeError):
+                messages.error(request, "Error: El precio de compra ingresado no es un formato válido.")
+                return redirect('movimientos_producto')
             
-            # 1. Modificar stocks en cascada (Suma)
+            # Modificar stocks en cascada (Suma)
             producto.stock_total += cantidad
             producto.stock_disponible += cantidad
             
-            # 2. Recalcular precio de alquiler automáticamente si cambió el costo base
+            # Recalcular precio de alquiler automáticamente si cambió el costo base
             if precio_compra_nuevo != producto.precio_compra:
                 producto.precio_compra = precio_compra_nuevo
                 # Regla de negocio de Arron Eventos: El alquiler representa el 15% del costo de adquisición
@@ -358,10 +373,10 @@ def registrar_movimiento_manual(request):
             
             producto.save()
             
-            # 3. Insertar el registro histórico en MovimientoProducto
+            # Insertar el registro histórico en MovimientoProducto
             MovimientoProducto.objects.create(
                 producto=producto,
-                tipo='COMPRA',  # Asegúrate de que este choice exista en tu modelo
+                tipo='COMPRA',
                 cantidad=cantidad,
                 observacion=observacion
             )
@@ -371,17 +386,17 @@ def registrar_movimiento_manual(request):
             # Validación lógica crítica: No dar de baja más unidades de las disponibles físicamente
             if cantidad > producto.stock_disponible:
                 messages.error(request, f"Error: No puedes reportar {cantidad} unidades dañadas porque solo hay {producto.stock_disponible} disponibles.")
-                return redirect('interfaz_registro_manual')
+                return redirect('movimientos_producto')
             
-            # 1. Modificar stocks en cascada (Resta)
+            # Modificar stocks en cascada (Resta)
             producto.stock_total -= cantidad
             producto.stock_disponible -= cantidad
             producto.save()
             
-            # 2. Insertar el registro histórico en MovimientoProducto
+            # Insertar el registro histórico en MovimientoProducto
             MovimientoProducto.objects.create(
                 producto=producto,
-                tipo='AJUSTE_DANO',  # Coincide con tu etiqueta 'bg-ajuste' del badge HTML
+                tipo='AJUSTE_DANO',
                 cantidad=cantidad,
                 observacion=observacion
             )
@@ -392,7 +407,6 @@ def registrar_movimiento_manual(request):
     except Exception as e:
         messages.error(request, f"Error imprevisto en la base de datos de inventario: {str(e)}")
 
-    # Redirige de vuelta al historial general (Kardex) para validar la inserción
     return redirect('movimientos_producto')
 
 

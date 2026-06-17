@@ -370,13 +370,28 @@
 
                     <div class="mb-3">
                         <label class="form-label text-uppercase text-dark" id="label_cantidad">Cantidad Unidades</label>
-                        <input type="number" name="cantidad" class="form-control" min="1" required placeholder="Ej. 12">
+                        <input type="number" 
+                               name="cantidad" 
+                               id="form_cantidad"
+                               class="form-control" 
+                               min="1" 
+                               required 
+                               placeholder="Ej. 12"
+                               onkeypress="return (event.charCode >= 48 && event.charCode <= 57)"
+                               oninput="if(this.value.startsWith('0') || this.value < 0) this.value = '';">
                     </div>
 
                     <div id="seccion_valores_compra" class="p-3 mb-3 border shadow-sm" style="display: none; background: #ffffff; border-color: #fde68a !important; border-radius: 16px;">
                         <div class="mb-2.5">
                             <label class="form-label text-uppercase" style="color: var(--primary);">Precio de Compra Unitario ($)</label>
-                            <input type="number" name="precio_compra" id="form_precio_compra" class="form-control font-monospace" min="0" step="any" style="border-color: #fcd34d;">
+                            <input type="number" 
+                                   name="precio_compra" 
+                                   id="form_precio_compra" 
+                                   class="form-control font-monospace" 
+                                   min="0" 
+                                   step="any" 
+                                   style="border-color: #fcd34d;"
+                                   oninput="if(this.value < 0) this.value = '0';">
                         </div>
                         <span class="text-muted d-block" style="font-size: 11px; line-height: 1.4; font-weight: 500;">
                             <i class="fa-solid fa-circle-info me-1" style="color: var(--primary);"></i> El sistema recalculará los costos bases y las tarifas con este valor.
@@ -412,7 +427,6 @@
         const inputPrecio = document.getElementById('form_precio_compra');
         const btnSubmit = document.getElementById('btnSubmitForm');
 
-        // Limpieza absoluta de clases visuales dinámicas anteriores
         modalContainer.className = "modal-content";
         modalHeader.className = "modal-header py-3.5 px-4 d-flex justify-content-between align-items-center";
         modalTitle.className = "modal-title fw-black text-uppercase m-0";
@@ -456,5 +470,14 @@
         const modalElement = document.getElementById('modalFormularioMovimiento');
         modalElement.classList.remove('show');
     }
+
+    // CONTROL ADICIONAL JAVASCRIPT: Evita pegar (Ctrl+V) caracteres basura o negativos
+    document.getElementById('form_cantidad').addEventListener('paste', function(e) {
+        let clipboardData = e.clipboardData || window.clipboardData;
+        let pastedData = clipboardData.getData('Text');
+        if (isNaN(pastedData) || parseInt(pastedData) <= 0) {
+            e.preventDefault();
+        }
+    });
 </script>
 {% endblock %}
