@@ -378,33 +378,45 @@
                                required 
                                placeholder="Ej. 12"
                                onkeypress="return (event.charCode >= 48 && event.charCode <= 57)"
-                               oninput="if(this.value.startsWith('0') || this.value < 0) this.value = '';">
+                               oninput="validarCantidadAlDigitar(this)">
                     </div>
 
                     <div id="seccion_valores_compra" class="p-3 mb-3 border shadow-sm" style="display: none; background: #ffffff; border-color: #fde68a !important; border-radius: 16px;">
-    <div class="mb-2.5">
-        <label class="form-label text-uppercase" style="color: var(--primary);">Precio de Compra Unitario ($)</label>
-        
-        <input type="number" 
-               name="precio_compra" 
-               id="form_precio_compra" 
-               class="form-control font-monospace" 
-               min="0" 
-               step="any" 
-               required
-               style="border-color: #fcd34d;"
-               placeholder="Ej. 15000"
-               onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode === 46"
-               oninput="if(this.value < 0) this.value = '';">
-    </div>
-    <span class="text-muted d-block" style="font-size: 11px; line-height: 1.4; font-weight: 500;">
-        <i class="fa-solid fa-circle-info me-1" style="color: var(--primary);"></i> El sistema recalculará los costos bases y las tarifas con este valor.
-    </span>
-</div>
+                        <div class="mb-2.5">
+                            <label class="form-label text-uppercase" style="color: var(--primary);">Precio de Compra Unitario ($)</label>
+                            
+                            <input type="number" 
+                                   name="precio_compra" 
+                                   id="form_precio_compra" 
+                                   class="form-control font-monospace" 
+                                   min="0" 
+                                   step="any" 
+                                   required
+                                   style="border-color: #fcd34d;"
+                                   placeholder="Ej. 15000"
+                                   onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode === 46"
+                                   oninput="if(this.value < 0) this.value = '';">
+                        </div>
+                        <span class="text-muted d-block" style="font-size: 11px; line-height: 1.4; font-weight: 500;">
+                            <i class="fa-solid fa-circle-info me-1" style="color: var(--primary);"></i> El sistema recalculará los costos bases y las tarifas con este valor.
+                        </span>
+                    </div>
 
                     <div class="mb-1">
                         <label class="form-label text-uppercase text-muted">Justificación / Bitácora de Auditoría</label>
-                        <textarea name="observacion" class="form-control" rows="3" required placeholder="Escribe la razón detallada de este ajuste..." style="font-size: 0.85rem; padding: 12px; resize: none;"></textarea>
+                        <textarea name="observacion" 
+                                  id="form_observacion"
+                                  class="form-control" 
+                                  rows="3" 
+                                  required 
+                                  minlength="25" 
+                                  maxlength="500"
+                                  placeholder="Escribe la razón detallada de este ajuste..." 
+                                  style="font-size: 0.85rem; padding: 12px; resize: none;"
+                                  oninput="validarObservacionAlDigitar(this)"></textarea>
+                        <small id="observacion_help" class="text-muted d-block mt-1" style="font-size: 11px;">
+                            Mínimo 25 caracteres, máximo 500.
+                        </small>
                     </div>
                 </div>
 
@@ -430,12 +442,18 @@
         const seccionCompra = document.getElementById('seccion_valores_compra');
         const inputPrecio = document.getElementById('form_precio_compra');
         const btnSubmit = document.getElementById('btnSubmitForm');
+        const inputCantidad = document.getElementById('form_cantidad');
+        const textareaObs = document.getElementById('form_observacion');
 
         modalContainer.className = "modal-content";
         modalHeader.className = "modal-header py-3.5 px-4 d-flex justify-content-between align-items-center";
         modalTitle.className = "modal-title fw-black text-uppercase m-0";
 
         document.getElementById('formMovimientoManual').reset();
+        
+        // Limpiar estados personalizados de validación al abrir
+        inputCantidad.setCustomValidity("");
+        textareaObs.setCustomValidity("");
 
         inputId.value = id;
         inputTipo.value = tipo.toUpperCase();
@@ -474,6 +492,64 @@
         const modalElement = document.getElementById('modalFormularioMovimiento');
         modalElement.classList.remove('show');
     }
+
+    // Funciones dinámicas para limpiar advertencias en tiempo real mientras el usuario escribe
+    function validarCantidadAlDigitar(input) {
+        if (input.value.startsWith('0') || input.value < 0) {
+            input.value = '';
+        }
+        if (parseInt(input.value) >= 1) {
+            input.setCustomValidity(""); // Campo válido
+        }
+    }
+
+    function validarObservacionAlDigitar(textarea) {
+        const caracteres = textarea.value.length;
+        const helpText = document.getElementById('observacion_help');
+        
+        if (caracteres > 0 && caracteres < 25) {
+            textarea.setCustomValidity("La justificación debe tener al menos 25 caracteres.");
+            helpText.style.color = "var(--danger)";
+            helpText.innerText = `Llevas ${caracteres} de mínimo 25 caracteres requeridos.`;
+        } else {
+            textarea.setCustomValidity(""); // Campo válido
+            helpText.style.color = "var(--text-muted)";
+            helpText.innerText = `Caracteres: ${caracteres}/500`;
+        }
+    }
+
+    // Validación final antes de procesar el Submit del formulario
+    document.getElementById('formMovimientoManual').addEventListener('submit', function(e) {
+        const cantidadInput = document.getElementById('form_cantidad');
+        const observacionInput = document.getElementById('form_observacion');
+        
+        let formularioValido = true;
+
+        // Validar cantidad mínima
+        if (parseInt(cantidadInput.value) < 1 || cantidadInput.value === '') {
+            cantidadInput.setCustomValidity("Por favor ingresa una cantidad válida igual o mayor a 1.");
+            formularioValido = false;
+        } else {
+            cantidadInput.setCustomValidity("");
+        }
+
+        // Validar longitud de observaciones
+        if (observacionInput.value.length < 25) {
+            observacionInput.setCustomValidity("La justificación es demasiado corta. Debe tener entre 25 y 500 caracteres.");
+            formularioValido = false;
+        } else if (observacionInput.value.length > 500) {
+            observacionInput.setCustomValidity("La justificación supera los 500 caracteres permitidos.");
+            formularioValido = false;
+        } else {
+            observacionInput.setCustomValidity("");
+        }
+
+        // Si hay algún fallo, forzar el reporte gráfico nativo sin enviar la petición HTTP
+        if (!formularioValido) {
+            e.preventDefault();
+            this.reportValidity();
+        }
+    });
 
     // CONTROL ADICIONAL JAVASCRIPT: Evita pegar (Ctrl+V) caracteres basura o negativos
     document.getElementById('form_cantidad').addEventListener('paste', function(e) {
