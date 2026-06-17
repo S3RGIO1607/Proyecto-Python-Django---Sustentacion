@@ -340,25 +340,25 @@
                 </div>
 
                 <div class="section-title"><i class="fa-solid fa-utensils" style="color: var(--primary-color);"></i> Menú de Comida</div>
-                <div class="menu-grid">
-                    <label class="menu-item">
-                        <input type="radio" name="menu_id" value="" data-precio="0" {% if not datos_enviados.menu_id %}checked{% endif %} style="margin-right: 4px;">
-                        <div>
-                            <strong style="font-size: 0.9rem; display: block;">Sin comida</strong>
-                            <small style="font-size: 0.75rem; display: block; opacity: 0.8;">No incluir servicio</small>
-                        </div>
-                    </label>
-                    {% endfor %}
-                    {% for menu in menus %}
-                    <label class="menu-item">
-                        <input type="radio" name="menu_id" value="{{ menu.id }}" data-precio="{{ menu.precio_por_persona }}" {% if datos_enviados.menu_id == menu.id|stringformat:"i" %}checked{% endif %} style="margin-right: 4px;">
-                        <div>
-                            <strong style="font-size: 0.9rem; display: block;">{{ menu.nombre }}</strong>
-                            <small style="font-size: 0.75rem; display: block; opacity: 0.8;">${{ menu.precio_por_persona|floatformat:0|intcomma }} / persona</small>
-                        </div>
-                    </label>
-                    {% endfor %}
-                </div>
+<div class="menu-grid">
+    <label class="menu-item">
+        <input type="radio" name="menu_id" value="" data-precio="0" {% if not datos_enviados.menu_id %}checked{% endif %} style="margin-right: 4px;">
+        <div>
+            <strong style="font-size: 0.9rem; display: block;">Sin comida</strong>
+            <small style="font-size: 0.75rem; display: block; opacity: 0.8;">No incluir servicio</small>
+        </div>
+    </label>
+    
+    {% for menu in menus %}
+    <label class="menu-item">
+        <input type="radio" name="menu_id" value="{{ menu.id }}" data-precio="{{ menu.precio_por_persona }}" {% if datos_enviados.menu_id == menu.id|stringformat:"i" %}checked{% endif %} style="margin-right: 4px;">
+        <div>
+            <strong style="font-size: 0.9rem; display: block;">{{ menu.nombre }}</strong>
+            <small style="font-size: 0.75rem; display: block; opacity: 0.8;">${{ menu.precio_por_persona|floatformat:0|intcomma }} / persona</small>
+        </div>
+    </label>
+    {% endfor %}
+</div>
 
                 <div class="section-title style-margin" style="margin-top: 30px;"><i class="fa-solid fa-plus-circle" style="color: var(--primary-color);"></i> Servicios Adicionales</div>
                 <div class="row-inputs" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
