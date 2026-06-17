@@ -382,21 +382,25 @@
                     </div>
 
                     <div id="seccion_valores_compra" class="p-3 mb-3 border shadow-sm" style="display: none; background: #ffffff; border-color: #fde68a !important; border-radius: 16px;">
-                        <div class="mb-2.5">
-                            <label class="form-label text-uppercase" style="color: var(--primary);">Precio de Compra Unitario ($)</label>
-                            <input type="number" 
-                                   name="precio_compra" 
-                                   id="form_precio_compra" 
-                                   class="form-control font-monospace" 
-                                   min="0" 
-                                   step="any" 
-                                   style="border-color: #fcd34d;"
-                                   oninput="if(this.value < 0) this.value = '0';">
-                        </div>
-                        <span class="text-muted d-block" style="font-size: 11px; line-height: 1.4; font-weight: 500;">
-                            <i class="fa-solid fa-circle-info me-1" style="color: var(--primary);"></i> El sistema recalculará los costos bases y las tarifas con este valor.
-                        </span>
-                    </div>
+    <div class="mb-2.5">
+        <label class="form-label text-uppercase" style="color: var(--primary);">Precio de Compra Unitario ($)</label>
+        
+        <input type="number" 
+               name="precio_compra" 
+               id="form_precio_compra" 
+               class="form-control font-monospace" 
+               min="0" 
+               step="any" 
+               required
+               style="border-color: #fcd34d;"
+               placeholder="Ej. 15000"
+               onkeypress="return (event.charCode >= 48 && event.charCode <= 57) || event.charCode === 46"
+               oninput="if(this.value < 0) this.value = '';">
+    </div>
+    <span class="text-muted d-block" style="font-size: 11px; line-height: 1.4; font-weight: 500;">
+        <i class="fa-solid fa-circle-info me-1" style="color: var(--primary);"></i> El sistema recalculará los costos bases y las tarifas con este valor.
+    </span>
+</div>
 
                     <div class="mb-1">
                         <label class="form-label text-uppercase text-muted">Justificación / Bitácora de Auditoría</label>
