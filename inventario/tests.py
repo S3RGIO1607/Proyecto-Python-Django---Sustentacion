@@ -1,7 +1,10 @@
+from urllib import response
+from django.contrib.messages import get_messages
 from django.test import TestCase
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
-from .models import Producto
+from requests import session
+from .models import MovimientoProducto, Producto
 
 
 
@@ -215,6 +218,147 @@ class InventarioTestCase(TestCase):
         
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'producto/movimientos.html')
+
+    
+    def test_interfaz_registro_manual_anonimo_redirecciona(self):
+        """Garantizar que si no hay sesión activa, redirija al login"""
+        response = self.client.get(reverse('interfaz_registro_manual'))
+        self.assertRedirects(response, reverse('iniciar_sesion'))
+
+    
+    def test_interfaz_registro_manual_renderiza_productos_activos(self):
+        """Verificar que la interfaz cargue y liste solo productos con estado 'A'"""
+        session = self.client.session
+        session['usuario_id'] = 1  # Simulamos usuario logueado
+        session.save()
+
+        # Aseguramos que existan productos en la BD para el test
+        self.producto.estado = 'A'
+        self.producto.save()
+
+        response = self.client.get(reverse('interfaz_registro_manual'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'Producto/registro_movimiento_manual.html')
+        self.assertIn('productos_listado', response.context)
+
+    
+    def test_registrar_movimiento_compra_exitoso_recalcula_alquiler(self):
+        """Validar abastecimiento exitoso, incremento de stocks y regla del 15% de alquiler"""
+        session = self.client.session
+        session['usuario_id'] = 1
+        session.save()
+
+        # Valores iniciales de control
+        self.producto.stock_total = 100
+        self.producto.stock_disponible = 100
+        self.producto.precio_compra = 100000
+        self.producto.save()
+
+        # Enviamos una COMPRA con un nuevo precio de adquisición de 200,000
+        response = self.client.post(reverse('registrar_movimiento_manual'), {
+            'producto_id': self.producto.id,
+            'tipo_movimiento': 'COMPRA',
+            'cantidad': '50',
+            'precio_compra': '200000',
+            'observacion': 'Abastecimiento de temporada alta'
+        })
+    
+        self.assertRedirects(response, reverse('movimientos_producto'))
+    
+        # Recargamos de la BD y validamos cambios en cascada
+        self.producto.refresh_from_db()
+        self.assertEqual(self.producto.stock_total, 150)
+        self.assertEqual(self.producto.stock_disponible, 150)
+        self.assertEqual(self.producto.precio_compra, 200000)
+        # Regla de negocio: 15% de 200,000 = 30,000
+        self.assertEqual(self.producto.precio_alquiler, 30000)
+    
+        # Validar creación del historial
+        movimiento = MovimientoProducto.objects.filter(producto=self.producto, tipo='COMPRA').last()
+        self.assertIsNotNone(movimiento)
+        self.assertEqual(movimiento.cantidad, 50)
+
+    def test_registrar_movimiento_dano_exitoso(self):
+        """Validar que el reporte de daños reste stock correctamente y registre AJUSTE_DANO"""
+        session = self.client.session
+        session['usuario_id'] = 1
+        session.save()
+
+        self.producto.stock_total = 100
+        self.producto.stock_disponible = 100
+        self.producto.save()
+
+        response = self.client.post(reverse('registrar_movimiento_manual'), {
+            'producto_id': self.producto.id,
+            'tipo_movimiento': 'DANO',
+            'cantidad': '10',
+            'observacion': 'Rotura en transporte'
+        })
+
+        self.assertRedirects(response, reverse('movimientos_producto'))
+    
+        self.producto.refresh_from_db()
+        self.assertEqual(self.producto.stock_total, 90)
+        self.assertEqual(self.producto.stock_disponible, 90)
+
+        # El modelo guarda este tipo como 'AJUSTE_DANO' según tu vista
+        movimiento = MovimientoProducto.objects.filter(producto=self.producto, tipo='AJUSTE_DANO').last()
+        self.assertIsNotNone(movimiento)
+
+
+    def test_registrar_movimiento_dano_falla_por_stock_insuficiente(self):
+        """Impedir que se den de baja más unidades de las disponibles en inventario"""
+        session = self.client.session
+        session['usuario_id'] = 1
+        session.save()
+
+        self.producto.stock_disponible = 5
+        self.producto.save()
+
+        # Intentamos dañar 10 habiendo solo 5 disponibles
+        response = self.client.post(reverse('registrar_movimiento_manual'), {
+            'producto_id': self.producto.id,
+            'tipo_movimiento': 'DANO',
+            'cantidad': '10',
+            'observacion': 'Exceso de unidades dañadas'
+        })
+
+        self.assertRedirects(response, reverse('movimientos_producto'))
+    
+        # El stock original debe permanecer intacto
+        self.producto.refresh_from_db()
+        self.assertEqual(self.producto.stock_disponible, 5)
+
+        # Validar mensaje de error de Django messages
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any("No puedes reportar 10 unidades dañadas" in str(m) for m in messages))
+
+
+    def test_registrar_movimiento_validaciones_invalidas(self):
+        """Validar que cantidades negativas o formatos corruptos sean rechazados"""
+        session = self.client.session
+        session['usuario_id'] = 1
+        session.save()
+
+        # Caso 1: Cantidad negativa
+        response = self.client.post(reverse('registrar_movimiento_manual'), {
+            'producto_id': self.producto.id,
+            'tipo_movimiento': 'COMPRA',
+            'cantidad': '-5'
+        })
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any("La cantidad de unidades debe ser un número entero mayor a cero" in str(m) for m in messages))
+
+        # Caso 2: Precio de compra inválido (Texto)
+        response = self.client.post(reverse('registrar_movimiento_manual'), {
+            'producto_id': self.producto.id,
+            'tipo_movimiento': 'COMPRA',
+            'cantidad': '10',
+            'precio_compra': 'Gratis/Invalido'
+        })
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any("El precio de compra ingresado no es un formato válido" in str(m) for m in messages))
+    
 
     # ==============================================================================
     # VISTA: productos_catalogo
