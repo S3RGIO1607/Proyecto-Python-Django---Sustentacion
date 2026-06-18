@@ -222,6 +222,10 @@ class InventarioTestCase(TestCase):
     
     def test_interfaz_registro_manual_anonimo_redirecciona(self):
         """Garantizar que si no hay sesión activa, redirija al login"""
+        # Limpiamos la sesión inyectada por el setUp para simular un usuario anónimo
+        session = self.client.session
+        session.flush()  # Borra todas las variables de sesión del cliente de pruebas
+        
         response = self.client.get(reverse('interfaz_registro_manual'))
         self.assertRedirects(response, reverse('iniciar_sesion'))
 
