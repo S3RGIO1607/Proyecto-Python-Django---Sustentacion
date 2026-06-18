@@ -233,8 +233,8 @@ class InventarioTestCase(TestCase):
         session.save()
 
         # Aseguramos que existan productos en la BD para el test
-        self.producto.estado = 'A'
-        self.producto.save()
+        self.producto_activo.estado = 'A'
+        self.producto_activo.save()
 
         response = self.client.get(reverse('interfaz_registro_manual'))
         self.assertEqual(response.status_code, 200)
@@ -249,14 +249,14 @@ class InventarioTestCase(TestCase):
         session.save()
 
         # Valores iniciales de control
-        self.producto.stock_total = 100
-        self.producto.stock_disponible = 100
-        self.producto.precio_compra = 100000
-        self.producto.save()
+        self.producto_activo.stock_total = 100
+        self.producto_activo.stock_disponible = 100
+        self.producto_activo.precio_compra = 100000
+        self.producto_activo.save()
 
         # Enviamos una COMPRA con un nuevo precio de adquisición de 200,000
         response = self.client.post(reverse('registrar_movimiento_manual'), {
-            'producto_id': self.producto.id,
+            'producto_id': self.producto_activo.id,
             'tipo_movimiento': 'COMPRA',
             'cantidad': '50',
             'precio_compra': '200000',
@@ -266,15 +266,15 @@ class InventarioTestCase(TestCase):
         self.assertRedirects(response, reverse('movimientos_producto'))
     
         # Recargamos de la BD y validamos cambios en cascada
-        self.producto.refresh_from_db()
-        self.assertEqual(self.producto.stock_total, 150)
-        self.assertEqual(self.producto.stock_disponible, 150)
-        self.assertEqual(self.producto.precio_compra, 200000)
+        self.producto_activo.refresh_from_db()
+        self.assertEqual(self.producto_activo.stock_total, 150)
+        self.assertEqual(self.producto_activo.stock_disponible, 150)
+        self.assertEqual(self.producto_activo.precio_compra, 200000)
         # Regla de negocio: 15% de 200,000 = 30,000
-        self.assertEqual(self.producto.precio_alquiler, 30000)
+        self.assertEqual(self.producto_activo.precio_alquiler, 30000)
     
         # Validar creación del historial
-        movimiento = MovimientoProducto.objects.filter(producto=self.producto, tipo='COMPRA').last()
+        movimiento = MovimientoProducto.objects.filter(producto=self.producto_activo, tipo='COMPRA').last()
         self.assertIsNotNone(movimiento)
         self.assertEqual(movimiento.cantidad, 50)
 
@@ -284,12 +284,12 @@ class InventarioTestCase(TestCase):
         session['usuario_id'] = 1
         session.save()
 
-        self.producto.stock_total = 100
-        self.producto.stock_disponible = 100
-        self.producto.save()
+        self.producto_activo.stock_total = 100
+        self.producto_activo.stock_disponible = 100
+        self.producto_activo.save()
 
         response = self.client.post(reverse('registrar_movimiento_manual'), {
-            'producto_id': self.producto.id,
+            'producto_id': self.producto_activo.id,
             'tipo_movimiento': 'DANO',
             'cantidad': '10',
             'observacion': 'Rotura en transporte'
@@ -297,12 +297,12 @@ class InventarioTestCase(TestCase):
 
         self.assertRedirects(response, reverse('movimientos_producto'))
     
-        self.producto.refresh_from_db()
-        self.assertEqual(self.producto.stock_total, 90)
-        self.assertEqual(self.producto.stock_disponible, 90)
+        self.producto_activo.refresh_from_db()
+        self.assertEqual(self.producto_activo.stock_total, 90)
+        self.assertEqual(self.producto_activo.stock_disponible, 90)
 
         # El modelo guarda este tipo como 'AJUSTE_DANO' según tu vista
-        movimiento = MovimientoProducto.objects.filter(producto=self.producto, tipo='AJUSTE_DANO').last()
+        movimiento = MovimientoProducto.objects.filter(producto=self.producto_activo, tipo='AJUSTE_DANO').last()
         self.assertIsNotNone(movimiento)
 
 
@@ -312,12 +312,12 @@ class InventarioTestCase(TestCase):
         session['usuario_id'] = 1
         session.save()
 
-        self.producto.stock_disponible = 5
-        self.producto.save()
+        self.producto_activo.stock_disponible = 5
+        self.producto_activo.save()
 
         # Intentamos dañar 10 habiendo solo 5 disponibles
         response = self.client.post(reverse('registrar_movimiento_manual'), {
-            'producto_id': self.producto.id,
+            'producto_id': self.producto_activo.id,
             'tipo_movimiento': 'DANO',
             'cantidad': '10',
             'observacion': 'Exceso de unidades dañadas'
@@ -326,8 +326,8 @@ class InventarioTestCase(TestCase):
         self.assertRedirects(response, reverse('movimientos_producto'))
     
         # El stock original debe permanecer intacto
-        self.producto.refresh_from_db()
-        self.assertEqual(self.producto.stock_disponible, 5)
+        self.producto_activo.refresh_from_db()
+        self.assertEqual(self.producto_activo.stock_disponible, 5)
 
         # Validar mensaje de error de Django messages
         messages = list(get_messages(response.wsgi_request))
@@ -342,7 +342,7 @@ class InventarioTestCase(TestCase):
 
         # Caso 1: Cantidad negativa
         response = self.client.post(reverse('registrar_movimiento_manual'), {
-            'producto_id': self.producto.id,
+            'producto_id': self.producto_activo.id,
             'tipo_movimiento': 'COMPRA',
             'cantidad': '-5'
         })
@@ -351,7 +351,7 @@ class InventarioTestCase(TestCase):
 
         # Caso 2: Precio de compra inválido (Texto)
         response = self.client.post(reverse('registrar_movimiento_manual'), {
-            'producto_id': self.producto.id,
+            'producto_id': self.producto_activo.id,
             'tipo_movimiento': 'COMPRA',
             'cantidad': '10',
             'precio_compra': 'Gratis/Invalido'
