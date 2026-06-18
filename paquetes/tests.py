@@ -73,7 +73,7 @@ class PaquetesTestCase(TestCase):
 
 
     # ==============================================================================
-    # VISTA: registrar_paquete (Camino Feliz y Restricciones)
+    # VISTA: registrar_paquete  
     # ==============================================================================
     def test_registrar_paquete_exitoso_calcula_valores(self):
         """Camino Feliz: Crear paquete, verificar cálculos automáticos de precio y depósito"""
