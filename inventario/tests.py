@@ -95,7 +95,7 @@ class InventarioTestCase(TestCase):
         """Verificar acceso a la interfaz limpia de registro"""
         response = self.client.get(reverse('mostrar_registro_producto'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'producto/crear.html')
+        self.assertTemplateUsed(response, 'Producto/crear.html')
 
 
     # ==============================================================================
@@ -146,7 +146,7 @@ class InventarioTestCase(TestCase):
         """Verificar que traiga los datos actuales del producto al formulario de edición"""
         response = self.client.get(reverse('pre_editar_producto', args=[self.producto_activo.id]))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'producto/editar.html')
+        self.assertTemplateUsed(response, 'Producto/editar.html')
 
 
     # ==============================================================================
@@ -217,7 +217,7 @@ class InventarioTestCase(TestCase):
         response = self.client.get(reverse('movimientos_producto'))
         
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'producto/movimientos.html')
+        self.assertTemplateUsed(response, 'Producto/movimientos.html')
 
     
     def test_interfaz_registro_manual_anonimo_redirecciona(self):
