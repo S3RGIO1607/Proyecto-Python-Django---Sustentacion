@@ -2,6 +2,28 @@
 {% load humanize %}
 
 {% block content %}
+<style>
+    /* Estilos Premium para las Tarjetas de Servicios Tercerizados */
+    .service-card-premium {
+        background: white;
+        border-radius: 1.5rem;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02), 0 4px 6px -4px rgba(0, 0, 0, 0.02);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .service-card-premium:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.08);
+        border-color: #dbeafe;
+    }
+    .data-pill {
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        border-radius: 0.75rem;
+        padding: 0.5rem 0.75rem;
+    }
+</style>
+
 <div class="max-w-7xl mx-auto px-6 py-10">
     
     <div class="text-center mb-10">
@@ -19,27 +41,92 @@
 
     <div id="tab-servicios" class="tab-content animate-in">
         <div class="flex justify-between items-center mb-6 px-4">
-            <h2 class="text-xl font-black italic">Servicios Adicionales</h2>
+            <div>
+                <h2 class="text-xl font-black italic text-blue-600">Servicios Adicionales</h2>
+                <p class="text-xs text-slate-400 font-bold uppercase tracking-tight">Catálogo de operación externa y tercerizada</p>
+            </div>
             <a href="{% url 'mostrar_registro_servicio' %}" class="bg-blue-600 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase hover:bg-blue-700 transition shadow-lg shadow-blue-200">Añadir Servicio</a>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {% for s in servicios %}
-            <div class="premium-card p-6 bg-white flex justify-between items-center group {% if s.estado == 'I' %}opacity-50 grayscale{% endif %}">
-                <div>
-                    <p class="font-black text-gray-800 group-hover:text-blue-600 transition-colors">
-                        {{ s.nombre }} 
-                        {% if s.estado == 'I' %}<span class="text-[7px] bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded ml-1 font-black">INACTIVO</span>{% endif %}
+            <div class="service-card-premium overflow-hidden flex flex-col justify-between group {% if s.estado == 'I' %}opacity-50 grayscale{% endif %}">
+                
+                <div class="p-6 border-b border-slate-50 bg-slate-50/50 flex justify-between items-start">
+                    <div class="flex-1 min-w-0 pr-4">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md font-black uppercase tracking-wider">ID: {{ s.id }}</span>
+                            {% if s.estado == 'I' %}
+                                <span class="text-[9px] bg-red-100 text-red-600 px-2 py-0.5 rounded-md font-black uppercase tracking-wider">Inactivo</span>
+                            {% else %}
+                                <span class="text-[9px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-md font-black uppercase tracking-wider">Activo</span>
+                            {% endif %}
+                        </div>
+                        <h3 class="font-black text-lg text-slate-800 truncate group-hover:text-blue-600 transition-colors uppercase">
+                            {{ s.nombre_servicio }}
+                        </h3>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 bg-white p-2 rounded-xl border border-slate-100 shadow-sm">
+                        <a href="{% url 'pre_editar_servicio' s.id %}" title="Editar Registro">
+                            <i class="fa-solid fa-pen text-slate-400 hover:text-blue-500 text-xs transition-colors"></i>
+                        </a>
+                        <a href="{% url 'cambiar_estado_catalogo' 'servicio' s.id %}" title="Alternar Visibilidad">
+                            <i class="fa-solid {% if s.estado == 'A' %}fa-toggle-on text-blue-500{% else %}fa-toggle-off text-slate-300{% endif %} text-sm transition-colors"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="p-6 flex-1">
+                    <p class="text-xs text-slate-500 font-medium leading-relaxed mb-4 italic">
+                        "{{ s.descripcion|default:"Sin descripción detallada registrada." }}"
                     </p>
-                    <p class="text-xs text-gray-400 font-bold">${{ s.precio|floatformat:0|intcomma }}</p>
+
+                    <div class="bg-blue-50/40 rounded-xl p-4 border border-blue-50/60 mb-4">
+                        <div class="text-[9px] font-black text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-1">
+                            <i class="fa-solid fa-handshake"></i> Proveedor Asociado
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-bold block">Empresa / NIT</span>
+                                <span class="font-bold text-slate-700 truncate block">
+                                    {{ s.nombre_empresa_externa }} <span class="text-[10px] text-slate-400 font-normal">({{ s.nit_o_cedula_proveedor }})</span>
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 font-bold block">Especialista / Teléfono</span>
+                                <span class="font-bold text-slate-700 truncate block">
+                                    {{ s.nombre_proveedor }} <span class="text-[10px] text-blue-500 font-bold block"><i class="fa-solid fa-phone text-[9px]"></i> {{ s.telefono_proveedor }}</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="data-pill">
+                            <span class="text-[9px] text-slate-400 font-black uppercase block">Costo Base</span>
+                            <span class="text-xs font-black text-slate-600">${{ s.costo_proveedor|floatformat:0|intcomma }}</span>
+                        </div>
+                        <div class="data-pill bg-blue-50/20 border-blue-100">
+                            <span class="text-[9px] text-blue-600 font-black uppercase block">Tarifa Evento</span>
+                            <span class="text-xs font-black text-blue-600">${{ s.precio_servicio|floatformat:0|intcomma }}</span>
+                        </div>
+                        <div class="data-pill bg-emerald-50/50 border-emerald-100">
+                            <span class="text-[9px] text-emerald-600 font-black uppercase block">Margen (Utility)</span>
+                            <span class="text-xs font-black text-emerald-600">
+                                {% widthratio s.precio_servicio|add:0 s.costo_proveedor|add:0 1 as diff %}
+                                ${{ s.precio_servicio|doc_sub:s.costo_proveedor|default_if_none:""|floatformat:0|intcomma }}
+                                <span class="text-[8px] font-bold block text-slate-400">Arron Setup</span>
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex gap-4">
-                    <a href="{% url 'pre_editar_servicio' s.id %}" title="Editar">
-                        <i class="fa-solid fa-pen text-gray-300 hover:text-blue-500 cursor-pointer text-xs transition-colors"></i>
-                    </a>
-                    <a href="{% url 'cambiar_estado_catalogo' 'servicio' s.id %}" title="Cambiar Estado">
-                        <i class="fa-solid {% if s.estado == 'A' %}fa-toggle-on text-blue-500{% else %}fa-toggle-off text-gray-300{% endif %} cursor-pointer text-sm transition-colors"></i>
-                    </a>
-                </div>
+
+            </div>
+            {% empty %}
+            <div class="col-span-full bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-12 text-center">
+                <i class="fa-solid fa-folder-open text-4xl text-slate-300 mb-3"></i>
+                <p class="text-sm font-bold text-slate-400 uppercase">No hay servicios adicionales registrados en el catálogo.</p>
             </div>
             {% endfor %}
         </div>

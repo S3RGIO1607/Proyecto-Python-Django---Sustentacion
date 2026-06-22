@@ -8,7 +8,7 @@
         border-radius: 2rem; 
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
         border: 1px solid #f1f5f9;
-        max-width: 600px;
+        max-width: 650px; /* Incrementado ligeramente para dar aire a las secciones dobles */
         margin: 2rem auto;
         overflow: hidden;
     }
@@ -33,6 +33,20 @@
 
     .form-content {
         padding: 2.5rem;
+    }
+
+    .section-divider {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #2563eb;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin: 2rem 0 1.2rem 0;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px dashed #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .label-style {
@@ -66,7 +80,6 @@
         box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.06);
     }
 
-    /* Pseudo-clases nativas para feedback visual sutil */
     .input-style:user-invalid {
         border-color: #ef4444;
         background-color: #fef2f2;
@@ -159,15 +172,19 @@
                 <i class="fa-solid fa-bell-concierge text-2xl text-white"></i>
             </div>
             <h1 class="text-2xl font-black tracking-tighter uppercase">
-                Nuevo <span class="opacity-80">Servicio</span>
+                Nuevo <span class="opacity-80">Servicio Tercerizado</span>
             </h1>
-            <p class="text-blue-100 text-[10px] font-bold uppercase tracking-widest mt-1">Configuración de catálogo global</p>
+            <p class="text-blue-100 text-[10px] font-bold uppercase tracking-widest mt-1">Configuración de catálogo y trazabilidad externa</p>
         </div>
 
         <form action="{% url 'registrar_servicio' %}" method="post" class="form-content">
             {% csrf_token %}
             
-            <div class="mb-6">
+            <div class="section-divider">
+                <i class="fa-solid fa-circle-info"></i> Información Comercial del Servicio
+            </div>
+
+            <div class="mb-4">
                 <label class="label-style">
                     <span><i class="fa-solid fa-tag mr-2 text-blue-500"></i> Nombre del Servicio</span>
                 </label>
@@ -176,7 +193,7 @@
                        id="txt_nombre"
                        value="{{ valores_previos.nombre|default:'' }}"
                        class="input-style" 
-                       placeholder="Ej: Luces de Neón"
+                       placeholder="Ej: Fotografía Profesional"
                        minlength="2"
                        maxlength="50"
                        pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$"
@@ -184,7 +201,7 @@
                        required>
             </div>
 
-            <div class="mb-6">
+            <div class="mb-4">
                 <label class="label-style">
                     <span><i class="fa-solid fa-quote-left mr-2 text-blue-500"></i> Descripción detallada</span>
                     <span id="counter-descripcion" class="char-counter">0 / 250</span>
@@ -192,28 +209,109 @@
                 <textarea name="txt_descripcion" 
                           id="txt_descripcion"
                           class="input-style" 
-                          rows="4" 
+                          rows="3" 
                           placeholder="Describe qué incluye este servicio de manera detallada (mínimo 20 caracteres)..."
                           minlength="20"
                           maxlength="250"
                           required>{{ valores_previos.descripcion|default:'' }}</textarea>
             </div>
 
-            <div class="mb-8">
-                <label class="label-style">
-                    <span><i class="fa-solid fa-circle-dollar-to-slot mr-2 text-blue-500"></i> Costo del Servicio</span>
-                </label>
-                <div class="price-wrapper">
-                    <input type="number" 
-                        step="1" 
-                        min="0"
-                        name="txt_precio" 
-                        value="{{ valores_previos.precio|default:'' }}"
-                        class="input-style" 
-                        placeholder="0"
-                        title="Ingrese un valor entero sin decimales y mayor o igual a 0"
-                        onkeypress="return event.charCode >= 48 && event.charCode <= 57"
-                    required>
+            <div class="section-divider">
+                <i class="fa-solid fa-handshake"></i> Datos de la Empresa / Especialista Externo
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="label-style">
+                        <span><i class="fa-solid fa-building mr-2 text-blue-500"></i> Empresa (Opcional)</span>
+                    </label>
+                    <input type="text" 
+                           name="txt_empresa_externa" 
+                           value="{{ valores_previos.empresa_externa|default:'' }}"
+                           class="input-style" 
+                           placeholder="Ej: Sonido Bogotá S.A.S.">
+                </div>
+                <div>
+                    <label class="label-style">
+                        <span><i class="fa-solid fa-id-card mr-2 text-blue-500"></i> NIT o Cédula</span>
+                    </label>
+                    <input type="text" 
+                           name="txt_nit_proveedor" 
+                           value="{{ valores_previos.nit_proveedor|default:'' }}"
+                           class="input-style" 
+                           placeholder="Ej: 901234567-1"
+                           pattern="^[A-Za-z0-9\-]{5,20}$"
+                           title="Debe tener entre 5 y 20 caracteres alfanuméricos (se admiten guiones)."
+                           required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="label-style">
+                        <span><i class="fa-solid fa-user-tie mr-2 text-blue-500"></i> Contacto Responsable</span>
+                    </label>
+                    <input type="text" 
+                           name="txt_nombre_proveedor" 
+                           value="{{ valores_previos.nombre_proveedor|default:'' }}"
+                           class="input-style" 
+                           placeholder="Ej: Carlos Mendoza"
+                           pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{2,50}$"
+                           title="Debe ser estrictamente alfabético y poseer entre 2 y 50 letras."
+                           required>
+                </div>
+                <div>
+                    <label class="label-style">
+                        <span><i class="fa-solid fa-phone mr-2 text-blue-500"></i> Teléfono Directo</span>
+                    </label>
+                    <input type="text" 
+                           name="txt_telefono_proveedor" 
+                           value="{{ valores_previos.telefono_proveedor|default:'' }}"
+                           class="input-style" 
+                           placeholder="Ej: 3157654321"
+                           pattern="^\d{7,15}$"
+                           title="El teléfono debe contener únicamente números (entre 7 y 15 dígitos)."
+                           required>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <i class="fa-solid fa-chart-line"></i> Control de Costes y Precios
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <label class="label-style">
+                        <span><i class="fa-solid fa-money-bill-wave mr-2 text-emerald-600"></i> Costo del Proveedor</span>
+                    </label>
+                    <div class="price-wrapper">
+                        <input type="number" 
+                               step="1" 
+                               min="0"
+                               name="txt_costo_proveedor" 
+                               value="{{ valores_previos.costo_proveedor|default:'0' }}"
+                               class="input-style" 
+                               placeholder="Lo que cobra el externo"
+                               onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                               required>
+                    </div>
+                </div>
+                <div>
+                    <label class="label-style">
+                        <span><i class="fa-solid fa-circle-dollar-to-slot mr-2 text-blue-500"></i> Precio Venta Cliente</span>
+                    </label>
+                    <div class="price-wrapper">
+                        <input type="number" 
+                               step="1" 
+                               min="1"
+                               name="txt_precio" 
+                               value="{{ valores_previos.precio|default:'' }}"
+                               class="input-style" 
+                               placeholder="Lo que paga el cliente"
+                               title="Ingrese un valor entero sin decimales y mayor a 0"
+                               onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                               required>
+                    </div>
                 </div>
             </div>
 
@@ -239,16 +337,15 @@
             const longitud = textarea.value.length;
             counter.textContent = `${longitud} / 250`;
             
-            // Cambio estético del color del contador si no cumple el mínimo
             if (longitud < 20 && longitud > 0) {
-                counter.style.color = '#ef4444'; // Rojo aviso
+                counter.style.color = '#ef4444'; 
             } else {
-                counter.style.color = '#94a3b8'; // Gris por defecto
+                counter.style.color = '#94a3b8'; 
             }
         }
 
         textarea.addEventListener('input', actualizarContador);
-        actualizarContador(); // Ejecución inicial por si hay datos previos cargados
+        actualizarContador(); 
     });
 </script>
 {% endblock %}

@@ -147,7 +147,7 @@ def registrar_paquete(request):
             # Sumar precios de servicios agregados
             for sid in servicios_ids:
                 servicio = Servicio.objects.get(id=sid)
-                total += servicio.precio
+                total += servicio.precio_servicio
 
             # Cálculo automático del 15% de depósito
             deposito = total * Decimal('0.15')

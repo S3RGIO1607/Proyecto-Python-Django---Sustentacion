@@ -233,7 +233,7 @@
                 <h4 class="font-black text-slate-700 tracking-wide" style="font-size: 0.8rem; font-weight: 800;">INCLUYE BASE:</h4>
                 <ul class="mt-2" style="padding-left: 0; list-style: none; font-size: 0.88rem; line-height: 1.6;">
                     {% for ps in paquete.servicios_activos %}
-                    <li class="mb-1"><i class="fa-solid fa-check text-emerald-500 mr-2" style="color: #10b981; margin-right: 6px;"></i>{{ ps.servicio.nombre }}</li>
+                    <li class="mb-1"><i class="fa-solid fa-check text-emerald-500 mr-2" style="color: #10b981; margin-right: 6px;"></i>{{ ps.servicio.nombre_servicio }}</li>
                     {% endfor %}
                     {% for pp in paquete.productos_activos %}
                     <li class="mb-1"><i class="fa-solid fa-check text-emerald-500 mr-2" style="color: #10b981; margin-right: 6px;"></i>{{ pp.cantidad }}x {{ pp.producto.nombre_producto }}</li>
@@ -320,8 +320,8 @@
                 <div class="row-inputs" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
                     {% for servicio in servicios %}
                     <label class="servicio-item">
-                        <span class="font-semibold text-slate-700" style="font-size: 0.85rem;">{{ servicio.nombre }} (<strong>${{ servicio.precio|floatformat:0|intcomma }}</strong>)</span>
-                        <input type="checkbox" name="servicios" value="{{ servicio.id }}" data-precio="{{ servicio.precio }}">
+                        <span class="font-semibold text-slate-700" style="font-size: 0.85rem;">{{ servicio.nombre_servicio }} (<strong>${{ servicio.precio_servicio|floatformat:0|intcomma }}</strong>)</span>
+                        <input type="checkbox" name="servicios" value="{{ servicio.id }}" data-precio="{{ servicio.precio_servicio }}">
                     </label>
                     {% endfor %}
                 </div>

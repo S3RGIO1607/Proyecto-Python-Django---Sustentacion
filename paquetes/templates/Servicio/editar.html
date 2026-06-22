@@ -40,8 +40,22 @@
         padding: 2.5rem;
     }
 
+    .section-divider {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #2563eb;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin: 2rem 0 1.2rem 0;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px dashed #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
     .field-group {
-        margin-bottom: 1.8rem;
+        margin-bottom: 1.5rem;
     }
 
     .label-edit {
@@ -75,7 +89,6 @@
         box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.06);
     }
 
-    /* Pseudo-clase nativa para feedback visual en errores */
     .input-edit-style:user-invalid {
         border-color: #ef4444;
         background-color: #fef2f2;
@@ -84,7 +97,6 @@
     /* Input de Precio Especial */
     .price-input-container {
         position: relative;
-        max-width: 250px;
     }
 
     .price-symbol {
@@ -170,7 +182,7 @@
         
         <div class="edit-service-header">
             <span class="edit-badge">Editor de Catálogo</span>
-            <h1 class="text-3xl font-black uppercase tracking-tighter italic">Editar Servicio</h1>
+            <h1 class="text-3xl font-black uppercase tracking-tighter italic">Editar Servicio Tercerizado</h1>
             <div class="mt-4 flex justify-center items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-blue-100">
                 <span class="opacity-60">ID Interno:</span>
                 <span class="bg-white/10 px-2 py-1 rounded-md">{{ servicio.id }}</span>
@@ -183,6 +195,10 @@
 
             <div class="edit-form-body">
                 
+                <div class="section-divider" style="margin-top: 0;">
+                    <i class="fa-solid fa-circle-info"></i> Información Comercial
+                </div>
+
                 <div class="field-group">
                     <label class="label-edit">
                         <span><i class="fa-solid fa-signature mr-2 text-blue-500"></i> Nombre del Servicio</span>
@@ -190,7 +206,7 @@
                     <input type="text" 
                            id="nombre"
                            name="txt_nombre" 
-                           value="{{ servicio.nombre }}"
+                           value="{{ servicio.nombre_servicio }}"
                            class="input-edit-style" 
                            placeholder="Ej: Catering Master"
                            minlength="2"
@@ -208,47 +224,127 @@
                     <textarea id="descripcion"
                               name="txt_descripcion" 
                               class="input-edit-style" 
-                              rows="4" 
+                              rows="3" 
                               placeholder="Describe los alcances del servicio..."
                               minlength="20"
                               maxlength="250"
                               required>{{ servicio.descripcion }}</textarea>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="section-divider">
+                    <i class="fa-solid fa-handshake"></i> Proveedor Externo Responsable
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="field-group">
                         <label class="label-edit">
-                            <span><i class="fa-solid fa-tag mr-2 text-blue-500"></i> Tarifa Actual</span>
+                            <span><i class="fa-solid fa-building mr-2 text-blue-500"></i> Empresa</span>
+                        </label>
+                        <input type="text" 
+                               name="txt_empresa_externa" 
+                               value="{{ servicio.nombre_empresa_externa }}"
+                               class="input-edit-style" 
+                               placeholder="Ej: Alianzas Logísticas S.A.S.">
+                    </div>
+                    <div class="field-group">
+                        <label class="label-edit">
+                            <span><i class="fa-solid fa-id-card mr-2 text-blue-500"></i> NIT o Cédula</span>
+                        </label>
+                        <input type="text" 
+                               name="txt_nit_proveedor" 
+                               value="{{ servicio.nit_o_cedula_proveedor }}"
+                               class="input-edit-style" 
+                               placeholder="Ej: 900123456-2"
+                               pattern="^[A-Za-z0-9\-]{5,20}$"
+                               title="Debe tener entre 5 y 20 caracteres alfanuméricos."
+                               required>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="field-group">
+                        <label class="label-edit">
+                            <span><i class="fa-solid fa-user-tie mr-2 text-blue-500"></i> Especialista de Contacto</span>
+                        </label>
+                        <input type="text" 
+                               name="txt_nombre_proveedor" 
+                               value="{{ servicio.nombre_proveedor }}"
+                               class="input-edit-style" 
+                               placeholder="Ej: Juan Pérez"
+                               pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{2,50}$"
+                               title="Debe ser alfabético y poseer entre 2 y 50 caracteres."
+                               required>
+                    </div>
+                    <div class="field-group">
+                        <label class="label-edit">
+                            <span><i class="fa-solid fa-phone mr-2 text-blue-500"></i> Teléfono Directo</span>
+                        </label>
+                        <input type="text" 
+                               name="txt_telefono_proveedor" 
+                               value="{{ servicio.telefono_proveedor }}"
+                               class="input-edit-style" 
+                               placeholder="Ej: 3001234567"
+                               pattern="^\d{7,15}$"
+                               title="El teléfono debe contener únicamente números (entre 7 y 15 dígitos)."
+                               required>
+                    </div>
+                </div>
+
+                <div class="section-divider">
+                    <i class="fa-solid fa-chart-line"></i> Márgenes y Control Financiero
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="field-group">
+                        <label class="label-edit">
+                            <span><i class="fa-solid fa-money-bill-wave mr-2 text-emerald-600"></i> Costo del Proveedor</span>
                         </label>
                         <div class="price-input-container">
                             <span class="price-symbol">$</span>
                             <input type="number" 
                                    step="1" 
                                    min="0"
-                                   id="precio"
-                                   name="txt_precio" 
-                                   value="{{ servicio.precio|stringformat:'d' }}"
+                                   name="txt_costo_proveedor" 
+                                   value="{{ servicio.costo_proveedor|stringformat:'d' }}"
                                    class="input-edit-style" 
-                                   title="Ingrese un valor entero sin decimales ni símbolos negativos."
+                                   placeholder="0"
                                    onkeypress="return event.charCode >= 48 && event.charCode <= 57"
                                    required>
                         </div>
-                        <p class="text-[9px] text-slate-400 mt-3 font-bold uppercase tracking-tight">El precio se actualizará en el catálogo público</p>
                     </div>
 
                     <div class="field-group">
                         <label class="label-edit">
-                            <span><i class="fa-solid fa-toggle-on mr-2 text-blue-500"></i> Estado de Disponibilidad</span>
+                            <span><i class="fa-solid fa-circle-dollar-to-slot mr-2 text-blue-500"></i> Tarifa Cliente</span>
                         </label>
-                        <select id="estado"
-                                name="txt_estado"
-                                class="input-edit-style font-bold text-blue-600"
-                                required>
-                            <option value="A" {% if servicio.estado == 'A' %}selected{% endif %}>🟢 Activo / Visible</option>
-                            <option value="I" {% if servicio.estado == 'I' %}selected{% endif %}>🔴 Inactivo / Oculto</option>
-                        </select>
-                        <p class="text-[9px] text-slate-400 mt-3 font-bold uppercase tracking-tight">Controla si los clientes pueden ver este servicio</p>
+                        <div class="price-input-container">
+                            <span class="price-symbol">$</span>
+                            <input type="number" 
+                                   step="1" 
+                                   min="1"
+                                   id="precio"
+                                   name="txt_precio" 
+                                   value="{{ servicio.precio_servicio|stringformat:'d' }}"
+                                   class="input-edit-style" 
+                                   placeholder="0"
+                                   title="Ingrese un valor entero sin decimales y mayor a cero."
+                                   onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+                                   required>
+                        </div>
                     </div>
+                </div>
+
+                <div class="field-group mt-2">
+                    <label class="label-edit">
+                        <span><i class="fa-solid fa-toggle-on mr-2 text-blue-500"></i> Estado de Disponibilidad</span>
+                    </label>
+                    <select id="estado"
+                            name="txt_estado"
+                            class="input-edit-style font-bold text-blue-600"
+                            required>
+                        <option value="A" {% if servicio.estado == 'A' %}selected{% endif %}>🟢 Activo / Visible en Catálogo</option>
+                        <option value="I" {% if servicio.estado == 'I' %}selected{% endif %}>🔴 Inactivo / Oculto del Sistema</option>
+                    </select>
                 </div>
 
             </div>
@@ -276,14 +372,14 @@
             counter.textContent = `${longitud} / 250`;
             
             if (longitud < 20 && longitud > 0) {
-                counter.style.color = '#ef4444'; // Alerta visual roja
+                counter.style.color = '#ef4444'; 
             } else {
-                counter.style.color = '#94a3b8'; // Estado normal
+                counter.style.color = '#94a3b8'; 
             }
         }
 
         textarea.addEventListener('input', actualizarContador);
-        actualizarContador(); // Inicialización con los datos cargados desde la Base de Datos
+        actualizarContador(); 
     });
 </script>
 {% endblock %}

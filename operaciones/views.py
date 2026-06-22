@@ -154,7 +154,7 @@ def registrar_reserva(request):
                         reserva=reserva,
                         servicio=servicio,
                         cantidad=cantidad,
-                        precio_fijado=servicio.precio
+                        precio_fijado=servicio.precio_servicio
                     )
             except:
                 continue
@@ -241,7 +241,7 @@ def editar_reserva(request, id):
                     reserva=reserva,
                     servicio=servicio,
                     cantidad=cantidad,
-                    precio_fijado=servicio.precio
+                    precio_fijado=servicio.precio_servicio
                 )
 
         # 🔥 RECALCULAR
@@ -399,7 +399,7 @@ def crear_reserva_cliente(request, paquete_id):
                     ReservaServicio.objects.create(
                         reserva=reserva, 
                         servicio=servicio,
-                        precio_fijado=servicio.precio, 
+                        precio_fijado=servicio.precio_servicio, 
                         cantidad=1
                     )
 
@@ -1112,7 +1112,7 @@ def descargar_comprobante_pdf(request, tipo, obj_id):
         # 2. Añadimos servicios extra si existen
         for serv in obj.servicios_extra.all():
             detalles_normalizados.append({
-                'nombre': f"Servicio: {serv.servicio.nombre}",
+                'nombre': f"Servicio: {serv.servicio.nombre_servicio}",
                 'cantidad': serv.cantidad,
                 'precio_unit': serv.precio_fijado,
                 'subtotal': serv.subtotal()
