@@ -395,22 +395,37 @@ def mostrar_registro_servicio(request):
     return render(request, 'Servicio/crear.html')
 
 def registrar_servicio(request):
+    if "usuario_id" not in request.session:
+        return redirect("iniciar_sesion")
+
     if request.method == "POST":
+        # Captura de campos tradicionales
         nombre = request.POST.get('txt_nombre', '').strip()
         descripcion = request.POST.get('txt_descripcion', '').strip()
         precio_raw = request.POST.get('txt_precio', '').strip()
 
-        # Almacenamos valores previos por si toca recargar la vista debido a un error
+        # === CAPTURA DE LOS NUEVOS CAMPOS EXTENDIDOS ===
+        empresa_externa = request.POST.get('txt_empresa_externa', '').strip()
+        nombre_proveedor = request.POST.get('txt_nombre_proveedor', '').strip()
+        telefono_proveedor = request.POST.get('txt_telefono_proveedor', '').strip()
+        nit_proveedor = request.POST.get('txt_nit_proveedor', '').strip()
+        costo_proveedor_raw = request.POST.get('txt_costo_proveedor', '0').strip()
+
+        # Almacenamos todos los valores previos por si toca recargar la vista debido a un error
         valores_previos = {
             'nombre': nombre,
             'descripcion': descripcion,
-            'precio': precio_raw
+            'precio': precio_raw,
+            'empresa_externa': empresa_externa,
+            'nombre_proveedor': nombre_proveedor,
+            'telefono_proveedor': telefono_proveedor,
+            'nit_proveedor': nit_proveedor,
+            'costo_proveedor': costo_proveedor_raw
         }
 
-        # 1. VALIDACIÓN: Nombre (Letras y espacios, 2 a 50 caracteres)
-        # ^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{2,50}$
+        # 1. VALIDACIÓN: Nombre del Servicio (Letras y espacios, 2 a 50 caracteres)
         if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{2,50}$', nombre):
-            messages.error(request, "El nombre debe ser estrictamente alfabético y tener entre 2 y 50 caracteres.")
+            messages.error(request, "El nombre del servicio debe ser estrictamente alfabético y tener entre 2 y 50 caracteres.")
             return render(request, 'Servicio/crear.html', {'valores_previos': valores_previos})
 
         # 2. VALIDACIÓN: Descripción (Longitud entre 20 y 250 caracteres)
@@ -418,24 +433,63 @@ def registrar_servicio(request):
             messages.error(request, "La descripción debe tener una extensión obligatoria de entre 20 y 250 caracteres.")
             return render(request, 'Servicio/crear.html', {'valores_previos': valores_previos})
 
-        # 3. VALIDACIÓN: Costo (Entero positivo)
+        # 3. VALIDACIÓN: Costo de Venta al Cliente (Entero positivo)
         try:
             precio = int(precio_raw)
-            if precio < 0:
+            if precio <= 0:  # Cambiado a <= 0 porque cobrar $0 por un servicio no tendría sentido comercial
                 raise ValueError
         except ValueError:
-            messages.error(request, "El costo del servicio debe ser un número entero válido no negativo.")
+            messages.error(request, "El precio del servicio al cliente debe ser un número entero válido mayor a cero.")
             return render(request, 'Servicio/crear.html', {'valores_previos': valores_previos})
 
-        # Si supera con éxito todos los filtros, persistimos la información
+        # ==============================================================================
+        # NUEVAS VALIDACIONES DE SEGURIDAD PARA EL PROVEEDOR EXTERNO
+        # ==============================================================================
+
+        # 4. VALIDACIÓN: Nombre del Especialista / Responsable (Misma regex del nombre de servicio)
+        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{2,50}$', nombre_proveedor):
+            messages.error(request, "El nombre del especialista/proveedor debe ser alfabético y tener entre 2 y 50 caracteres.")
+            return render(request, 'Servicio/crear.html', {'valores_previos': valores_previos})
+
+        # 5. VALIDACIÓN: Teléfono de Contacto (Solo números, entre 7 y 15 dígitos para fijos o celulares)
+        if not re.match(r'^\d{7,15}$', telefono_proveedor):
+            messages.error(request, "El teléfono de contacto debe contener únicamente números y tener entre 7 y 15 dígitos.")
+            return render(request, 'Servicio/crear.html', {'valores_previos': valores_previos})
+
+        # 6. VALIDACIÓN: NIT o Cédula (Alfanumérico con guiones permitidos opcionalmente, ej: 901234567-1 o 1023456)
+        if not re.match(r'^[A-Za-z0-9\-]{5,20}$', nit_proveedor):
+            messages.error(request, "El documento Identificador/NIT del proveedor no es válido (Debe tener entre 5 y 20 caracteres).")
+            return render(request, 'Servicio/crear.html', {'valores_previos': valores_previos})
+
+        # 7. VALIDACIÓN: Costo del Proveedor (Entero no negativo) y Margen de Utilidad
+        try:
+            costo_proveedor = int(costo_proveedor_raw)
+            if costo_proveedor < 0:
+                raise ValueError
+            
+            # Validación de Regla Logística Crítica: No puedes cobrarle al cliente menos de lo que te cuesta el externo
+            if precio < costo_proveedor:
+                messages.error(request, "Error Financiero: El precio de venta al cliente no puede ser menor que el costo cobrado por el proveedor.")
+                return render(request, 'Servicio/crear.html', {'valores_previos': valores_previos})
+        except ValueError:
+            messages.error(request, "El costo interno del proveedor debe ser un número entero válido no negativo.")
+            return render(request, 'Servicio/crear.html', {'valores_previos': valores_previos})
+
+        # Si supera con éxito absolutamente todos los filtros, persistimos la información expandida
+        # Ajusta los nombres de los atributos de la derecha si en tu archivo models.py los llamaste diferente
         Servicio.objects.create(
-            nombre=nombre,
+            nombre_servicio=nombre,          # O como esté mapeado en tu modelo original (nombre o nombre_servicio)
             descripcion=descripcion,
-            precio=precio,
+            precio_servicio=precio,          # O precio
+            nombre_empresa_externa=empresa_externa if empresa_externa else "Independiente",
+            nombre_proveedor=nombre_proveedor,
+            telefono_proveedor=telefono_proveedor,
+            nit_o_cedula_proveedor=nit_proveedor,
+            costo_proveedor=costo_proveedor,
             estado='A'
         )
         
-        messages.success(request, "Servicio registrado exitosamente en el catálogo global.")
+        messages.success(request, f"Servicio externo '{nombre}' registrado exitosamente con trazabilidad de proveedor.")
         return redirect('gestionar_catalogos')
         
     return render(request, 'Servicio/crear.html')
@@ -451,12 +505,22 @@ def pre_editar_servicio(request, id):
     })
 
 def editar_servicio(request):
+    if "usuario_id" not in request.session:
+        return redirect("iniciar_sesion")
+
     if request.method == "POST":
         id_servicio = request.POST.get('txt_id')
         nombre = request.POST.get('txt_nombre', '').strip()
         descripcion = request.POST.get('txt_descripcion', '').strip()
         precio_raw = request.POST.get('txt_precio', '').strip()
         estado = request.POST.get('txt_estado')
+
+        # === NUEVA CAPTURA DE CAMPOS EXTENDIDOS DEL PROVEEDOR ===
+        empresa_externa = request.POST.get('txt_empresa_externa', '').strip()
+        nombre_proveedor = request.POST.get('txt_nombre_proveedor', '').strip()
+        telefono_proveedor = request.POST.get('txt_telefono_proveedor', '').strip()
+        nit_proveedor = request.POST.get('txt_nit_proveedor', '').strip()
+        costo_proveedor_raw = request.POST.get('txt_costo_proveedor', '0').strip()
 
         # Buscamos el registro real de la base de datos
         try:
@@ -466,14 +530,22 @@ def editar_servicio(request):
             return redirect('gestionar_catalogos')
 
         # Asignamos temporalmente los datos ingresados al objeto para no perderlos si falla algo
-        servicio.nombre = nombre
+        # Ajusta el nombre de los atributos de la izquierda si en tu models.py difieren
+        servicio.nombre_servicio = nombre  # O servicio.nombre según tu modelo original
         servicio.descripcion = descripcion
-        servicio.precio = precio_raw  # Se mantiene la string temporalmente para el renderizado
+        servicio.precio_servicio = precio_raw  # Se mantiene la string temporalmente para el renderizado
         servicio.estado = estado
+        
+        # Asignación temporal de campos del proveedor
+        servicio.nombre_empresa_externa = empresa_externa if empresa_externa else "Independiente"
+        servicio.nombre_proveedor = nombre_proveedor
+        servicio.telefono_proveedor = telefono_proveedor
+        servicio.nit_o_cedula_proveedor = nit_proveedor
+        servicio.costo_proveedor = costo_proveedor_raw  # Se mantiene string para renderizado por si falla
 
         # 1. VALIDACIÓN: Nombre alfabético (2 a 50 caracteres)
         if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{2,50}$', nombre):
-            messages.error(request, "Error al actualizar: El nombre debe poseer solo caracteres alfabéticos (entre 2 y 50 letras).")
+            messages.error(request, "Error al actualizar: El nombre del servicio debe poseer solo caracteres alfabéticos (entre 2 y 50 letras).")
             return render(request, 'Servicio/editar.html', {'servicio': servicio})
 
         # 2. VALIDACIÓN: Descripción (Extensión entre 20 y 250)
@@ -481,19 +553,55 @@ def editar_servicio(request):
             messages.error(request, "Error al actualizar: La descripción tiene que cumplir obligatoriamente entre 20 y 250 caracteres.")
             return render(request, 'Servicio/editar.html', {'servicio': servicio})
 
-        # 3. VALIDACIÓN: Tarifa (Entero positivo)
+        # 3. VALIDACIÓN: Tarifa de Venta al Cliente (Entero positivo)
         try:
             precio_valido = int(precio_raw)
-            if precio_valido < 0:
+            if precio_valido <= 0:
                 raise ValueError
-            servicio.precio = precio_valido # Convertimos ahora sí a entero real
         except ValueError:
-            messages.error(request, "Error al actualizar: El costo debe ser un valor numérico entero y no negativo.")
+            messages.error(request, "Error al actualizar: El costo de venta al cliente debe ser un valor numérico entero mayor a cero.")
             return render(request, 'Servicio/editar.html', {'servicio': servicio})
 
-        # Guardado final seguro tras pasar todos los filtros
+        # ==============================================================================
+        # NUEVAS COMPUERTAS DE VALIDACIÓN: PROVEEDOR EXTERNO
+        # ==============================================================================
+
+        # 4. VALIDACIÓN: Nombre del Responsable Técnico
+        if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{2,50}$', nombre_proveedor):
+            messages.error(request, "Error al actualizar: El nombre del especialista/proveedor debe ser alfabético y tener entre 2 y 50 caracteres.")
+            return render(request, 'Servicio/editar.html', {'servicio': servicio})
+
+        # 5. VALIDACIÓN: Teléfono de Contacto (Solo dígitos, entre 7 y 15)
+        if not re.match(r'^\d{7,15}$', telefono_proveedor):
+            messages.error(request, "Error al actualizar: El teléfono de contacto debe contener únicamente números (entre 7 y 15 dígitos).")
+            return render(request, 'Servicio/editar.html', {'servicio': servicio})
+
+        # 6. VALIDACIÓN: Identificación de la Empresa o Persona (NIT / Cédula)
+        if not re.match(r'^[A-Za-z0-9\-]{5,20}$', nit_proveedor):
+            messages.error(request, "Error al actualizar: El documento o NIT del proveedor no posee un formato alfanumérico válido.")
+            return render(request, 'Servicio/editar.html', {'servicio': servicio})
+
+        # 7. VALIDACIÓN: Costo Interno y Margen Financiero
+        try:
+            costo_proveedor_valido = int(costo_proveedor_raw)
+            if costo_proveedor_valido < 0:
+                raise ValueError
+            
+            # Regla Crítica de Control de Pérdidas de Arron Eventos
+            if precio_valido < costo_proveedor_valido:
+                messages.error(request, "Error Financiero: El precio de venta al cliente no puede ser inferior al costo cobrado por el proveedor externo.")
+                return render(request, 'Servicio/editar.html', {'servicio': servicio})
+                
+        except ValueError:
+            messages.error(request, "Error al actualizar: El costo interno del proveedor debe ser un número entero válido no negativo.")
+            return render(request, 'Servicio/editar.html', {'servicio': servicio})
+
+        # === CONVERSIÓN Y GUARDADO DEFINITIVO TRAS PASAR LAS VALIDACIONES ===
+        servicio.precio_servicio = precio_valido  # O servicio.precio
+        servicio.costo_proveedor = costo_proveedor_valido
         servicio.save()
-        messages.success(request, f"Servicio #{id_servicio} actualizado correctamente en el sistema.")
+        
+        messages.success(request, f"Servicio #{id_servicio} ({nombre}) actualizado correctamente con trazabilidad de proveedor.")
         
     return redirect('gestionar_catalogos')
 

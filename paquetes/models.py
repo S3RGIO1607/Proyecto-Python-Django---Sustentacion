@@ -13,9 +13,16 @@ class Servicio(models.Model):
         ('I', 'Inactivo'),
     ]
 
-    nombre = models.CharField(max_length=255)
+    nombre_servicio = models.CharField(max_length=100)
     descripcion = models.TextField()
-    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    precio_servicio = models.DecimalField(max_digits=10, decimal_places=2)
+
+    nombre_empresa_externa = models.CharField(max_length=100, default="Independiente", verbose_name="Empresa Proveedora")
+    nombre_proveedor = models.CharField(max_length=100, default="Por Asignar", verbose_name="Nombre del Especialista / Contacto")
+    telefono_proveedor = models.CharField(max_length=15, default="0000000000", verbose_name="Teléfono de Contacto")
+    nit_o_cedula_proveedor = models.CharField(max_length=20, default="000000000", verbose_name="NIT o Cédula")
+
+    costo_proveedor = models.IntegerField(default=0, verbose_name="Lo que cobra el externo a Arron")
 
     estado = models.CharField(
         max_length=1,
@@ -24,7 +31,7 @@ class Servicio(models.Model):
     )
 
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre_servicio} ({self.nombre_empresa_externa})"
 
 
 # ---------------- PAQUETES ----------------
@@ -64,7 +71,7 @@ class Paquete(models.Model):
             total += pp.producto.precio_alquiler * pp.cantidad
 
         for ps in self.paqueteservicio_set.all():
-            total += ps.servicio.precio
+            total += ps.servicio.precio_servicio
 
         self.precio = total
 
@@ -104,5 +111,5 @@ class PaqueteServicio(models.Model):
         unique_together = ('paquete', 'servicio')
 
     def __str__(self):
-        return f'{self.paquete.nombre} - {self.servicio.nombre}'
+        return f'{self.paquete.nombre} - {self.servicio.nombre_servicio}'
     
