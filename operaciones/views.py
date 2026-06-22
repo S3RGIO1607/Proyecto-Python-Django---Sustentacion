@@ -1139,8 +1139,11 @@ def descargar_comprobante_pdf(request, tipo, obj_id):
 
 def gestionar_catalogos(request):
     # Traemos todos los datos de tus modelos existentes
+    servicios = Servicio.objects.all()
+    for s in servicios:
+        s.utilidad = (s.precio_servicio or 0) - (s.costo_proveedor or 0)
     context = {
-        'servicios': Servicio.objects.all(),
+        'servicios': servicios,
         'menus': MenuComida.objects.all(),
         'lugares': Lugar.objects.all(),
     }
