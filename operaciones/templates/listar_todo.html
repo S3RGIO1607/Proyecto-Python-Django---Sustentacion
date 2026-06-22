@@ -112,13 +112,12 @@
                             <span class="text-xs font-black text-blue-600">${{ s.precio_servicio|floatformat:0|intcomma }}</span>
                         </div>
                         <div class="data-pill bg-emerald-50/50 border-emerald-100">
-                            <span class="text-[9px] text-emerald-600 font-black uppercase block">Margen (Utility)</span>
-                            <span class="text-xs font-black text-emerald-600">
-                                {% widthratio s.precio_servicio|add:0 s.costo_proveedor|add:0 1 as diff %}
-                                ${{ s.precio_servicio|doc_sub:s.costo_proveedor|default_if_none:""|floatformat:0|intcomma }}
-                                <span class="text-[8px] font-bold block text-slate-400">Arron Setup</span>
-                            </span>
-                        </div>
+    <span class="text-[9px] text-emerald-600 font-black uppercase block">Margen (Utility)</span>
+    <span class="text-xs font-black text-emerald-600">
+        ${{ s.utilidad|floatformat:0|intcomma }}
+        <span class="text-[8px] font-bold block text-slate-400">Arron Setup</span>
+    </span>
+</div>
                     </div>
                 </div>
 
