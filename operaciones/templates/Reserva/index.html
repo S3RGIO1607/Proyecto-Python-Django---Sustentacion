@@ -249,7 +249,7 @@
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <form action="{% url 'cambiar_estado' ev.id 'Evento Activo' %}" method="POST">
-                                {% csrf_markdown %}
+                                {% csrf_token %}
                                 <div class="modal-body p-4" style="background-color: #f8fafc;">
                                     <p class="text-muted small mb-3">
                                         Para poder cambiar el estado del evento a <strong>"Evento Activo"</strong> y despachar los productos de inventario, debes asignar el organizador que supervisará la logística en sitio.
