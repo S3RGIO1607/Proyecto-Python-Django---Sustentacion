@@ -234,7 +234,7 @@
                 <i class="fa-solid fa-calendar-check text-amber-900"></i> Eventos a Cargo
             </h3>
             
-            {% for ev in usuario.reservaevento_set.all|dictsortreversed:"fecha_evento" %}
+            {% for ev in eventos_asignados %}
                 <div class="event-row">
                     <div>
                         <strong class="text-slate-700 block">Reserva #{{ ev.id }} - {{ ev.paquete.nombre }}</strong>
