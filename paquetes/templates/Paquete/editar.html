@@ -243,7 +243,7 @@
                     <div class="p-4 border-2 border-slate-100 rounded-2xl flex items-center gap-3 hover:border-[#541E12]/20 transition cursor-pointer">
                         <input type="checkbox" name="servicios_ids" id="srv-{{ s.id }}" value="{{ s.id }}" data-precio="{{ s.precio }}" {% if s.seleccionado %}checked{% endif %}>
                         <label for="srv-{{ s.id }}" class="text-sm font-bold text-slate-700 cursor-pointer">
-                            {{ s.nombre }}
+                            {{ s.nombre_servicio }}
                         </label>
                     </div>
                     {% endfor %}

@@ -187,7 +187,7 @@
             <div class="space-y-4 mt-2">
                 {% for ps in paquete.paqueteservicio_set.all %}
                 <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    <h3 class="font-bold text-slate-800 text-sm mb-1">{{ ps.servicio.nombre }}</h3>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1">{{ ps.servicio.nombre_servicio }}</h3>
                     <p class="text-xs text-slate-500 line-clamp-2">{{ ps.servicio.descripcion }}</p>
                 </div>
                 {% empty %}

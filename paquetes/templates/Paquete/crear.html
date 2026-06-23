@@ -144,7 +144,7 @@
                     <div class="checkbox-wrapper border border-slate-100 p-3 rounded-xl hover:border-[#541E12]/30">
                         <input type="checkbox" name="serviciosIds" id="s{{ s.id }}" value="{{ s.id }}" data-precio="{{ s.precio }}"
                                {% if s.id|stringformat:"i" in seleccionados_serv %}checked{% endif %}>
-                        <label for="s{{ s.id }}" class="text-sm font-semibold text-slate-600 cursor-pointer">{{ s.nombre }}</label>
+                        <label for="s{{ s.id }}" class="text-sm font-semibold text-slate-600 cursor-pointer">{{ s.nombre_servicio }}</label>
                     </div>
                     {% endfor %}
                 </div>
