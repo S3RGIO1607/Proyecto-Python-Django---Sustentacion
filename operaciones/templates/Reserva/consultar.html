@@ -205,8 +205,8 @@ body { font-family: 'Inter', sans-serif; background:var(--bg); }
                 <!-- CAMBIO AQUÍ: MOSTRAR EL ORGANIZADOR ASIGNADO -->
                 <div class="row" style="background-color: #f8fafc; margin-top: 5px; padding: 10px 5px; border-radius: 6px;">
                     <span>Organizador asignado</span>
-                    {% if reserva.organizador %}
-                        <strong style="color: var(--accent);">👤 {{ reserva.organizador.nombre }}</strong>
+                    {% if reserva.organizador_encargado %}
+                        <strong style="color: var(--accent);">👤 {{ reserva.organizador_encargado.nombre }}</strong>
                     {% else %}
                         <span class="text-muted" style="font-style: italic; font-size: 0.9rem;">Pendiente por asignar</span>
                     {% endif %}
