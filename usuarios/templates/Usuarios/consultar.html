@@ -9,6 +9,7 @@
             overflow: hidden;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
             border: 1px solid #f1f5f9;
+            margin-bottom: 2rem;
         }
 
         /* Cabecera del perfil */
@@ -93,9 +94,38 @@
             align-items: center;
         }
 
+        /* NUEVOS ESTILOS PARA LA LISTA DE EVENTOS */
+        .events-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f5f9;
+        }
+        
+        .event-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .event-row:last-child {
+            border-bottom: none;
+        }
+
+        .event-badge {
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
         /* Responsive */
         @media (max-width: 640px) {
             .info-grid { grid-template-columns: 1fr; }
+            .event-row { flex-direction: column; align-items: flex-start; gap: 8px; }
         }
 
         .contenedor-main { background: transparent !important; box-shadow: none !important; }
@@ -197,5 +227,43 @@
             </div>
 
         </div>
+
+        {% if usuario.rol.nombre == 'Organizador' %}
+        <div class="events-card">
+            <h3 class="text-xl font-extrabold text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-calendar-check text-amber-900"></i> Eventos a Cargo
+            </h3>
+            
+            {% for ev in usuario.reservaevento_set.all|dictsortreversed:"fecha_evento" %}
+                <div class="event-row">
+                    <div>
+                        <strong class="text-slate-700 block">Reserva #{{ ev.id }} - {{ ev.paquete.nombre }}</strong>
+                        <small class="text-slate-400">
+                            📅 {{ ev.fecha_evento|date:"d/m/Y" }} — 📍 {{ ev.lugar|default:"Por confirmar" }}
+                        </small>
+                    </div>
+                    
+                    <div class="flex items-center gap-4">
+                        {% if ev.estado == 'Evento Activo' %}
+                            <span class="event-badge bg-amber-100 text-amber-800">● En Curso</span>
+                        {% elif ev.estado == 'Finalizado' %}
+                            <span class="event-badge bg-emerald-100 text-emerald-800">✓ Finalizado</span>
+                        {% elif ev.estado == 'Evaluacion' %}
+                            <span class="event-badge bg-rose-100 text-rose-800">⚠️ Evaluación</span>
+                        {% else %}
+                            <span class="event-badge bg-slate-100 text-slate-600">{{ ev.estado }}</span>
+                        {% endif %}
+                        
+                        <a href="{% url 'ver_detalle_reserva' ev.id %}" class="text-amber-900 hover:text-amber-700 font-bold text-sm transition">
+                            Ver detalles →
+                        </a>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-slate-400 text-sm italic py-2">Este organizador no tiene eventos asignados actualmente.</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
     </div>
 {% endblock %}
