@@ -201,6 +201,16 @@ body { font-family: 'Inter', sans-serif; background:var(--bg); }
                     <span>Ubicación</span>
                     <strong>{{ reserva.lugar|default:"Por confirmar" }}</strong>
                 </div>
+
+                <!-- CAMBIO AQUÍ: MOSTRAR EL ORGANIZADOR ASIGNADO -->
+                <div class="row" style="background-color: #f8fafc; margin-top: 5px; padding: 10px 5px; border-radius: 6px;">
+                    <span>Organizador asignado</span>
+                    {% if reserva.organizador %}
+                        <strong style="color: var(--accent);">👤 {{ reserva.organizador.nombre }}</strong>
+                    {% else %}
+                        <span class="text-muted" style="font-style: italic; font-size: 0.9rem;">Pendiente por asignar</span>
+                    {% endif %}
+                </div>
             </div>
 
             <!-- CONFIG -->
