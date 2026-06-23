@@ -231,9 +231,54 @@
                             <a href="{% url 'mostrar_detalle_reserva' ev.id %}" class="btn-info-evento">
                                 <i class="fa-solid fa-circle-info"></i>
                             </a>
-                            <a href="{% url 'cambiar_estado' ev.id 'Evento Activo' %}" class="btn btn-outline-primary fw-bold px-4 py-2" style="border-radius: 12px; display: flex; align-items: center;">
+                            
+                            <button type="button" class="btn btn-outline-primary fw-bold px-4 py-2" data-bs-toggle="modal" data-bs-target="#modalDespachar{{ ev.id }}" style="border-radius: 12px; display: flex; align-items: center;">
                                 <i class="fa-solid fa-truck-ramp-box me-1"></i> Despachar
-                            </a>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade" id="modalDespachar{{ ev.id }}" data-bs-backdrop="static" tabindex="-1" aria-labelledby="modalLabel{{ ev.id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content" style="border-radius: 16px; border: none; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+                            <div class="modal-header text-white" style="background-color: #541E12;">
+                                <h5 class="modal-title fw-bold" id="modalLabel{{ ev.id }}">
+                                    <i class="fa-solid fa-user-shield me-2"></i>Asignar Responsable
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form action="{% url 'cambiar_estado' ev.id 'Evento Activo' %}" method="POST">
+                                {% csrf_markdown %}
+                                <div class="modal-body p-4" style="background-color: #f8fafc;">
+                                    <p class="text-muted small mb-3">
+                                        Para poder cambiar el estado del evento a <strong>"Evento Activo"</strong> y despachar los productos de inventario, debes asignar el organizador que supervisará la logística en sitio.
+                                    </p>
+                                    
+                                    <div class="mb-2">
+                                        <span class="d-block text-xs text-muted font-monospace uppercase mb-1">Evento:</span>
+                                        <span class="fw-bold text-dark d-block mb-2">{{ ev.paquete.nombre }}</span>
+                                        <span class="d-block text-xs text-muted font-monospace uppercase mb-1">Cliente:</span>
+                                        <span class="text-secondary d-block mb-3">{{ ev.usuario.nombre }}</span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="select_organizador_{{ ev.id }}" class="form-label fw-bold small text-secondary">Seleccione el Organizador Encargado:</label>
+                                        <select class="form-select form-select-lg" id="select_organizador_{{ ev.id }}" name="txt_organizador" style="border-radius: 10px; font-size: 0.95rem;" required>
+                                            <option value="" disabled selected>-- Elija un organizador disponible --</option>
+                                            {% for org in organizadores_disponibles %}
+                                                <option value="{{ org.id }}">{{ org.nombre }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="modal-footer bg-light border-0 px-4 py-3">
+                                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal" style="border-radius: 10px;">Cancelar</button>
+                                    <button type="submit" class="btn-arron px-4 py-2">
+                                        <i class="fa-solid fa-share-from-square me-1"></i> Confirmar Despacho
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -302,4 +347,6 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}

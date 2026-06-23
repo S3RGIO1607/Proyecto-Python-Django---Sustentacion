@@ -225,6 +225,19 @@ class ReservaEvento(models.Model):
     menu_comida = models.ForeignKey(MenuComida, on_delete=models.SET_NULL, null=True, blank=True)
     lugar = models.ForeignKey(Lugar, on_delete=models.SET_NULL, null=True, blank=True)
 
+    # =========================================================================
+    # NUEVO CAMPO: Vínculo con el Organizador Responsable
+    # =========================================================================
+    organizador_encargado = models.ForeignKey(
+        Usuario, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='eventos_supervisados',
+        verbose_name="Organizador Encargado"
+    )
+    # =========================================================================
+
     fecha_evento = models.DateField()
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     hora_inicio = models.TimeField(null=True, blank=False) # El cliente la pone
@@ -271,7 +284,6 @@ class ReservaEvento(models.Model):
             return
 
         # 1. Calcular el factor de escala (Regla de 3)
-        # Si el paquete es para 100 y vienen 200, el factor es 2.0
         factor = Decimal(self.asistentes) / Decimal(self.paquete.capacidad_base)
 
         with transaction.atomic():
@@ -298,7 +310,6 @@ class ReservaEvento(models.Model):
                     }
                 )
 
-
     def clean(self):
         # 1. Validación de fecha pasada
         hoy = dt_module.date.today()
@@ -306,15 +317,12 @@ class ReservaEvento(models.Model):
             raise ValidationError("La fecha del evento no puede ser en el pasado")
         
         if self.hora_inicio and self.paquete:
-            # USAMOS dt_module.datetime.combine
             inicio_dt = dt_module.datetime.combine(self.fecha_evento, self.hora_inicio)
             
-            # Ajuste de zona horaria (Aware)
             if timezone.is_naive(inicio_dt):
                 inicio_dt = timezone.make_aware(inicio_dt)
             
             duracion = self.paquete.duracion_horas
-            # USAMOS dt_module.timedelta
             self.hora_fin_limpieza = inicio_dt + dt_module.timedelta(hours=duracion + 5)
 
             # 2. Validar disponibilidad del LUGAR
@@ -325,7 +333,6 @@ class ReservaEvento(models.Model):
                 ).exclude(pk=self.pk)
 
                 for r in reservas_dia:
-                    # Aplicamos dt_module.datetime.combine también aquí
                     r_inicio_dt = dt_module.datetime.combine(r.fecha_evento, r.hora_inicio)
                     if timezone.is_naive(r_inicio_dt):
                         r_inicio_dt = timezone.make_aware(r_inicio_dt)
@@ -334,7 +341,6 @@ class ReservaEvento(models.Model):
                     if r_fin_dt and timezone.is_naive(r_fin_dt):
                         r_fin_dt = timezone.make_aware(r_fin_dt)
 
-                    # Lógica de solapamiento
                     if (inicio_dt < r_fin_dt) and (self.hora_fin_limpieza > r_inicio_dt):
                         raise ValidationError(
                             f"El lugar '{self.lugar.nombre}' ya está ocupado o en limpieza. "
@@ -342,12 +348,9 @@ class ReservaEvento(models.Model):
                         )
                     
     def save(self, *args, **kwargs):
-        # Calculamos la hora de fin total antes de guardar
         if self.fecha_evento and self.hora_inicio and self.paquete:
-            # CORRECCIÓN AQUÍ: Agregamos .datetime
             inicio_dt = dt_module.datetime.combine(self.fecha_evento, self.hora_inicio)
             
-            # Aseguramos zona horaria también en el save para evitar el error de desfase
             if timezone.is_naive(inicio_dt):
                 inicio_dt = timezone.make_aware(inicio_dt)
                 
@@ -357,13 +360,9 @@ class ReservaEvento(models.Model):
         super().save(*args, **kwargs)
 
     def calcular_total(self):
-        # 1. Sumar productos del paquete escalados
         total_productos = sum(rp.subtotal() for rp in self.productos.all())
-
-        # 2. Sumar servicios extra manuales
         total_servicios = sum(rs.subtotal() for rs in self.servicios_extra.all())
 
-        # 3. Sumar Menú de Comida (Si existe)
         total_comida = 0
         if self.menu_comida:
             total_comida = self.menu_comida.precio_por_persona * self.asistentes
@@ -375,7 +374,6 @@ class ReservaEvento(models.Model):
 
         self.total = total_acumulado
     
-        # Depósito de garantía
         self.deposito_garantia = (self.total * Decimal('0.15')).quantize(Decimal('0.01'))
         self.save()
 
@@ -387,12 +385,10 @@ class ReservaEvento(models.Model):
                 self.estado = 'Confirmado'
                 self.save()
                 
-                # Registrar Salida de Inventario de cada producto escalado
                 for rp in self.productos.all():
                     if rp.producto.stock_disponible < rp.cantidad:
                         raise ValueError(f"No hay stock suficiente de {rp.producto.nombre_producto}")
                     
-                    # Crear el movimiento
                     MovimientoProducto.objects.create(
                         producto=rp.producto,
                         reserva=self,
@@ -400,14 +396,12 @@ class ReservaEvento(models.Model):
                         cantidad=rp.cantidad,
                         observacion=f"Salida por confirmación de Evento #{self.id}"
                     )
-                    # Actualizar el stock en la tabla Producto
                     rp.producto.stock_disponible -= rp.cantidad
                     rp.producto.save()
 
     def finalizar_y_evaluar(self):
         """Cierra el evento y procesa el retorno de productos."""
         with transaction.atomic():
-            # Traemos las evaluaciones hechas por el Organizador
             evaluaciones = EvaluacionEvento.objects.filter(reserva=self)
             
             for rp in self.productos.all():
@@ -415,7 +409,6 @@ class ReservaEvento(models.Model):
                 danados = evaluacion.cantidad_danada if evaluacion else 0
                 buenos = rp.cantidad - danados
 
-                # 1. Los que volvieron bien
                 if buenos > 0:
                     MovimientoProducto.objects.create(
                         producto=rp.producto,
@@ -426,7 +419,6 @@ class ReservaEvento(models.Model):
                     )
                     rp.producto.stock_disponible += buenos
 
-                # 2. Los que se dañaron (Ajuste negativo permanente)
                 if danados > 0:
                     MovimientoProducto.objects.create(
                         producto=rp.producto,
@@ -441,11 +433,8 @@ class ReservaEvento(models.Model):
             self.estado = 'Finalizado'
             self.save()
 
-    # Dentro de class ReservaEvento(models.Model):
-
     def finalizar_y_retornar_stock(self):
         """Procesa el re-ingreso de productos al inventario."""
-    
         with transaction.atomic():
             evaluaciones = EvaluacionEvento.objects.filter(reserva=self)
         
@@ -454,7 +443,6 @@ class ReservaEvento(models.Model):
                 danados = evaluacion.cantidad_danada if evaluacion else 0
                 buenos = rp.cantidad - danados
 
-                # 1. ENTRADA: Lo que volvió sano
                 if buenos > 0:
                     MovimientoProducto.objects.create(
                         producto=rp.producto,
@@ -465,7 +453,6 @@ class ReservaEvento(models.Model):
                     )
                     rp.producto.stock_disponible += buenos
 
-                # 2. AJUSTE: Lo que se rompió (no vuelve al stock disponible)
                 if danados > 0:
                     MovimientoProducto.objects.create(
                         producto=rp.producto,
