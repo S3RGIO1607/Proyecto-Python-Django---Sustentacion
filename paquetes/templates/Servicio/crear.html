@@ -8,7 +8,7 @@
         border-radius: 2rem; 
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
         border: 1px solid #f1f5f9;
-        max-width: 650px; /* Incrementado ligeramente para dar aire a las secciones dobles */
+        max-width: 650px; 
         margin: 2rem auto;
         overflow: hidden;
     }
@@ -158,6 +158,8 @@
 </style>
 
 <div class="max-w-4xl mx-auto px-4 py-8">
+    <div id="js-error-container" class="hidden mb-4 p-4 rounded-xl bg-red-50 text-red-700 border border-red-200 text-sm font-bold shadow-sm"></div>
+
     {% if messages %}
         {% for message in messages %}
             <div class="mb-4 p-4 rounded-xl {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %} text-sm font-bold shadow-sm">
@@ -177,7 +179,7 @@
             <p class="text-blue-100 text-[10px] font-bold uppercase tracking-widest mt-1">Configuración de catálogo y trazabilidad externa</p>
         </div>
 
-        <form action="{% url 'registrar_servicio' %}" method="post" class="form-content">
+        <form action="{% url 'registrar_servicio' %}" method="post" id="form-servicio" class="form-content">
             {% csrf_token %}
             
             <div class="section-divider">
@@ -196,8 +198,8 @@
                        placeholder="Ej: Fotografía Profesional"
                        minlength="2"
                        maxlength="50"
-                       pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$"
-                       title="El nombre solo debe contener letras y espacios (entre 2 y 50 caracteres)."
+                       pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ0-9\s]{2,50}$"
+                       title="El nombre debe tener mínimo 2 caracteres (letras, números o espacios)."
                        required>
             </div>
 
@@ -237,11 +239,14 @@
                     </label>
                     <input type="text" 
                            name="txt_nit_proveedor" 
+                           id="txt_nit_proveedor"
                            value="{{ valores_previos.nit_proveedor|default:'' }}"
                            class="input-style" 
                            placeholder="Ej: 901234567-1"
-                           pattern="^[A-Za-z0-9\-]{5,20}$"
-                           title="Debe tener entre 5 y 20 caracteres alfanuméricos (se admiten guiones)."
+                           minlength="6"
+                           maxlength="20"
+                           pattern="^[A-Za-z0-9\-]{6,20}$"
+                           title="Debe tener entre 6 y 20 caracteres alfanuméricos (se admiten guiones)."
                            required>
                 </div>
             </div>
@@ -253,11 +258,14 @@
                     </label>
                     <input type="text" 
                            name="txt_nombre_proveedor" 
+                           id="txt_nombre_proveedor"
                            value="{{ valores_previos.nombre_proveedor|default:'' }}"
                            class="input-style" 
                            placeholder="Ej: Carlos Mendoza"
-                           pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{2,50}$"
-                           title="Debe ser estrictamente alfabético y poseer entre 2 y 50 letras."
+                           minlength="3"
+                           maxlength="50"
+                           pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{3,50}$"
+                           title="Debe ser un nombre propio válido (solo letras) de mínimo 3 caracteres."
                            required>
                 </div>
                 <div>
@@ -266,11 +274,14 @@
                     </label>
                     <input type="text" 
                            name="txt_telefono_proveedor" 
+                           id="txt_telefono_proveedor"
                            value="{{ valores_previos.telefono_proveedor|default:'' }}"
                            class="input-style" 
                            placeholder="Ej: 3157654321"
-                           pattern="^\d{7,15}$"
-                           title="El teléfono debe contener únicamente números (entre 7 y 15 dígitos)."
+                           minlength="10"
+                           maxlength="15"
+                           pattern="^\d{10,15}$"
+                           title="El teléfono debe contener únicamente números y tener un mínimo de 10 dígitos."
                            required>
                 </div>
             </div>
@@ -289,6 +300,7 @@
                                step="1" 
                                min="0"
                                name="txt_costo_proveedor" 
+                               id="txt_costo_proveedor"
                                value="{{ valores_previos.costo_proveedor|default:'0' }}"
                                class="input-style" 
                                placeholder="Lo que cobra el externo"
@@ -305,10 +317,11 @@
                                step="1" 
                                min="1"
                                name="txt_precio" 
+                               id="txt_precio"
                                value="{{ valores_previos.precio|default:'' }}"
                                class="input-style" 
                                placeholder="Lo que paga el cliente"
-                               title="Ingrese un valor entero sin decimales y mayor a 0"
+                               title="Ingrese un valor entero sin decimales, positivo y mayor al costo base"
                                onkeypress="return event.charCode >= 48 && event.charCode <= 57"
                                required>
                     </div>
@@ -332,6 +345,12 @@
     document.addEventListener('DOMContentLoaded', function() {
         const textarea = document.getElementById('txt_descripcion');
         const counter = document.getElementById('counter-descripcion');
+        const form = document.getElementById('form-servicio');
+        const errorContainer = document.getElementById('js-error-container');
+
+        // Campos numéricos y de costos
+        const costoProveedorInput = document.getElementById('txt_costo_proveedor');
+        const precioClienteInput = document.getElementById('txt_precio');
 
         function actualizarContador() {
             const longitud = textarea.value.length;
@@ -346,6 +365,40 @@
 
         textarea.addEventListener('input', actualizarContador);
         actualizarContador(); 
+
+        // Validación de lógica financiera y bloqueo de negativos antes de enviar
+        form.addEventListener('submit', function(event) {
+            let errores = [];
+            errorContainer.classList.add('hidden');
+            errorContainer.innerHTML = '';
+
+            const costoProveedor = parseInt(costoProveedorInput.value) || 0;
+            const precioCliente = parseInt(precioClienteInput.value) || 0;
+
+            // 1. Control estricto de números negativos
+            if (costoProveedor < 0 || precioCliente < 0) {
+                errores.push("Los valores económicos no pueden ser negativos.");
+            }
+
+            // 2. Validación de margen comercial solicitado
+            if (precioCliente === costoProveedor) {
+                errores.push("El precio de venta al cliente no puede ser exactamente igual al costo base del proveedor (No dejaría ganancias).");
+                precioClienteInput.classList.add('border-red-500', 'bg-red-50');
+            } else if (precioCliente < costoProveedor) {
+                errores.push("El precio de venta al cliente no puede ser menor que el costo del proveedor (Generaría pérdidas directas).");
+                precioClienteInput.classList.add('border-red-500', 'bg-red-50');
+            } else {
+                precioClienteInput.classList.remove('border-red-500', 'bg-red-50');
+            }
+
+            // Si hay errores, frenar envío e inyectar panel de aviso superior
+            if (errores.length > 0) {
+                event.preventDefault();
+                errorContainer.innerHTML = errores.join('<br>');
+                errorContainer.classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
     });
 </script>
 {% endblock %}

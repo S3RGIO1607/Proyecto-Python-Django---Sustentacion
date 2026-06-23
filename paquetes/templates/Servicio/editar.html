@@ -170,6 +170,8 @@
 </style>
 
 <div class="max-w-3xl mx-auto pb-12 px-4">
+    <div id="js-error-container" class="hidden mb-4 p-4 rounded-xl bg-red-50 text-red-700 border border-red-200 text-sm font-bold shadow-sm"></div>
+
     {% if messages %}
         {% for message in messages %}
             <div class="mb-4 p-4 rounded-xl {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %} text-sm font-bold shadow-sm">
@@ -189,7 +191,7 @@
             </div>
         </div>
 
-        <form action="{% url 'editar_servicio' %}" method="POST">
+        <form action="{% url 'editar_servicio' %}" method="POST" id="form-editar-servicio">
             {% csrf_token %}
             <input type="hidden" name="txt_id" value="{{ servicio.id }}">
 
@@ -211,8 +213,8 @@
                            placeholder="Ej: Catering Master"
                            minlength="2"
                            maxlength="50"
-                           pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$"
-                           title="El nombre solo puede contener letras y espacios (entre 2 y 50 caracteres)."
+                           pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ0-9\s]{2,50}$"
+                           title="El nombre debe tener mínimo 2 caracteres (letras, números o espacios)."
                            required>
                 </div>
 
@@ -251,12 +253,15 @@
                             <span><i class="fa-solid fa-id-card mr-2 text-blue-500"></i> NIT o Cédula</span>
                         </label>
                         <input type="text" 
+                               id="txt_nit_proveedor"
                                name="txt_nit_proveedor" 
                                value="{{ servicio.nit_o_cedula_proveedor }}"
                                class="input-edit-style" 
                                placeholder="Ej: 900123456-2"
-                               pattern="^[A-Za-z0-9\-]{5,20}$"
-                               title="Debe tener entre 5 y 20 caracteres alfanuméricos."
+                               minlength="6"
+                               maxlength="20"
+                               pattern="^[A-Za-z0-9\-]{6,20}$"
+                               title="Debe tener entre 6 y 20 caracteres alfanuméricos (se admiten guiones)."
                                required>
                     </div>
                 </div>
@@ -267,12 +272,15 @@
                             <span><i class="fa-solid fa-user-tie mr-2 text-blue-500"></i> Especialista de Contacto</span>
                         </label>
                         <input type="text" 
+                               id="txt_nombre_proveedor"
                                name="txt_nombre_proveedor" 
                                value="{{ servicio.nombre_proveedor }}"
                                class="input-edit-style" 
                                placeholder="Ej: Juan Pérez"
-                               pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{2,50}$"
-                               title="Debe ser alfabético y poseer entre 2 y 50 caracteres."
+                               minlength="3"
+                               maxlength="50"
+                               pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{3,50}$"
+                               title="Debe ser un nombre propio válido (solo letras) de mínimo 3 caracteres."
                                required>
                     </div>
                     <div class="field-group">
@@ -280,12 +288,15 @@
                             <span><i class="fa-solid fa-phone mr-2 text-blue-500"></i> Teléfono Directo</span>
                         </label>
                         <input type="text" 
+                               id="txt_telefono_proveedor"
                                name="txt_telefono_proveedor" 
                                value="{{ servicio.telefono_proveedor }}"
                                class="input-edit-style" 
                                placeholder="Ej: 3001234567"
-                               pattern="^\d{7,15}$"
-                               title="El teléfono debe contener únicamente números (entre 7 y 15 dígitos)."
+                               minlength="10"
+                               maxlength="15"
+                               pattern="^\d{10,15}$"
+                               title="El teléfono debe contener únicamente números y tener un mínimo de 10 dígitos."
                                required>
                     </div>
                 </div>
@@ -302,6 +313,7 @@
                         <div class="price-input-container">
                             <span class="price-symbol">$</span>
                             <input type="number" 
+                                   id="txt_costo_proveedor"
                                    step="1" 
                                    min="0"
                                    name="txt_costo_proveedor" 
@@ -327,7 +339,7 @@
                                    value="{{ servicio.precio_servicio|stringformat:'d' }}"
                                    class="input-edit-style" 
                                    placeholder="0"
-                                   title="Ingrese un valor entero sin decimales y mayor a cero."
+                                   title="Ingrese un valor entero sin decimales, positivo y mayor al costo base."
                                    onkeypress="return event.charCode >= 48 && event.charCode <= 57"
                                    required>
                         </div>
@@ -366,6 +378,12 @@
     document.addEventListener('DOMContentLoaded', function() {
         const textarea = document.getElementById('descripcion');
         const counter = document.getElementById('counter-descripcion');
+        const form = document.getElementById('form-editar-servicio');
+        const errorContainer = document.getElementById('js-error-container');
+
+        // Referencias de inputs monetarios
+        const costoProveedorInput = document.getElementById('txt_costo_proveedor');
+        const precioClienteInput = document.getElementById('precio');
 
         function actualizarContador() {
             const longitud = textarea.value.length;
@@ -380,6 +398,40 @@
 
         textarea.addEventListener('input', actualizarContador);
         actualizarContador(); 
+
+        // Validación financiera lógica antes de enviar la actualización
+        form.addEventListener('submit', function(event) {
+            let errores = [];
+            errorContainer.classList.add('hidden');
+            errorContainer.innerHTML = '';
+
+            const costoProveedor = parseInt(costoProveedorInput.value) || 0;
+            const precioCliente = parseInt(precioClienteInput.value) || 0;
+
+            // 1. Control riguroso contra negativos
+            if (costoProveedor < 0 || precioCliente < 0) {
+                errores.push("Los valores económicos no pueden ser negativos.");
+            }
+
+            // 2. Validación de margen de ganancia o pérdida
+            if (precioCliente === costoProveedor) {
+                errores.push("La tarifa del cliente no puede ser exactamente igual al costo del proveedor (El margen de utilidad sería cero).");
+                precioClienteInput.classList.add('border-red-500', 'bg-red-50');
+            } else if (precioCliente < costoProveedor) {
+                errores.push("La tarifa del cliente no puede ser menor que el costo del proveedor (Provocaría pérdidas financieras).");
+                precioClienteInput.classList.add('border-red-500', 'bg-red-50');
+            } else {
+                precioClienteInput.classList.remove('border-red-500', 'bg-red-50');
+            }
+
+            // Freno del envío e inyección de alertas si existen errores
+            if (errores.length > 0) {
+                event.preventDefault();
+                errorContainer.innerHTML = errores.join('<br>');
+                errorContainer.classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
     });
 </script>
 {% endblock %}
