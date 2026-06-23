@@ -80,7 +80,7 @@ def listar_reservas(request):
     # --- NUEVA CONSULTA ---
     # Filtramos los usuarios que tengan asignado el rol de Organizador.
     # NOTA: Ajusta 'id_rol=3' o 'rol="Organizador"' según cómo manejes los roles en tu base de datos.
-    organizadores = Usuario.objects.filter(id_rol=3, estado='A') 
+    organizadores = Usuario.objects.filter(rol_id=3, estado='A') 
 
     return render(request, "Reserva/index.html", {
         "reservas_pendientes": todas.filter(estado="Reservado"),
