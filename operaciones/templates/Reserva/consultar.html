@@ -221,7 +221,7 @@ body { font-family: 'Inter', sans-serif; background:var(--bg); }
 
                 {% for s in servicios %}
                     <div class="row">
-                        <span>{{ s.servicio.nombre }} (x{{ s.cantidad }})</span>
+                        <span>{{ s.servicio.nombre_servicio }} (x{{ s.cantidad }})</span>
                         <strong>${{ s.precio_fijado|intcomma }}</strong>
                     </div>
                 {% empty %}
