@@ -142,7 +142,7 @@
                 <h2 class="text-3xl font-black">{{ usuario.nombre }}</h2>
                 <div class="role-badge">
                     <i class="fa-solid fa-shield-halved mr-1"></i>
-                    <span>{{ usuario.rol.nombre }}</span>
+                    <span>{{ usuario.role.nombre|default:usuario.rol.nombre }}</span>
                 </div>
                 <p class="mt-2 opacity-70 text-sm">ID de Registro: #<span>{{ usuario.id }}</span></p>
             </div>
@@ -228,10 +228,9 @@
 
         </div>
 
-        {% if usuario.rol.nombre == 'Organizador' %}
         <div class="events-card">
             <h3 class="text-xl font-extrabold text-slate-800 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-calendar-check text-amber-900"></i> Eventos a Cargo
+                <i class="fa-solid fa-calendar-check text-amber-900"></i> Historial de Responsabilidades en Eventos
             </h3>
             
             {% for ev in eventos_asignados %}
@@ -244,12 +243,16 @@
                     </div>
                     
                     <div class="flex items-center gap-4">
-                        {% if ev.estado == 'Evento Activo' %}
+                        {% if ev.estado == 'Reservado' %}
+                            <span class="event-badge bg-blue-100 text-blue-800">📋 Reservado</span>
+                        {% elif ev.estado == 'Confirmado' %}
+                            <span class="event-badge bg-indigo-100 text-indigo-800">✓ Confirmado</span>
+                        {% elif ev.estado == 'Evento Activo' %}
                             <span class="event-badge bg-amber-100 text-amber-800">● En Curso</span>
-                        {% elif ev.estado == 'Finalizado' %}
-                            <span class="event-badge bg-emerald-100 text-emerald-800">✓ Finalizado</span>
                         {% elif ev.estado == 'Evaluacion' %}
                             <span class="event-badge bg-rose-100 text-rose-800">⚠️ Evaluación</span>
+                        {% elif ev.estado == 'Finalizado' %}
+                            <span class="event-badge bg-emerald-100 text-emerald-800">🔒 Finalizado</span>
                         {% else %}
                             <span class="event-badge bg-slate-100 text-slate-600">{{ ev.estado }}</span>
                         {% endif %}
@@ -260,10 +263,9 @@
                     </div>
                 </div>
             {% empty %}
-                <p class="text-slate-400 text-sm italic py-2">Este organizador no tiene eventos asignados actualmente.</p>
+                <p class="text-slate-400 text-sm italic py-2">Este usuario no figura como encargado en ningún evento del sistema.</p>
             {% endfor %}
         </div>
-        {% endif %}
 
     </div>
 {% endblock %}
