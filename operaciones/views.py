@@ -541,6 +541,20 @@ def cambiar_estado_evento(request, id, nuevo_estado):
     estados_validos = ['Confirmado', 'Evento Activo', 'Evaluacion', 'Finalizado']
     
     if nuevo_estado in estados_validos:
+        # --- NUEVA LÓGICA PARA ASIGNAR EL ORGANIZADOR ---
+        if nuevo_estado == 'Evento Activo' and request.method == 'POST':
+            organizador_id = request.POST.get('txt_organizador')
+            if organizador_id:
+                try:
+                    # Buscamos el organizador en la base de datos
+                    organizador = Usuario.objects.get(id=organizador_id)
+                    # Lo asignamos al campo correspondiente de la reserva
+                    reserva.organizador_encargado = organizador
+                except Usuario.DoesNotExist:
+                    # Si por alguna razón el ID no existe, continúa sin romper el flujo
+                    pass
+
+        # Actualizamos el estado de la reserva
         reserva.estado = nuevo_estado
         reserva.save()
         
