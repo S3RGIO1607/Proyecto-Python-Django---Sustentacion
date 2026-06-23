@@ -305,10 +305,17 @@ def listar_usuarios(request):
     return render(request, 'Usuarios/index.html', data)
 
 def mostrar_detalle_usuario(request, id):
-    roles=Rol.objects.all()
-    usuario=Usuario.objects.get(id=id)
-    data={'roles':roles, 'usuario':usuario}
-    return render(request,'Usuarios/consultar.html',data)
+    roles = Rol.objects.all()
+    usuario = get_object_or_404(Usuario, id=id)
+
+    eventos_asignados = ReservaEvento.objects.filter(organizador_encargado=usuario).select_related('paquete').order_by('-fecha_evento')
+    
+    data = {
+        'roles': roles, 
+        'usuario': usuario,
+        'eventos_asignados': eventos_asignados  # Enviamos los eventos directo al template
+    }
+    return render(request, 'Usuarios/consultar.html', data)
 
 
 def mostrar_registro_usuario(request):
