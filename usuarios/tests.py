@@ -10,13 +10,13 @@ class UsuarioTestCase(TestCase):
 
     def setUp(self):
         """Preparación de los Roles y Usuarios base requeridos para los flujos"""
-        # 1. Crear los roles necesarios en la BD de pruebas para evitar errores de llave foránea
+        # 1. Roles de Pruebas
         self.rol_admin = Rol.objects.create(id=1, nombre="Administrador")
         self.rol_organizador = Rol.objects.create(id=2, nombre="Organizador")
         self.rol_bodega = Rol.objects.create(id=3, nombre="Supervisor Bodega")
         self.rol_cliente = Rol.objects.create(id=4, nombre="Cliente")
 
-        # 2. Tu usuario base de pruebas (Hasheamos la clave porque iniciar_sesion usa check_password)
+        # 2. Usuario de Pruebas
         self.usuario = Usuario.objects.create(
             numero_documento="123456789",
             nombre='Test User',
@@ -32,7 +32,7 @@ class UsuarioTestCase(TestCase):
             rol_id=1
         )
 
-        # 3. Usuario inactivo para validar bloqueos de seguridad en el login
+        # 3. Usuario Inactivo Pruebas Sesion
         self.cliente_inactivo = Usuario.objects.create(
             numero_documento="87654321",
             nombre="Cliente Inactivo",
@@ -64,7 +64,6 @@ class UsuarioTestCase(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('dashboard_admin'))
-        # Comprobar que las variables quedaron en la sesión HTTP
         self.assertEqual(self.client.session.get('usuario_id'), self.usuario.id)
         self.assertEqual(self.client.session.get('rol'), 1)
 
@@ -102,7 +101,6 @@ class UsuarioTestCase(TestCase):
         session['usuario_id'] = self.usuario.id
         session.save()
 
-        # Ajustamos temporalmente a texto plano para que el operador != de la view no falle
         self.usuario.contrasena = 'Password123.'
         self.usuario.save()
 
@@ -136,7 +134,7 @@ class UsuarioTestCase(TestCase):
         self.assertTrue(check_password('Password123.', self.usuario.contrasena))
 
     def test_dashboard_admin_anonimo_redirige_a_login(self):
-        """Si no hay sesión iniciada, debe patear al login"""
+        """Si no hay sesión iniciada, debe mandar al login"""
         response = self.client.get(reverse('dashboard_admin'))
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('iniciar_sesion'))

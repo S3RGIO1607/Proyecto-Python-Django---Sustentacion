@@ -10,12 +10,12 @@ from inventario.models import Producto
 class PaquetesTestCase(TestCase):
 
     def setUp(self):
-        # 1. Simular sesión activa del administrador
+        # 1. Sesion Activa Admin
         session = self.client.session
         session['usuario_id'] = 99
         session.save()
 
-        # 2. Crear un producto base en el inventario para asociar a los paquetes
+        # 2. Producto Prueba 
         self.producto = Producto.objects.create(
             nombre_producto="Mesa Tablón Rectangular",
             descripcion="Mesa de madera plegable para diez personas estable",
@@ -26,7 +26,7 @@ class PaquetesTestCase(TestCase):
             estado='A'
         )
 
-        # 3. Crear servicios base
+        # 3. Servicio Prueba
         self.servicio_activo = Servicio.objects.create(
             nombre="Sonido Profesional Luces",
             descripcion="Montaje de dos cabinas de sonido con luces rítmicas LED",
@@ -41,7 +41,7 @@ class PaquetesTestCase(TestCase):
             estado='I'
         )
 
-        # 4. Crear un paquete maestro activo para consultas y ediciones
+        # 4. Paquete Prueba
         self.paquete_activo = Paquete.objects.create(
             nombre="Paquete Cumpleaños Básico",
             descripcion="Combo ideal para celebraciones familiares e infantiles medianas",
@@ -51,7 +51,6 @@ class PaquetesTestCase(TestCase):
             estado='A'
         )
         
-        # Crear sus relaciones iniciales en el modelo intermedio
         PaqueteProducto.objects.create(paquete=self.paquete_activo, producto=self.producto, cantidad=5)
         PaqueteServicio.objects.create(paquete=self.paquete_activo, servicio=self.servicio_activo)
 
@@ -77,7 +76,7 @@ class PaquetesTestCase(TestCase):
     # ==============================================================================
     def test_registrar_paquete_exitoso_calcula_valores(self):
         """Camino Feliz: Crear paquete, verificar cálculos automáticos de precio y depósito"""
-        # Enviamos el formulario simulando los campos dinámicos y arreglos de IDs
+
         response = self.client.post(reverse('registrar_paquete'), {
             'txt_nombre': 'Paquete Empresarial Premium',
             'txt_descripcion': 'Montaje corporativo de alto impacto para juntas directivas',
@@ -100,7 +99,7 @@ class PaquetesTestCase(TestCase):
             'txt_nombre': 'Paquete Invalido Sin Nada',
             'txt_descripcion': 'Descripción operativa con longitud válida en caracteres',
             'txt_duracion_horas': '4',
-            'productosIds': [], # Vacío
+            'productosIds': [],
             'serviciosIds': [self.servicio_activo.id]
         })
         self.assertEqual(response.status_code, 200) # Recarga la misma plantilla para mostrar error
