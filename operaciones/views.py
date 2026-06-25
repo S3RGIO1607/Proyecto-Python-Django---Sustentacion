@@ -1114,7 +1114,9 @@ def descargar_comprobante_pdf(request, tipo, obj_id):
                 'nombre': item.producto.nombre_producto,
                 'cantidad': item.cantidad_contratada,
                 'precio_unit': item.precio_alquiler_fijado,
-                'subtotal': item.cantidad_contratada * item.precio_alquiler_fijado
+                'subtotal': item.cantidad_contratada * item.precio_alquiler_fijado,
+                'proveedor_nombre': None,   # Los productos no llevan especialista
+                'proveedor_telefono': None  # Los productos no llevan especialista
             })
         total = obj.valor_alquiler
         
@@ -1128,15 +1130,24 @@ def descargar_comprobante_pdf(request, tipo, obj_id):
                 'nombre': item.producto.nombre_producto,
                 'cantidad': item.cantidad,
                 'precio_unit': item.precio_unitario_fijado,
-                'subtotal': item.subtotal()
+                'subtotal': item.subtotal(),
+                'proveedor_nombre': None,   # Los productos del paquete no llevan especialista
+                'proveedor_telefono': None  # Los productos del paquete no llevan especialista
             })
-        # 2. Añadimos servicios extra si existen
+        # 2. Añadimos servicios extra si existen (AQUÍ AGREGAMOS LA INFO FALTA)
         for serv in obj.servicios_extra.all():
+            # Verificamos de forma segura si el servicio tiene un proveedor asignado
+            proveedor = serv.servicio.proveedor if hasattr(serv.servicio, 'proveedor') else None
+            
             detalles_normalizados.append({
                 'nombre': f"Servicio: {serv.servicio.nombre_servicio}",
                 'cantidad': serv.cantidad,
                 'precio_unit': serv.precio_fijado,
-                'subtotal': serv.subtotal()
+                'subtotal': serv.subtotal(),
+                
+                # Extraemos la información del proveedor si existe en tu base de datos
+                'proveedor_nombre': proveedor.nombre if proveedor else None,
+                'proveedor_telefono': proveedor.telefono if proveedor else None
             })
         total = obj.total
 
@@ -1155,7 +1166,6 @@ def descargar_comprobante_pdf(request, tipo, obj_id):
     HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf(response)
     
     return response
-
 
 
 def gestionar_catalogos(request):
