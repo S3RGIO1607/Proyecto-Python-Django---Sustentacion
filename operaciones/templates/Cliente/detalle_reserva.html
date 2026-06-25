@@ -500,6 +500,18 @@
                             <span>{{ reserva.asistentes }} Invitados</span>
                         </div>
                     </div>
+                    
+                    <div class="info-evento-box" style="grid-column: 1 / -1; background: rgba(251, 192, 45, 0.02); border-color: rgba(251, 192, 45, 0.15);">
+                        <i class="fa-solid fa-user-tie" style="color: var(--accent);"></i>
+                        <div>
+                            <strong>Coordinador de Logística</strong>
+                            {% if reserva.organizador_encargado %}
+                                <span class="fw-bold" style="color: #fff;">{{ reserva.organizador_encargado.nombre }}</span>
+                            {% else %}
+                                <span class="text-muted" style="font-size: 0.85rem; font-style: italic;">Asignándose en la confirmación final de inventario</span>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
 
