@@ -7,7 +7,7 @@
             --primary: #541E12;   /* Borgoña Arron */
             --accent: #C5A059;    /* Dorado */
             --success: #27ae60;   /* Verde para Pagado */
-            --danger: #c0392b;    /* Rojo para Mora/Daños */
+            --danger: #c0392b;   /* Rojo para Mora/Daños */
             --text-dark: #1A1A1A;
             --bg-soft: #F9F7F5;
         }
@@ -47,7 +47,7 @@
         /* Tabla de Items */
         .tabla-items { width: 100%; border-collapse: collapse; }
         .tabla-items th { border-bottom: 2px solid var(--primary); padding: 10px; text-align: left; font-size: 0.75rem; color: var(--primary); }
-        .tabla-items td { padding: 12px 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+        .tabla-items td { padding: 12px 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; vertical-align: top; }
 
         /* Totales */
         .summary-wrapper { width: 100%; margin-top: 20px; }
@@ -57,6 +57,10 @@
         .grand-total td { padding: 15px 10px; font-weight: bold; font-size: 1.2rem; }
 
         .footer { position: fixed; bottom: 30px; width: 100%; text-align: center; font-size: 0.7rem; color: #999; }
+        
+        /* Utilidades de alineación remanentes de Bootstrap */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
     </style>
 </head>
 <body>
@@ -112,11 +116,21 @@
     {% else %}
     <div class="details-card">
         <span class="label" style="color: var(--primary);">Planificación del Evento</span>
-        <table style="width: 100%; margin-top: 10px;">
+        <table style="width: 100%; margin-top: 10px; font-size: 0.85rem;">
             <tr>
-                <td><strong>Lugar:</strong> {{ obj.lugar.nombre|default:"Por definir" }}</td>
-                <td><strong>Asistentes:</strong> {{ obj.asistentes }}</td>
-                <td><strong>Fecha:</strong> {{ obj.fecha_evento|date:"d/m/Y" }}</td>
+                <td style="width: 33%;"><strong>Lugar:</strong> {{ obj.lugar.nombre|default:"Por definir" }}</td>
+                <td style="width: 33%;"><strong>Asistentes:</strong> {{ obj.asistentes }} Invitados</td>
+                <td style="width: 33%;"><strong>Fecha:</strong> {{ obj.fecha_evento|date:"d/m/Y" }}</td>
+            </tr>
+            <tr>
+                <td colspan="3" style="padding-top: 10px; border-top: 1px dashed #ddd; margin-top: 8px;">
+                    <strong>Coordinador Logístico de Campo:</strong> 
+                    {% if obj.organizador_encargado %}
+                        <span style="color: var(--primary); font-weight: bold;">{{ obj.organizador_encargado.nombre }}</span>
+                    {% else %}
+                        <span style="color: #888; font-style: italic;">Por asignar (En proceso de despacho logístico)</span>
+                    {% endif %}
+                </td>
             </tr>
         </table>
     </div>
@@ -126,15 +140,24 @@
         <thead>
             <tr>
                 <th>Descripción del Servicio / Producto</th>
-                <th class="text-center">Cant.</th>
-                <th class="text-right">Unitario</th>
-                <th class="text-right">Subtotal</th>
+                <th class="text-center" style="width: 60px;">Cant.</th>
+                <th class="text-right" style="width: 100px;">Unitario</th>
+                <th class="text-right" style="width: 120px;">Subtotal</th>
             </tr>
         </thead>
         <tbody>
             {% for item in detalles %}
             <tr>
-                <td>{{ item.nombre }}</td>
+                <td>
+                    <div style="font-weight: bold; color: #222;">{{ item.nombre }}</div>
+                    
+                    {% if item.proveedor_nombre %}
+                        <div style="font-size: 0.75rem; color: #555; margin-top: 4px; padding-left: 8px; border-left: 2px solid var(--accent);">
+                            <span style="color: var(--accent); font-weight: bold;">Especialista asignado:</span> 
+                            {{ item.proveedor_nombre }} {% if item.proveedor_telefono %}(Tel: {{ item.proveedor_telefono }}){% endif %}
+                        </div>
+                    {% endif %}
+                </td>
                 <td class="text-center">{{ item.cantidad }}</td>
                 <td class="text-right">${{ item.precio_unit|floatformat:0|intcomma }}</td>
                 <td class="text-right">${{ item.subtotal|floatformat:0|intcomma }}</td>
@@ -186,12 +209,12 @@
             </tr>
         </table>
         
-        <div style="width: 45%; font-size: 0.75rem; color: #666; margin-top: 20px;">
-            <strong>Notas Legales:</strong><br>
+        <div style="width: 48%; font-size: 0.73rem; color: #666; margin-top: 20px; line-height: 1.3;">
+            <strong>Notas Legales y Políticas:</strong><br>
             {% if obj.estado != 'Reservado' and obj.estado != 'Cancelado' %}
-                Este documento confirma la recepción del pago. Los cargos por daños (si los hay) han sido procesados tras la auditoría del mobiliario/evento.
+                Este documento confirma la recepción del pago. Los cargos por daños (si los hay) han sido procesados tras la auditoría del mobiliario/evento. El personal técnico asignado queda sujeto a variaciones operativas de fuerza mayor. Solo se podrá solicitar la cancelación o modificación de la reserva hasta una semana antes de la fecha programada.
             {% else %}
-                Este es un presupuesto sujeto a cambios. Los daños detectados post-evento serán descontados del depósito de garantía.
+                Este es un presupuesto sujeto a cambios y confirmación de disponibilidad. Los daños detectados post-evento serán descontados del depósito de garantía. Recuerde que solo se podrá cancelar la reserva sin penalidad hasta una semana antes de la fecha para la que se programó el evento.
             {% endif %}
         </div>
     </div>
