@@ -279,11 +279,14 @@ def mi_perfil(request):
         return redirect("iniciar_sesion")
 
     usuario = get_object_or_404(Usuario, id=usuario_id)
+
+    eventos_asignados = ReservaEvento.objects.filter(organizador_encargado=usuario).select_related('paquete', 'lugar').order_by('-fecha_evento')
     
     base_template = "base.html" if usuario.rol.id == 4 else "base2.html"
 
     return render(request, "Usuarios/perfil.html", {
         "usuario": usuario,
+        "eventos_asignados": eventos_asignados,
         "base_to_extend": base_template  # Pasamos el nombre del archivo
     })
 

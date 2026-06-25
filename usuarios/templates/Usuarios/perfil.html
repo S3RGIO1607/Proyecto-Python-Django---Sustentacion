@@ -43,9 +43,9 @@
                                         <a href="{% url 'dashboard_admin' %}" class="btn action-btn-staff w-100">
                                             <i class="fa-solid fa-gauge-high me-2"></i> Panel Admin
                                         </a>
-                                    {% elif usuario.rol.id == 2 %}
-                                        <a href="{% url 'dashboard_organizador' %}" class="btn action-btn-staff w-100">
-                                            <i class="fa-solid fa-wand-magic-sparkles me-2"></i> Panel Organizador
+                                    {% elif usuario.rol.id == 2 or usuario.rol.nombre == 'Organizador' %}
+                                        <a href="{% url 'listar_reservas' %}" class="btn action-btn-staff w-100" style="background: #541E12;">
+                                            <i class="fa-solid fa-truck-ramp-box me-2"></i> Monitorear Logística
                                         </a>
                                     {% elif usuario.rol.id == 3 %}
                                         <a href="{% url 'dashboard_bodega' %}" class="btn action-btn-staff w-100">
@@ -55,7 +55,7 @@
                                 {% endif %}
 
                                 <a href="#" class="btn btn-outline-light btn-sm mt-2 text-dark border-secondary-subtle">
-                                    <i class="fa-solid fa-shield-halved me-2"></i> Seguridad
+                                    <i class="fa-solid fa-id-card-clip me-2"></i> Credenciales
                                 </a>
 
                                 <hr class="my-3 opacity-50">
@@ -111,6 +111,47 @@
                         </div>
                     </div>
 
+                    {% if usuario.rol.id == 2 or usuario.rol.nombre == 'Organizador' or eventos_asignados %}
+                    <div class="card shadow-sm border-0 content-card overflow-hidden">
+                        <div class="card-header bg-white border-0 pt-4 px-4">
+                            <h5 class="section-title mb-0" style="color: #541E12; font-weight: 800;">
+                                <i class="fa-solid fa-clipboard-list mountaineer-icon me-2"></i> Eventos Asignados a mi Cargo
+                            </h5>
+                        </div>
+                        <div class="card-body p-4 pt-2">
+                            {% for ev in eventos_asignados %}
+                                <div class="profile-event-row">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div>
+                                            <span class="fw-bold text-dark d-block">Reserva #{{ ev.id }} — {{ ev.paquete.nombre }}</span>
+                                            <small class="text-muted d-block mt-1">
+                                                <i class="fa-regular fa-calendar me-1"></i> {{ ev.fecha_evento|date:"d/m/Y" }} — <i class="fa-solid fa-location-dot me-1"></i> {{ ev.lugar.nombre|default:"Bogotá" }}
+                                            </small>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3">
+                                            {% if ev.state == 'Evento Activo' or ev.estado == 'Evento Activo' %}
+                                                <span class="badge bg-warning text-dark fw-bold px-2 py-1" style="font-size: 0.7rem;">En Sitio</span>
+                                            {% elif ev.estado == 'Finalizado' %}
+                                                <span class="badge bg-success fw-bold px-2 py-1" style="font-size: 0.7rem;">Cerrado</span>
+                                            {% elif ev.estado == 'Evaluacion' %}
+                                                <span class="badge bg-danger fw-bold px-2 py-1" style="font-size: 0.7rem;">Evaluación</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary fw-bold px-2 py-1" style="font-size: 0.7rem;">{{ ev.estado }}</span>
+                                            {% endif %}
+                                            
+                                            <a href="{% url 'mostrar_detalle_reserva' ev.id %}" class="btn btn-sm btn-dark px-3 py-1 fw-bold" style="border-radius: 8px; font-size: 0.75rem;">
+                                                Auditar <i class="fa-solid fa-arrow-right ms-1 text-[9px]"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <p class="text-muted small italic mb-0 py-2">No tienes eventos asignados bajo tu coordinación en este momento.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
                     {% if usuario.rol.id != 4 %}
                     <div class="card shadow-sm border-0 content-card overflow-hidden">
                         <div class="card-header bg-white border-0 pt-4 px-4">
@@ -159,7 +200,6 @@
     align-items: flex-start;
 }
 
-/* Limitamos el contenedor para que no se pegue a los bordes en pantallas 4K */
 .profile-container {
     max-width: 1140px !important; 
     margin: 0 auto;
@@ -242,6 +282,7 @@
     padding: 12px;
     font-weight: 600;
     transition: all 0.2s ease;
+    text-decoration: none;
 }
 
 .action-btn { background: #541E12; color: white; }
@@ -258,6 +299,7 @@
     background: transparent;
     font-weight: 700;
     font-size: 0.9rem;
+    border: none;
 }
 
 .logout-btn:hover { background: #fff5f5; }
@@ -287,26 +329,19 @@
     font-size: 0.95rem;
 }
 
-.user-id-text {
-    color: #541E12; 
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 1.1rem;
+/* NUEVOS ESTILOS INTERNOS DE FILAS DE EVENTOS */
+.profile-event-row {
+    padding: 14px 8px;
+    border-bottom: 1px solid #f4f4f4;
 }
 
-.secure-footer {
-    background: #ebf8ff;
-    border: 1px solid #bee3f8;
-    color: #2b6cb0;
-    padding: 20px;
-    border-radius: 15px;
-    font-size: 0.85rem;
-    text-align: center;
+.profile-event-row:last-child {
+    border-bottom: none;
 }
 
-/* RESPONSIVO */
 @media (max-width: 991px) {
     .profile-container { padding: 0 20px; }
-    .col-md-8 { margin-bottom: 20px; } /* Espacio cuando se apilan */
+    .col-md-8 { margin-bottom: 20px; }
 }
 </style>
 {% endblock %}
