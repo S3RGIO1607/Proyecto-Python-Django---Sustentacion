@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-color: #541E12;
+        --primary-hover: #3d140d;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --bg-soft: #f8fafc;
+        --border-color: #e2e8f0;
+    }
+
+    .reserva-container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+    .reserva-card { display: grid; grid-template-columns: 1fr; background: #fff; border-radius: 24px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 15px 35px rgba(0,0,0,0.05); padding: 30px; }
+    .section-title { display: flex; align-items: center; gap: 10px; font-size: 1.1rem; font-weight: 700; margin-top: 15px; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--bg-soft); }
+    .form-group label { font-size: 0.85rem; color: var(--text-muted); font-weight: 700; margin-bottom: 6px; display: block; }
+    .form-group input { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid var(--border-color); outline: none; font-size: 1rem; }
+    .form-group input:focus { border-color: var(--primary-color); }
+    .row-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    
+    .lugar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 25px; }
+    .lugar-card { border: 2px solid var(--border-color); border-radius: 12px; overflow: hidden; cursor: pointer; position: relative; display: block; }
+    .lugar-card.lugar-bloqueado { opacity: 0.4; cursor: not-allowed; background: #f1f5f9; pointer-events: none; }
+    .lugar-card img { width: 100%; height: 110px; object-fit: cover; }
+    .lugar-card-body { padding: 10px; }
+    .lugar-card input { position: absolute; top: 10px; right: 10px; accent-color: var(--primary-color); }
+    .lugar-card:has(input:checked) { border-color: var(--primary-color); background: #fff9f8; }
+
+    .btn-confirmar { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 700; font-size: 1.05rem; cursor: pointer; background: var(--primary-color); color: #fff; margin-top: 20px; }
+    .btn-cancelar { display: block; text-align: center; margin-top: 15px; color: var(--text-muted); text-decoration: none; font-weight: 600; }
+</style>
+
+<div class="reserva-container">
+    <div class="reserva-card">
+        <h2 style="color: var(--primary-color); font-weight: 900; margin-bottom: 5px;">Reprogramar Evento #{{ reserva.id }}</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 25px;">
+            Estás modificando la agenda para el paquete <strong>{{ paquete.nombre }}</strong>. La cantidad de invitados contratada se mantiene fija en <strong>{{ reserva.asistentes }} personas</strong>.
+        </p>
+
+        <form method="POST" id="formReprogramar">
+            {% csrf_token %}
+
+            <div class="section-title"><i class="fa-solid fa-calendar-days" style="color: var(--primary-color);"></i> Nueva Agenda de Celebración</div>
+            <div class="row-inputs">
+                <div class="form-group">
+                    <label>Nueva Fecha del Evento</label>
+                    <input type="date" name="fecha_evento" id="fecha" min="{{ hoy }}" value="{{ reserva.fecha_evento|date:'Y-m-%d' }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Nueva Hora de Inicio</label>
+                    <input type="time" name="hora_inicio" id="hora_inicio" value="{{ reserva.hora_inicio|time:'H:i' }}" required>
+                </div>
+            </div>
+
+            <div class="section-title"><i class="fa-solid fa-map-location-dot" style="color: var(--primary-color);"></i> Reubicar o Confirmar Lugar</div>
+            <div class="lugar-grid" id="lugarGrid">
+                {% for lugar in lugares %}
+                <label class="lugar-card" id="card-lugar-${{ lugar.id }}" data-lugar-id="{{ lugar.id }}">
+                    <input type="radio" name="lugar_id" value="{{ lugar.id }}" 
+                           data-capacidad="{{ lugar.capacidad_maxima }}"
+                           {% if reserva.lugar.id == lugar.id %}checked{% endif %} required>
+                    {% if lugar.imagen %}
+                        <img src="{{ lugar.imagen.url }}" alt="{{ lugar.nombre }}">
+                    {% else %}
+                        <div style="height: 110px; background: #e2e8f0; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-image" style="color: var(--text-muted);"></i>
+                        </div>
+                    {% endif %}
+                    <div class="lugar-card-body">
+                        <strong style="font-size: 0.85rem; display: block; line-height: 1.2;">{{ lugar.nombre }}</strong>
+                        <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px;">Max: {{ lugar.capacidad_maxima }} personas</div>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="btn-confirmar">Guardar Nueva Fecha</button>
+            <a href="{% url 'detalle_reserva' reserva.id %}" class="btn-cancelar">Volver al Detalle</a>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const radioLugares = document.querySelectorAll('input[name="lugar_id"]');
+    const asistentesFijos = parseInt("{{ reserva.asistentes }}") || 0;
+
+    function filtrarLugaresPorAforo() {
+        radioLugares.forEach(radio => {
+            let capMaxLugar = parseInt(radio.dataset.capacidad);
+            let contenedorCard = document.getElementById(`card-lugar-${radio.value}`);
+
+            if (asistentesFijos > capMaxLugar && contenedorCard) {
+                contenedorCard.classList.add('lugar-bloqueado');
+                if (radio.checked) radio.checked = false;
+            }
+        });
+    }
+
+    filtrarLugaresPorAforo();
+});
+</script>
+{% endblock %}

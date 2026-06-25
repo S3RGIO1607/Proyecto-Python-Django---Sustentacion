@@ -261,6 +261,57 @@
         box-shadow: 0 10px 20px rgba(0,0,0,0.2);
     }
 
+    .btn-reprogramar-main {
+        width: 100%;
+        margin-top: 20px;
+        padding: 14px;
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+        border-radius: 8px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        text-decoration: none;
+    }
+
+    .btn-reprogramar-main:hover {
+        background: rgba(251, 192, 45, 0.08);
+        color: #fff;
+        border-color: #fff;
+    }
+
+    .btn-pdf-main {
+        width: 100%;
+        margin-top: 15px;
+        padding: 12px;
+        background: rgba(255,255,255,0.05);
+        color: #fff;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .btn-pdf-main:hover {
+        background: #fff;
+        color: #000;
+    }
+
     .btn-cancelar-main {
         width: 100%; 
         margin-top: 15px; 
@@ -457,6 +508,14 @@
 <section class="detalle-section">
     <div class="detalle-container">
         
+        {% if messages %}
+            {% for message in messages %}
+                <div style="background: {% if message.tags == 'error' %}#fee2e2{% else %}#d1fae5{% endif %}; color: {% if message.tags == 'error' %}#991b1b{% else %}#065f46{% endif %}; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid {% if message.tags == 'error' %}#fecaca{% else %}#a7f3d0{% endif %}; font-weight: bold; font-size: 0.9rem;">
+                    <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i> {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
         <div class="detalle-card">
             
             <div class="detalle-header">
@@ -476,7 +535,7 @@
                         <i class="fa-solid fa-calendar-day"></i>
                         <div>
                             <strong>Fecha Programada</strong>
-                            <span>{{ reserva.fecha_evento }}</span>
+                            <span>{{ reserva.fecha_evento|date:"d/m/Y" }}</span>
                         </div>
                     </div>
                     <div class="info-evento-box">
@@ -544,7 +603,7 @@
                     <div class="item-row" style="margin-bottom: 5px;">
                         <span>
                             <i class="fa-solid fa-utensils" style="margin-right: 10px; color: var(--accent);"></i>
-                            <strong>{{ reserva.menu_comida.nombre }}</strong>
+                            <i style="color: #fff; font-style: normal; font-weight: bold;">{{ reserva.menu_comida.nombre }}</i>
                             <span class="badge-pax">{{ reserva.asistentes }} Platos</span>
                         </span>
                         <span>$ {{ reserva.menu_comida.precio_por_persona|floatformat:0|intcomma }} c/u</span>
@@ -621,6 +680,17 @@
                     </form>
                 
                 {% elif reserva.estado != 'Cancelado' %}
+                    
+                    {% if reserva.estado == 'Confirmado' %}
+                        <a href="{% url 'reprogramar_reserva_cliente' reserva.id %}" class="btn-reprogramar-main">
+                            <i class="fa-solid fa-calendar-days"></i> Reprogramar Evento
+                        </a>
+                    {% endif %}
+
+                    <a href="{% url 'descargar_comprobante' 'reserva' reserva.id %}" class="btn-pdf-main">
+                        <i class="fa-solid fa-file-pdf"></i> Descargar Comprobante Oficial PDF
+                    </a>
+
                     <div class="comprobante-pago-box">
                         <div class="comprobante-header">
                             <i class="fa-solid fa-circle-check"></i> Pago Confirmado y Registrado

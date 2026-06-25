@@ -466,17 +466,100 @@ def detalle_reserva(request, reserva_id):
 
 
 def cancelar_reserva_cliente(request, reserva_id):
-    # Buscamos la reserva asegurándonos que sea del usuario actual
+    if not request.session.get("usuario_id"):
+        return redirect("iniciar_sesion")
+
     reserva = get_object_or_404(ReservaEvento, id=reserva_id, usuario_id=request.session.get("usuario_id"))
     
-    if reserva.estado == 'Reservado':
-        reserva.estado = 'Cancelado'
-        reserva.save()
-        messages.success(request, f"La reserva #{reserva.id} ha sido cancelada exitosamente.")
-    else:
-        messages.error(request, "Esta reserva no puede ser cancelada en su estado actual.")
-        
+    # REGLA 1: Solo si está Reservado
+    if reserva.estado != 'Reservado':
+        messages.error(request, "Las cancelaciones solo aplican para eventos en estado 'Reservado'.")
+        return redirect('detalle_reserva', reserva_id=reserva.id)
+    
+    # REGLA 2: Límite máximo de una semana antes
+    hoy = date.today()
+    fecha_limite = reserva.fecha_evento - timedelta(days=7)
+    if hoy > fecha_limite:
+        messages.error(request, "No puedes cancelar este evento. El plazo expiró (máximo una semana antes del evento).")
+        return redirect('detalle_reserva', reserva_id=reserva.id)
+
+    reserva.estado = 'Cancelado'
+    reserva.save()
+    messages.success(request, f"La reserva #{reserva.id} ha sido cancelada exitosamente.")
     return redirect('detalle_reserva', reserva_id=reserva.id)
+
+
+def reprogramar_reserva_cliente(request, reserva_id):
+    if not request.session.get("usuario_id"):
+        return redirect("iniciar_sesion")
+
+    reserva = get_object_or_404(ReservaEvento, id=reserva_id, usuario_id=request.session.get("usuario_id"))
+    
+    # REGLA 1: Solo si está Confirmado (Ya pagó)
+    if reserva.estado != 'Confirmado':
+        messages.error(request, "Solo puedes reprogramar un evento si se encuentra en estado 'Confirmado' (pago verificado).")
+        return redirect('detalle_reserva', reserva_id=reserva.id)
+    
+    # REGLA 2: Límite máximo de una semana antes de la fecha original
+    hoy = date.today()
+    fecha_limite_original = reserva.fecha_evento - timedelta(days=7)
+    if hoy > fecha_limite_original:
+        messages.error(request, "El plazo para reprogramar este evento ha vencido (máximo una semana antes del evento establecido).")
+        return redirect('detalle_reserva', reserva_id=reserva.id)
+
+    # Reutilizamos los catálogos del paquete original de la reserva
+    paquete = reserva.paquete
+    menus = MenuComida.objects.filter(estado='A')
+    lugares = Lugar.objects.filter(estado='A')
+    hoy_str = hoy.strftime('%Y-%m-%d')
+
+    if request.method == "POST":
+        nueva_fecha_str = request.POST.get("fecha_evento")
+        nueva_hora_str = request.POST.get("hora_inicio")
+        nuevo_lugar_id = request.POST.get("lugar_id")
+        
+        try:
+            nueva_hora_obj = datetime.strptime(nueva_hora_str, "%H:%M").time()
+            nueva_fecha_obj = datetime.strptime(nueva_fecha_str, "%Y-%m-%d").date()
+            
+            dt_combinado = datetime.combine(nueva_fecha_obj, nueva_hora_obj)
+            dt_aware = timezone.make_aware(dt_combinado)
+            
+            if dt_aware < timezone.now():
+                raise ValidationErr("No puedes reprogramar eventos para fechas u horas pasadas.")
+                
+            lugar_seleccionado = get_object_or_404(Lugar, id=nuevo_lugar_id)
+            if reserva.asistentes > lugar_seleccionado.capacidad_maxima:
+                raise ValidationErr(f"El lugar seleccionado no tiene capacidad para los {reserva.asistentes} invitados.")
+
+            with transaction.atomic():
+                reserva.fecha_evento = nueva_fecha_obj
+                reserva.hora_inicio = nueva_hora_obj
+                reserva.lugar = lugar_seleccionado
+                
+                # full_clean verificará los cruces de agenda de 5 horas que tienes configurados
+                reserva.full_clean()
+                reserva.save()
+                
+                # Intentar actualizar Google Calendar si aplica
+                try:
+                    crear_evento(reserva)
+                except Exception as ce:
+                    print("Error actualizando Google Calendar al reprogramar:", ce)
+
+            messages.success(request, f"¡Tu evento #{reserva.id} ha sido reprogramado con éxito!")
+            return redirect('detalle_reserva', reserva_id=reserva.id)
+
+        except Exception as e:
+            messages.error(request, f"Error al reprogramar: {str(e)}")
+
+    return render(request, "Cliente/reprogramar_reserva.html", {
+        "reserva": reserva,
+        "paquete": paquete,
+        "menus": menus,
+        "lugares": lugares,
+        "hoy": hoy_str
+    })
 
 
 def registrar_pago_cliente(request, tipo, id_objeto):
