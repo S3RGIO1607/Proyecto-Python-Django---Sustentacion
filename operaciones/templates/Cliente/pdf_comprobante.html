@@ -149,15 +149,19 @@
             {% for item in detalles %}
             <tr>
                 <td>
-                    <div style="font-weight: bold; color: #222;">{{ item.nombre }}</div>
-                    
-                    {% if item.proveedor_nombre %}
-                        <div style="font-size: 0.75rem; color: #555; margin-top: 4px; padding-left: 8px; border-left: 2px solid var(--accent);">
-                            <span style="color: var(--accent); font-weight: bold;">Especialista asignado:</span> 
-                            {{ item.proveedor_nombre }} {% if item.proveedor_telefono %}(Tel: {{ item.proveedor_telefono }}){% endif %}
-                        </div>
-                    {% endif %}
-                </td>
+    <div style="font-weight: bold; color: #222;">{{ item.nombre }}</div>
+    
+    {% if item.proveedor_nombre %}
+        <div style="font-size: 0.75rem; color: #555; margin-top: 4px; padding-left: 8px; border-left: 2px solid var(--accent);">
+            <span style="color: var(--accent); font-weight: bold;">Especialista asignado:</span> 
+            {{ item.proveedor_nombre }} {% if item.proveedor_telefono %}(Tel: {{ item.proveedor_telefono }}){% endif %}
+        </div>
+    {% elif "Servicio:" in item.nombre %}
+        <div style="font-size: 0.75rem; color: #888; margin-top: 4px; padding-left: 8px; border-left: 2px solid #ccc; font-style: italic;">
+            Especialista: Pendiente por confirmar
+        </div>
+    {% endif %}
+</td>
                 <td class="text-center">{{ item.cantidad }}</td>
                 <td class="text-right">${{ item.precio_unit|floatformat:0|intcomma }}</td>
                 <td class="text-right">${{ item.subtotal|floatformat:0|intcomma }}</td>

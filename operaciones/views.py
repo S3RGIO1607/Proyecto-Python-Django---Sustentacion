@@ -1134,20 +1134,26 @@ def descargar_comprobante_pdf(request, tipo, obj_id):
                 'proveedor_nombre': None,   # Los productos del paquete no llevan especialista
                 'proveedor_telefono': None  # Los productos del paquete no llevan especialista
             })
-        # 2. Añadimos servicios extra si existen (AQUÍ AGREGAMOS LA INFO FALTA)
+        # 2. Añadimos servicios extra si existen
         for serv in obj.servicios_extra.all():
-            # Verificamos de forma segura si el servicio tiene un proveedor asignado
-            proveedor = serv.servicio.proveedor if hasattr(serv.servicio, 'proveedor') else None
+            p_nombre = None
+            p_telefono = None
             
+            # Intentamos acceder al proveedor de manera segura a través de la relación del ORM
+            try:
+                if serv.servicio and hasattr(serv.servicio, 'proveedor') and serv.servicio.proveedor:
+                    p_nombre = serv.servicio.proveedor.nombre
+                    p_telefono = getattr(serv.servicio.proveedor, 'telefono', None)
+            except Exception:
+                pass
+
             detalles_normalizados.append({
                 'nombre': f"Servicio: {serv.servicio.nombre_servicio}",
                 'cantidad': serv.cantidad,
                 'precio_unit': serv.precio_fijado,
                 'subtotal': serv.subtotal(),
-                
-                # Extraemos la información del proveedor si existe en tu base de datos
-                'proveedor_nombre': proveedor.nombre if proveedor else None,
-                'proveedor_telefono': proveedor.telefono if proveedor else None
+                'proveedor_nombre': p_nombre,
+                'proveedor_telefono': p_telefono
             })
         total = obj.total
 
