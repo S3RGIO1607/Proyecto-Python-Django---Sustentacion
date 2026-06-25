@@ -306,7 +306,7 @@ class ReservaEvento(models.Model):
                     reserva=self,
                     servicio=ps.servicio,
                     defaults={
-                        'precio_fijado': ps.servicio.precio
+                        'precio_fijado': ps.servicio.precio_servicio
                     }
                 )
 
@@ -508,7 +508,9 @@ class ReservaServicio(models.Model):
         unique_together = ('reserva', 'servicio')
 
     def __str__(self):
-        return f'{self.reserva.id} - {self.servicio.nombre}'
+        if self.servicio:
+            return f'Reserva #{self.reserva.id} - {self.servicio.nombre_servicio}'
+        return f'Reserva #{self.reserva.id} - Servicio no especificado'
 
 
 # ---------------- EVALUACION EVENTO ----------------

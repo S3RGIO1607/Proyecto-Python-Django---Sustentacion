@@ -1139,16 +1139,13 @@ def descargar_comprobante_pdf(request, tipo, obj_id):
             p_nombre = None
             p_telefono = None
             
-            # Intentamos acceder al proveedor de manera segura a través de la relación del ORM
-            try:
-                if serv.servicio and hasattr(serv.servicio, 'proveedor') and serv.servicio.proveedor:
-                    p_nombre = serv.servicio.proveedor.nombre
-                    p_telefono = getattr(serv.servicio.proveedor, 'telefono', None)
-            except Exception:
-                pass
+            if serv.servicio:
+                # Extraemos la información directamente del servicio mapeado
+                p_nombre = serv.servicio.nombre_proveedor
+                p_telefono = serv.servicio.telefono_proveedor
 
             detalles_normalizados.append({
-                'nombre': f"Servicio: {serv.servicio.nombre_servicio}",
+                'nombre': f"Servicio: {serv.servicio.nombre_servicio if serv.servicio else 'Servicio sin nombre'}",
                 'cantidad': serv.cantidad,
                 'precio_unit': serv.precio_fijado,
                 'subtotal': serv.subtotal(),
