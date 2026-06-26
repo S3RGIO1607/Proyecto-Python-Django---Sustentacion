@@ -53,19 +53,6 @@
                                         </a>
                                     {% endif %}
                                 {% endif %}
-
-                                <a href="#" class="btn btn-outline-light btn-sm mt-2 text-dark border-secondary-subtle">
-                                    <i class="fa-solid fa-id-card-clip me-2"></i> Credenciales
-                                </a>
-
-                                <hr class="my-3 opacity-50">
-
-                                <form action="{% url 'logout' %}" method="POST">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn logout-btn w-100">
-                                        <i class="fa-solid fa-power-off me-2"></i> Cerrar Sesión
-                                    </button>
-                                </form>
                             </div>
                         </div>
                     </div>
