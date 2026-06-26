@@ -155,10 +155,47 @@
     }
 
     .contenedor-main { background: transparent !important; box-shadow: none !important; }
+
+    /* CONTENEDOR FLOTANTE PARA LAS NOTIFICACIONES TOAST */
+    #toast-container {
+        position: fixed;
+        top: 25px;
+        right: 25px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-width: 380px;
+        width: 100%;
+    }
+
+    .toast-notification {
+        background: #ffffff;
+        border-left: 5px solid #ef4444;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        padding: 16px;
+        border-radius: 12px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        animation: slideIn 0.3s ease forwards;
+        transition: all 0.3s ease;
+    }
+
+    .toast-notification.fade-out {
+        opacity: 0;
+        transform: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(120%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
 </style>
 
+<div id="toast-container"></div>
+
 <div class="max-w-4xl mx-auto px-4 py-8">
-    <div id="js-error-container" class="hidden mb-4 p-4 rounded-xl bg-red-50 text-red-700 border border-red-200 text-sm font-bold shadow-sm"></div>
 
     {% if messages %}
         {% for message in messages %}
@@ -346,7 +383,7 @@
         const textarea = document.getElementById('txt_descripcion');
         const counter = document.getElementById('counter-descripcion');
         const form = document.getElementById('form-servicio');
-        const errorContainer = document.getElementById('js-error-container');
+        const toastContainer = document.getElementById('toast-container');
 
         // Campos numéricos y de costos
         const costoProveedorInput = document.getElementById('txt_costo_proveedor');
@@ -366,11 +403,35 @@
         textarea.addEventListener('input', actualizarContador);
         actualizarContador(); 
 
+        // FUNCIÓN CONTROLADORA PARA CREAR Y GENERAR LAS NOTIFICACIONES FLOTANTES (TOASTS)
+        function lanzarToastError(mensaje) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.innerHTML = `
+                <div style="color: #ef4444; font-size: 1.2rem; margin-top: 2px;">
+                    <i class="fa-solid fa-circle-destructive fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 900; color: #1e293b; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Error de Validación</div>
+                    <div style="color: #475569; font-size: 0.85rem; font-weight: 600; line-height: 1.3;">${mensaje}</div>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+
+            // Desvanecimiento controlado automático tras 5 segundos
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                toast.style.transform = 'translateX(120%)';
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 5000);
+        }
+
         // Validación de lógica financiera y bloqueo de negativos antes de enviar
         form.addEventListener('submit', function(event) {
             let errores = [];
-            errorContainer.classList.add('hidden');
-            errorContainer.innerHTML = '';
 
             const costoProveedor = parseInt(costoProveedorInput.value) || 0;
             const precioCliente = parseInt(precioClienteInput.value) || 0;
@@ -382,21 +443,19 @@
 
             // 2. Validación de margen comercial solicitado
             if (precioCliente === costoProveedor) {
-                errores.push("El precio de venta al cliente no puede ser exactamente igual al costo base del proveedor (No dejaría ganancias).");
+                errores.push("El precio de venta no puede ser igual al costo base del proveedor (No dejaría ganancias).");
                 precioClienteInput.classList.add('border-red-500', 'bg-red-50');
             } else if (precioCliente < costoProveedor) {
-                errores.push("El precio de venta al cliente no puede ser menor que el costo del proveedor (Generaría pérdidas directas).");
+                errores.push("El precio de venta no puede ser menor que el costo del proveedor (Generaría pérdidas).");
                 precioClienteInput.classList.add('border-red-500', 'bg-red-50');
             } else {
                 precioClienteInput.classList.remove('border-red-500', 'bg-red-50');
             }
 
-            // Si hay errores, frenar envío e inyectar panel de aviso superior
+            // Si existen errores, frenamos la propagación del submit y disparamos las alertas independientes
             if (errores.length > 0) {
                 event.preventDefault();
-                errorContainer.innerHTML = errores.join('<br>');
-                errorContainer.classList.remove('hidden');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                errores.forEach(err => lanzarToastError(err));
             }
         });
     });
