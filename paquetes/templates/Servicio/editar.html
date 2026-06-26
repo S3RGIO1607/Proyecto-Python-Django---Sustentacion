@@ -167,10 +167,47 @@
     }
 
     .contenedor-main { background: transparent !important; box-shadow: none !important; }
+
+    /* CONTENEDOR FLOTANTE PARA LAS NOTIFICACIONES TOAST */
+    #toast-container {
+        position: fixed;
+        top: 25px;
+        right: 25px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-width: 380px;
+        width: 100%;
+    }
+
+    .toast-notification {
+        background: #ffffff;
+        border-left: 5px solid #ef4444;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        padding: 16px;
+        border-radius: 12px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        animation: slideIn 0.3s ease forwards;
+        transition: all 0.3s ease;
+    }
+
+    .toast-notification.fade-out {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(120%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
 </style>
 
+<div id="toast-container"></div>
+
 <div class="max-w-3xl mx-auto pb-12 px-4">
-    <div id="js-error-container" class="hidden mb-4 p-4 rounded-xl bg-red-50 text-red-700 border border-red-200 text-sm font-bold shadow-sm"></div>
 
     {% if messages %}
         {% for message in messages %}
@@ -213,8 +250,6 @@
                            placeholder="Ej: Catering Master"
                            minlength="2"
                            maxlength="50"
-                           pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ0-9\s]{2,50}$"
-                           title="El nombre debe tener mínimo 2 caracteres (letras, números o espacios)."
                            required>
                 </div>
 
@@ -243,10 +278,14 @@
                             <span><i class="fa-solid fa-building mr-2 text-blue-500"></i> Empresa</span>
                         </label>
                         <input type="text" 
+                               id="txt_empresa_externa"
                                name="txt_empresa_externa" 
                                value="{{ servicio.nombre_empresa_externa }}"
                                class="input-edit-style" 
-                               placeholder="Ej: Alianzas Logísticas S.A.S.">
+                               placeholder="Ej: Alianzas Logísticas S.A.S."
+                               minlength="2"
+                               maxlength="20"
+                               required>
                     </div>
                     <div class="field-group">
                         <label class="label-edit">
@@ -257,11 +296,9 @@
                                name="txt_nit_proveedor" 
                                value="{{ servicio.nit_o_cedula_proveedor }}"
                                class="input-edit-style" 
-                               placeholder="Ej: 900123456-2"
+                               placeholder="Ej: 900123456"
                                minlength="6"
-                               maxlength="20"
-                               pattern="^[A-Za-z0-9\-]{6,20}$"
-                               title="Debe tener entre 6 y 20 caracteres alfanuméricos (se admiten guiones)."
+                               maxlength="10"
                                required>
                     </div>
                 </div>
@@ -277,10 +314,6 @@
                                value="{{ servicio.nombre_proveedor }}"
                                class="input-edit-style" 
                                placeholder="Ej: Juan Pérez"
-                               minlength="3"
-                               maxlength="50"
-                               pattern="^[A-Za-záéíóúÁÉÍÓÚñÑ\s]{3,50}$"
-                               title="Debe ser un nombre propio válido (solo letras) de mínimo 3 caracteres."
                                required>
                     </div>
                     <div class="field-group">
@@ -293,10 +326,6 @@
                                value="{{ servicio.telefono_proveedor }}"
                                class="input-edit-style" 
                                placeholder="Ej: 3001234567"
-                               minlength="10"
-                               maxlength="15"
-                               pattern="^\d{10,15}$"
-                               title="El teléfono debe contener únicamente números y tener un mínimo de 10 dígitos."
                                required>
                     </div>
                 </div>
@@ -320,7 +349,6 @@
                                    value="{{ servicio.costo_proveedor|stringformat:'d' }}"
                                    class="input-edit-style" 
                                    placeholder="0"
-                                   onkeypress="return event.charCode >= 48 && event.charCode <= 57"
                                    required>
                         </div>
                     </div>
@@ -333,14 +361,12 @@
                             <span class="price-symbol">$</span>
                             <input type="number" 
                                    step="1" 
-                                   min="1"
+                                   min="0"
                                    id="precio"
                                    name="txt_precio" 
                                    value="{{ servicio.precio_servicio|stringformat:'d' }}"
                                    class="input-edit-style" 
                                    placeholder="0"
-                                   title="Ingrese un valor entero sin decimales, positivo y mayor al costo base."
-                                   onkeypress="return event.charCode >= 48 && event.charCode <= 57"
                                    required>
                         </div>
                     </div>
@@ -379,9 +405,12 @@
         const textarea = document.getElementById('descripcion');
         const counter = document.getElementById('counter-descripcion');
         const form = document.getElementById('form-editar-servicio');
-        const errorContainer = document.getElementById('js-error-container');
+        const toastContainer = document.getElementById('toast-container');
 
-        // Referencias de inputs monetarios
+        // Referencias de elementos
+        const nombreInput = document.getElementById('nombre');
+        const empresaInput = document.getElementById('txt_empresa_externa');
+        const nitInput = document.getElementById('txt_nit_proveedor');
         const costoProveedorInput = document.getElementById('txt_costo_proveedor');
         const precioClienteInput = document.getElementById('precio');
 
@@ -399,37 +428,129 @@
         textarea.addEventListener('input', actualizarContador);
         actualizarContador(); 
 
-        // Validación financiera lógica antes de enviar la actualización
+        function lanzarToastError(mensaje) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.innerHTML = `
+                <div style="color: #ef4444; font-size: 1.2rem; margin-top: 2px;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <div style="font-weight: 900; color: #1e293b; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Validación</div>
+                    <div style="color: #475569; font-size: 0.85rem; font-weight: 600; line-height: 1.3;">${mensaje}</div>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => { toast.remove(); }, 300);
+            }, 5000);
+        }
+
+        // Evitar la digitación de caracteres extraños y signos en los montos monetarios
+        [costoProveedorInput, precioClienteInput].forEach(input => {
+            input.addEventListener('keydown', function(e) {
+                if (['-', '+', 'e', 'E', '.', ','].includes(e.key)) {
+                    e.preventDefault();
+                }
+            });
+        });
+
         form.addEventListener('submit', function(event) {
             let errores = [];
-            errorContainer.classList.add('hidden');
-            errorContainer.innerHTML = '';
 
-            const costoProveedor = parseInt(costoProveedorInput.value) || 0;
-            const precioCliente = parseInt(precioClienteInput.value) || 0;
-
-            // 1. Control riguroso contra negativos
-            if (costoProveedor < 0 || precioCliente < 0) {
-                errores.push("Los valores económicos no pueden ser negativos.");
+            // --- 1. VALIDACIÓN NOMBRE ---
+            const nombreVal = nombreInput.value.trim();
+            const regexNombrePropio = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]*(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]*)*$/;
+            
+            if (nombreVal.length < 2 || nombreVal.length > 50) {
+                errores.push("El Nombre debe tener entre 2 y 50 caracteres.");
+            }
+            if (!/^[A-Za-záéíóúÁÉÍÓÚñÑ\s]+$/.test(nombreVal)) {
+                errores.push("El Nombre del servicio debe ser puramente alfabético.");
+            } else if (!regexNombrePropio.test(nombreVal)) {
+                errores.push("El Nombre debe estar en formato de Nombre Propio (Ej: Catering Master).");
             }
 
-            // 2. Validación de margen de ganancia o pérdida
-            if (precioCliente === costoProveedor) {
-                errores.push("La tarifa del cliente no puede ser exactamente igual al costo del proveedor (El margen de utilidad sería cero).");
-                precioClienteInput.classList.add('border-red-500', 'bg-red-50');
-            } else if (precioCliente < costoProveedor) {
-                errores.push("La tarifa del cliente no puede ser menor que el costo del proveedor (Provocaría pérdidas financieras).");
-                precioClienteInput.classList.add('border-red-500', 'bg-red-50');
+            // --- 2. VALIDACIÓN DESCRIPCIÓN ---
+            const descVal = textarea.value.trim();
+            if (descVal.length < 20 || descVal.length > 250) {
+                errores.push("La Descripción detallada debe contener entre 20 y 250 caracteres.");
+            }
+            if (!/^[A-Za-záéíóúÁÉÍÓÚñÑ0-9\s.,;:!?()\-]+$/.test(descVal)) {
+                errores.push("La Descripción debe ser un dato de tipo alfanumérico.");
+            }
+
+            // --- 3. VALIDACIÓN EMPRESA ---
+            const empresaVal = empresaInput.value.trim();
+            if (empresaVal.length < 2 || empresaVal.length > 20) {
+                errores.push("El campo Empresa debe tener entre 2 y 20 caracteres.");
+            }
+            if (!/^[A-Za-záéíóúÁÉÍÓÚñÑ0-9\s.]+$/.test(empresaVal)) {
+                errores.push("El nombre de la Empresa debe ser alfanumérico.");
+            }
+
+            // --- 4. VALIDACIÓN NIT O CÉDULA ---
+            const nitVal = nitInput.value.trim();
+            if (nitVal.length < 6 || nitVal.length > 10) {
+                errores.push("El NIT o Cédula debe contener entre 6 y 10 caracteres.");
+            }
+            if (!/^[A-Za-z0-9\-]+$/.test(nitVal)) {
+                errores.push("El documento de identidad debe ser una cadena alfanumérica válida.");
+            }
+            if (/\-?\d+/.test(nitVal) && parseInt(nitVal) < 0) {
+                errores.push("No se permiten números de documentos negativos.");
+            }
+
+            // --- 5. VALIDACIÓN COSTO DEL PROVEEDOR ---
+            const costoProvStr = costoProveedorInput.value;
+            const costoProvNum = parseInt(costoProvStr) || 0;
+            if (costoProvStr === "" || costoProvNum < 0) {
+                errores.push("El Costo del Proveedor es obligatorio y no puede ser negativo.");
             } else {
-                precioClienteInput.classList.remove('border-red-500', 'bg-red-50');
+                const digitosCosto = costoProvStr.length;
+                if (digitosCosto >= 1 && digitosCosto <= 5 && costoProvNum > 100000) {
+                    errores.push("Si el costo tiene de 1 a 5 dígitos, no puede superar los $100.000.");
+                } else if (digitosCosto >= 6 && digitosCosto <= 9 && costoProvNum > 1000000) {
+                    errores.push("Si el costo tiene de 6 a 9 dígitos, no puede superar el $1.000.000.");
+                } else if (digitosCosto > 9) {
+                    errores.push("El costo supera la longitud máxima permitida de 9 dígitos.");
+                }
             }
 
-            // Freno del envío e inyección de alertas si existen errores
+            // --- 6. VALIDACIÓN TARIFA CLIENTE ---
+            const precioCliStr = precioClienteInput.value;
+            const precioCliNum = parseInt(precioCliStr) || 0;
+            if (precioCliStr === "" || precioCliNum < 0) {
+                errores.push("La Tarifa Cliente es obligatoria y no puede ser negativa.");
+            } else {
+                const digitosPrecio = precioCliStr.length;
+                if (digitosPrecio >= 1 && digitosPrecio <= 6 && precioCliNum > 1000000) {
+                    errores.push("Si el precio tiene de 1 a 6 dígitos, no puede superar el $1.000.000.");
+                } else if (digitosPrecio >= 7 && digitosPrecio <= 8) {
+                    if (precioCliNum < 17000000 || precioCliNum > 70000000) {
+                        errores.push("Si el precio tiene 7 u 8 dígitos, debe estar en el rango de 17 a 70 Millones.");
+                    }
+                } else if (digitosPrecio > 8) {
+                    errores.push("El precio de venta supera la longitud máxima permitida de 8 dígitos.");
+                }
+            }
+
+            // Validación Cruzada de Margen Comercial
+            if (precioCliNum > 0 && costoProvNum > 0 && errores.length === 0) {
+                if (precioCliNum === costoProvNum) {
+                    errores.push("La tarifa del cliente no puede ser exactamente igual al costo del proveedor (El margen de utilidad sería cero).");
+                } else if (precioCliNum < costoProvNum) {
+                    errores.push("La tarifa del cliente no puede ser menor que el costo del proveedor (Provocaría pérdidas financieras).");
+                }
+            }
+
+            // Detener el envío si existen errores
             if (errores.length > 0) {
                 event.preventDefault();
-                errorContainer.innerHTML = errores.join('<br>');
-                errorContainer.classList.remove('hidden');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                errores.forEach(err => lanzarToastError(err));
             }
         });
     });
