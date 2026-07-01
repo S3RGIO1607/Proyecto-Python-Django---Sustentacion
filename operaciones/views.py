@@ -12,6 +12,7 @@ from django.db import transaction
 from datetime import date, timedelta
 from django.db.models import Sum
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 from arrons import settings
 from .models import ReservaEvento, ReservaServicio, Pago, MenuComida, Lugar, Alquiler, AlquilerProducto, EvaluacionEvento
@@ -380,6 +381,9 @@ def crear_reserva_cliente(request, paquete_id):
 
         # 4. Guardado Transaccional Atómico
         try:
+            # Controlamos cadenas vacías del select opcional de menú
+            menu_final_id = menu_id.strip() if menu_id and menu_id.strip() else None
+
             with transaction.atomic():
                 reserva = ReservaEvento(
                     usuario_id=usuario_id,
@@ -390,7 +394,7 @@ def crear_reserva_cliente(request, paquete_id):
                     estado="Reservado",
                     precio_paquete=paquete.precio,
                     lugar_id=lugar_seleccionado.id,
-                    menu_comida_id=menu_id if menu_id else None
+                    menu_comida_id=menu_final_id
                 )
 
                 # Ejecuta cleans internos y validación estructural de cruce de horarios (las 5 horas)
@@ -412,6 +416,7 @@ def crear_reserva_cliente(request, paquete_id):
 
                 reserva.calcular_total()
 
+                # Google Calendar no debe romper la transacción si falla la API externa
                 try:
                     crear_evento(reserva)
                 except Exception as e:
@@ -420,17 +425,23 @@ def crear_reserva_cliente(request, paquete_id):
             messages.success(request, "¡Tu reserva en Arron Eventos ha sido procesada con éxito!")
             return redirect("mis_reservas")
         
-        except ValidationErr as e:
-            error_final = e.message_dict.get('_all_', [str(e)])[0] if hasattr(e, 'message_dict') else str(e)
+        except ValidationError as e:  # <- Corregido el nombre de la excepción de Django
+            # Si el error viene de un campo específico o de clean() sin un campo asignado (_all_)
+            if hasattr(e, 'message_dict'):
+                error_final = e.message_dict.get('_all_', [str(e)])[0]
+                # Si no está en _all_, extraemos el primer error del primer campo que falló
+                if error_final == str(e) and e.message_dict:
+                    primer_campo = list(e.message_dict.keys())[0]
+                    error_final = f"{primer_campo}: {e.message_dict[primer_campo][0]}"
+            else:
+                error_final = e.messages[0] if hasattr(e, 'messages') else str(e)
+                
             contexto_error["error"] = error_final
             return render(request, "Cliente/crear_reserva.html", contexto_error)
 
         except Exception as e:
-            error_str = str(e)
-            error_final = error_str.replace("{'_all_':", "").replace("[", "").replace("]", "").replace("{", "").replace("}", "").replace("'", "").replace('"', "").strip()
-            if error_final.startswith("_all_:"):
-                error_final = error_final.replace("_all_:", "").strip()
-            contexto_error["error"] = error_final
+            # Para errores imprevistos del sistema
+            contexto_error["error"] = f"Ocurrió un error inesperado al procesar la reserva: {str(e)}"
             return render(request, "Cliente/crear_reserva.html", contexto_error)
 
     return render(request, "Cliente/crear_reserva.html", {

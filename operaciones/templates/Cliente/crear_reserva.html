@@ -20,10 +20,6 @@
         padding: 0 20px;
     }
 
-    /* GRID FLUIDO INTEGRAL: Sin depender de Media Queries.
-       Si el ancho disponible no alcanza para alojar la barra lateral (min 320px) 
-       y parte del formulario, se apilarán verticalmente solos.
-    */
     .reserva-card {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -39,7 +35,6 @@
         background: var(--bg-soft);
         padding: 30px;
         border-bottom: 1px solid var(--border-color);
-        /* Mantiene el comportamiento flotante solo en pantallas altas */
         position: sticky;
         top: 0;
         height: fit-content;
@@ -89,21 +84,53 @@
         border: 2px solid var(--border-color);
         outline: none;
         transition: 0.2s;
-        font-size: 1rem; /* Evita zoom forzado en móviles */
+        font-size: 1rem;
     }
 
     .form-group input:focus {
         border-color: var(--primary-color);
     }
 
-    /* SUB-GRIDS DINÁMICOS:
-       Se calculan automáticamente según el espacio de sus contenedores padres.
-    */
     .row-inputs {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 15px;
         margin-bottom: 25px;
+    }
+
+    /* COMPONENTE VISUAL DE HORARIOS OCUPADOS */
+    .horarios-disponibilidad-box {
+        background: #fff9f8;
+        border: 1px dashed var(--primary-color);
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .agenda-title {
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .badge-horario-ocupado {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        border: 1px solid #fecaca;
+        margin-right: 6px;
+        margin-bottom: 6px;
     }
 
     .lugar-grid {
@@ -127,6 +154,12 @@
         cursor: not-allowed;
         background: #f1f5f9;
         pointer-events: none;
+    }
+
+    /* MODIFICADOR VISUAL SI EL LUGAR YA TIENE RESERVAS ESE DÍA */
+    .lugar-card.lugar-con-ocupacion {
+        border-color: #f5b041;
+        background: #fffdf9;
     }
 
     .lugar-card img {
@@ -271,6 +304,17 @@
                     </div>
                 </div>
 
+                <div id="panel-franjas-ocupadas" class="horarios-disponibilidad-box d-none">
+                    <div class="agenda-title">
+                        <i class="fa-solid fa-business-time"></i> Horarios ocupados para esta fecha:
+                    </div>
+                    <div id="lista-badges-ocupados">
+                        </div>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 5px;">
+                        * Arron Eventos requiere un margen de 5 horas entre celebraciones en la misma sede por logística y desinfección.
+                    </span>
+                </div>
+
                 <div class="section-title"><i class="fa-solid fa-map-location-dot" style="color: var(--primary-color);"></i> Selecciona el Lugar</div>
                 <div class="lugar-grid" id="lugarGrid">
                     {% for lugar in lugares %}
@@ -290,6 +334,7 @@
                             <strong class="text-slate-800 text-sm block" style="font-size: 0.85rem; display: block; line-height: 1.2;">{{ lugar.nombre }}</strong>
                             <div class="text-xs text-slate-400 font-semibold" style="font-size: 0.72rem; color: var(--text-muted); margin: 2px 0;">Cap: {{ lugar.capacidad_maxima }} pax</div>
                             <div class="lugar-precio" style="font-size: 0.8rem; font-weight: 700; color: var(--primary-color);">+ ${{ lugar.precio_renta|floatformat:0|intcomma }}</div>
+                            <small class="badge-status-lugar text-amber-600 font-bold d-none" style="font-size: 0.68rem; display:block; margin-top:3px;"></small>
                         </div>
                     </label>
                     {% endfor %}
@@ -334,8 +379,9 @@
 </div>
 
 <script>
-// La lógica de JavaScript se mantiene intacta
 document.addEventListener('DOMContentLoaded', function () {
+    const inputFecha = document.getElementById('fecha');
+    const inputHora = document.getElementById('hora_inicio');
     const inputAsistentes = document.getElementById('asistentes');
     const checkboxesServicios = document.querySelectorAll('input[name="servicios"]');
     const precioDisplay = document.getElementById('precio-display');
@@ -343,9 +389,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const radioLugares = document.querySelectorAll('input[name="lugar_id"]');
     const formReserva = document.getElementById('formReserva');
     const alertaReserva = document.getElementById('alerta-reserva');
+    const panelFranjas = document.getElementById('panel-franjas-ocupadas');
+    const listaBadges = document.getElementById('lista-badges-ocupados');
 
     const precioBasePaquete = parseFloat("{{ paquete.precio }}") || 0;
     const capacidadBase = parseInt("{{ paquete.capacidad_base }}") || 1;
+
+    let ocupacionesDelDia = []; // Guardará las reservas existentes traídas por AJAX
 
     function mostrarError(mensaje) {
         alertaReserva.innerHTML = `
@@ -356,6 +406,64 @@ document.addEventListener('DOMContentLoaded', function () {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // CONSULTAR OCUPACIÓN POR AJAX
+    function consultarOcupacionAgenda() {
+        const fechaSeleccionada = inputFecha.value;
+        if (!fechaSeleccionada) return;
+
+        // Llamada al endpoint asíncrono pasándole la fecha como parámetro
+        fetch(`/operaciones/api/ocupacion-lugar/?fecha=${fechaSeleccionada}`)
+            .then(response => response.json())
+            .then(data => {
+                ocupacionesDelDia = data.reservas || [];
+                actualizarMapaDisponibilidad();
+            })
+            .catch(err => console.error("Error cargando agenda:", err));
+    }
+
+    function actualizarMapaDisponibilidad() {
+        listaBadges.innerHTML = "";
+        
+        // Limpiar avisos en las tarjetas de lugares
+        radioLugares.forEach(radio => {
+            const card = document.getElementById(`card-lugar-${radio.value}`);
+            if(card) {
+                card.classList.remove('lugar-con-ocupacion');
+                const textLabel = card.querySelector('.badge-status-lugar');
+                textLabel.classList.add('d-none');
+                textLabel.innerText = "";
+            }
+        });
+
+        if (ocupacionesDelDia.length === 0) {
+            panelFranjas.classList.add('d-none');
+            return;
+        }
+
+        panelFranjas.classList.remove('d-none');
+        
+        ocupacionesDelDia.forEach(res => {
+            // 1. Renderizar badge de horario ocupado
+            const badge = document.createElement('span');
+            badge.className = 'badge-horario-ocupado';
+            badge.innerHTML = `<i class="fa-solid fa-door-closed"></i> ${res.lugar_nombre}: ${res.inicio} - ${res.fin}`;
+            listaBadges.appendChild(badge);
+
+            // 2. Resaltar la tarjeta del lugar afectado
+            const lugarCard = document.getElementById(`card-lugar-${res.lugar_id}`);
+            if (lugarCard) {
+                lugarCard.classList.add('lugar-con-ocupacion');
+                const statusLabel = lugarCard.querySelector('.badge-status-lugar');
+                statusLabel.classList.remove('d-none');
+                statusLabel.innerText = "⚠️ Reservado hoy";
+            }
+        });
+    }
+
+    // Escuchadores para actualizar disponibilidad al cambiar fecha
+    inputFecha.addEventListener('change', consultarOcupacionAgenda);
+    consultarOcupacionAgenda(); // Carga inicial
+
     function evaluarCapacidadLugares() {
         let invitados = parseInt(inputAsistentes.value) || capacidadBase;
 
@@ -364,12 +472,10 @@ document.addEventListener('DOMContentLoaded', function () {
             let contenedorCard = document.getElementById(`card-lugar-${radio.value}`);
 
             if (invitados > capMaxLugar) {
-                contenedorCard.classList.add('lugar-bloqueado');
-                if (radio.checked) {
-                    radio.checked = false;
-                }
+                if(contenedorCard) contenedorCard.classList.add('lugar-bloqueado');
+                if (radio.checked) radio.checked = false;
             } else {
-                contenedorCard.classList.remove('lugar-bloqueado');
+                if(contenedorCard) contenedorCard.classList.remove('lugar-bloqueado');
             }
         });
     }
