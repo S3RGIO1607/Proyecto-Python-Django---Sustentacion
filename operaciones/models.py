@@ -2,7 +2,7 @@ import datetime as dt_module
 from django.db import models
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
-from datetime import date
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -12,7 +12,6 @@ from django.utils import timezone
 from usuarios.models import Usuario
 from paquetes.models import Paquete, Servicio
 from inventario.models import Producto, MovimientoProducto
-
 
 # Create your models here.
 # ---------------- ALQUILER ----------------
@@ -120,7 +119,6 @@ class Alquiler(models.Model):
     def __str__(self):
         return f'Alquiler {self.id} - {self.usuario.nombre}'
 
-
 # ---------------- ALQUILER PRODUCTO ----------------
 
 class AlquilerProducto(models.Model):
@@ -155,7 +153,6 @@ class AlquilerProducto(models.Model):
 
     def __str__(self):
         return f'Alquiler {self.alquiler.id} - {self.producto.nombre_producto}'
-
 
 # ---------------- RESERVA EVENTO ----------------
 
@@ -196,6 +193,11 @@ class Lugar(models.Model):
         max_length=1,
         choices=ESTADO_CHOICES,
         default='A'
+    )
+    novedad = models.TextField(
+    blank=True,
+    null=True,
+    verbose_name="Motivo de la inactivación"
     )
 
     def __str__(self):
@@ -311,41 +313,57 @@ class ReservaEvento(models.Model):
                 )
 
     def clean(self):
-        # 1. Validación de fecha pasada
-        hoy = dt_module.date.today()
-        if self.fecha_evento and self.fecha_evento < hoy:
-            raise ValidationError("La fecha del evento no puede ser en el pasado")
+        super().clean()
         
-        if self.hora_inicio and self.paquete:
-            inicio_dt = dt_module.datetime.combine(self.fecha_evento, self.hora_inicio)
-            
-            if timezone.is_naive(inicio_dt):
-                inicio_dt = timezone.make_aware(inicio_dt)
-            
-            duracion = self.paquete.duracion_horas
-            self.hora_fin_limpieza = inicio_dt + dt_module.timedelta(hours=duracion + 5)
+        # 1. Validar que tengamos los datos mínimos para comparar
+        if not self.fecha_reserva or not self.hora_inicio or not self.hora_fin:
+            return
 
-            # 2. Validar disponibilidad del LUGAR
-            if self.lugar:
-                reservas_dia = ReservaEvento.objects.filter(
-                    lugar=self.lugar,
-                    fecha_evento=self.fecha_evento
-                ).exclude(pk=self.pk)
+        # Convertir a objetos datetime actuales para validar que no sea en el pasado
+        ahora = timezone.localtime(timezone.now())
+        fecha_hora_inicio = datetime.combine(self.fecha_reserva, self.hora_inicio)
+        
+        # Hacer conscientes de zona horaria si usas USE_TZ=True
+        if timezone.is_aware(ahora):
+            fecha_hora_inicio = timezone.make_aware(fecha_hora_inicio, timezone.get_current_timezone())
 
-                for r in reservas_dia:
-                    r_inicio_dt = dt_module.datetime.combine(r.fecha_evento, r.hora_inicio)
-                    if timezone.is_naive(r_inicio_dt):
-                        r_inicio_dt = timezone.make_aware(r_inicio_dt)
-                    
-                    r_fin_dt = r.hora_fin_limpieza
-                    if r_fin_dt and timezone.is_naive(r_fin_dt):
-                        r_fin_dt = timezone.make_aware(r_fin_dt)
+        if fecha_hora_inicio < ahora:
+            raise ValidationError({'fecha_reserva': "No puedes programar una reserva en una fecha o hora del pasado."})
 
-                    if (inicio_dt < r_fin_dt) and (self.hora_fin_limpieza > r_inicio_dt):
-                        raise ValidationError(
-                            f"El lugar '{self.lugar.nombre}' ya está ocupado o en limpieza. "
-                            f"Termina a las {r_fin_dt.strftime('%H:%M')}."
-                        )
+        # 2. Validar que la hora de fin sea mayor a la de inicio
+        if self.hora_fin <= self.hora_inicio:
+            raise ValidationError({'hora_fin': "La hora de finalización debe ser posterior a la hora de inicio."})
+
+        # 3. Calcular la hora de fin de limpieza de manera limpia
+        # (Por ejemplo, asumiendo 2 horas de limpieza. Ajusta según tu lógica)
+        minutos_limpieza = self.lugar.minutos_limpieza if hasattr(self.lugar, 'minutos_limpieza') else 120
+        
+        # Truco para sumar tiempo a un time object
+        dt_fin = datetime.combine(self.fecha_reserva, self.hora_fin)
+        dt_limpieza = dt_fin + timedelta(minutes=minutos_limpieza)
+        self.hora_fin_limpieza = dt_limpieza.time()
+
+        # 4. Evitar solapamientos en el mismo lugar
+        # Buscamos reservas activas para el mismo lugar en la misma fecha
+        reservas_coincidentes = ReservaEvento.objects.filter(
+            lugar=self.lugar,
+            fecha_reserva=self.fecha_reserva,
+            estado_pago__in=['PENDIENTE', 'PAGADO'] # Filtra solo las reservas que sí ocupan espacio
+        )
+
+        # Si estamos editando una reserva existente, la excluimos de la búsqueda
+        if self.pk:
+            reservas_coincidentes = reservas_coincidentes.exclude(pk=self.pk)
+
+        for r in reservas_coincidentes:
+            # El evento actual inicia antes de que el otro termine (incluyendo su limpieza)
+            # Y el evento actual termina (con su limpieza) después de que el otro inicia
+            if self.hora_inicio < r.hora_fin_limpieza and self.hora_fin_limpieza > r.hora_inicio:
+                raise ValidationError(
+                    f"El horario seleccionado (incluyendo limpieza hasta las {self.hora_fin_limpieza.strftime('%H:%M')}) "
+                    f"se cruza con el evento '{r.nombre_evento}' que está programado de "
+                    f"{r.hora_inicio.strftime('%H:%M')} a {r.hora_fin_limpieza.strftime('%H:%M')}."
+                )
                     
     def save(self, *args, **kwargs):
         if self.fecha_evento and self.hora_inicio and self.paquete:
@@ -471,7 +489,6 @@ class ReservaEvento(models.Model):
         return f'Reserva {self.id} - {self.usuario.nombre}'
 
 
-
 # ---------------- RESERVA PRODUCTO ----------------
 
 class ReservaProducto(models.Model):
@@ -511,7 +528,6 @@ class ReservaServicio(models.Model):
         if self.servicio:
             return f'Reserva #{self.reserva.id} - {self.servicio.nombre_servicio}'
         return f'Reserva #{self.reserva.id} - Servicio no especificado'
-
 
 # ---------------- EVALUACION EVENTO ----------------
 
@@ -577,4 +593,3 @@ class Pago(models.Model):
 
     def __str__(self):
         return f'Pago {self.id} - {self.monto} ({self.metodo_pago})'
-    

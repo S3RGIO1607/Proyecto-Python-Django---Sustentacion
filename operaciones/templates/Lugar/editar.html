@@ -237,6 +237,22 @@
                             <option value="A" {% if lugar.estado == 'A' %}selected{% endif %}>🟢 Activa</option>
                             <option value="I" {% if lugar.estado == 'I' %}selected{% endif %}>🔴 Mantenimiento</option>
                         </select>
+                        <div class="field-group">
+    <label class="label-edit">Novedad</label>
+
+    <textarea
+        name="txt_novedad"
+        id="txt_novedad"
+        class="input-edit-style"
+        rows="3"
+        maxlength="250"
+        placeholder="Escriba el motivo por el cual la locación queda inactiva..."
+    >{{ lugar.novedad }}</textarea>
+
+    <p class="text-xs text-slate-500 mt-2">
+        Este campo solo es obligatorio cuando la locación queda inactiva.
+    </p>
+</div>
                     </div>
                 </div>
 
@@ -254,4 +270,30 @@
         </form>
     </div>
 </div>
+<script>
+
+    const estado = document.querySelector("[name='txt_estado']");
+    const novedad = document.getElementById("txt_novedad").parentElement;
+
+    function mostrarNovedad(){
+
+    if(estado.value=="I"){
+
+        novedad.style.display="block";
+
+    }else{
+
+        novedad.style.display="none";
+
+        document.getElementById("txt_novedad").value="";
+
+    }
+
+}
+
+estado.addEventListener("change",mostrarNovedad);
+
+mostrarNovedad();
+
+</script>
 {% endblock %}

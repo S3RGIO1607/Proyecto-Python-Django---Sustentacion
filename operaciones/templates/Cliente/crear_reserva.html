@@ -98,6 +98,57 @@
         margin-bottom: 25px;
     }
 
+    /* NUEVO: CONTENEDOR DE RECTÁNGULOS DE HORAS */
+    .horas-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .hora-slot {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+        background: #fff;
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-main);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+
+    .hora-slot:hover {
+        border-color: var(--primary-color);
+        background: #fff9f8;
+    }
+
+    /* Estado seleccionado */
+    .hora-slot.selected {
+        background: var(--primary-color);
+        color: #fff;
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 10px rgba(84, 30, 18, 0.15);
+    }
+
+    /* Estado bloqueado / ocupado por otra reserva */
+    .hora-slot.ocupado {
+        background: #fee2e2;
+        color: #991b1b;
+        border-color: #fecaca;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    
+    .hora-slot.ocupado:hover {
+        background: #fee2e2;
+        border-color: #fecaca;
+    }
+
     /* COMPONENTE VISUAL DE HORARIOS OCUPADOS */
     .horarios-disponibilidad-box {
         background: #fff9f8;
@@ -105,6 +156,10 @@
         border-radius: 12px;
         padding: 15px;
         margin-bottom: 20px;
+    }
+    
+    .d-none {
+        display: none !important;
     }
 
     .agenda-title {
@@ -156,7 +211,6 @@
         pointer-events: none;
     }
 
-    /* MODIFICADOR VISUAL SI EL LUGAR YA TIENE RESERVAS ESE DÍA */
     .lugar-card.lugar-con-ocupacion {
         border-color: #f5b041;
         background: #fffdf9;
@@ -289,14 +343,11 @@
                 {% csrf_token %}
 
                 <div class="section-title"><i class="fa-solid fa-calendar-check" style="color: var(--primary-color);"></i> Datos del Evento</div>
-                <div class="row-inputs">
+                
+                <div class="row-inputs" style="grid-template-columns: 1fr 1fr;">
                     <div class="form-group">
                         <label>Fecha del evento</label>
                         <input type="date" name="fecha_evento" id="fecha" min="{{ hoy }}" value="{{ datos_enviados.fecha_evento|default:hoy }}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Hora de inicio</label>
-                        <input type="time" name="hora_inicio" id="hora_inicio" value="{{ datos_enviados.hora_inicio }}" required>
                     </div>
                     <div class="form-group">
                         <label>Invitados (Mín: {{ paquete.capacidad_base }})</label>
@@ -304,12 +355,38 @@
                     </div>
                 </div>
 
+                <!-- NUEVA SECCIÓN DE SELECCIÓN DE HORA EN RECTÁNGULOS -->
+                <div class="form-group" style="margin-bottom: 25px;">
+                    <label>Hora de inicio disponible</label>
+                    <!-- Input oculto que recopilará el valor del bloque seleccionado para enviarlo a Django -->
+                    <input type="hidden" name="hora_inicio" id="hora_inicio" value="{{ datos_enviados.hora_inicio }}" required>
+                    
+                    <div class="horas-grid" id="horasGrid">
+                        <!-- Generamos bloques desde las 08:00 hasta las 23:00 con intervalos de 1 hora -->
+                        <div class="hora-slot" data-time="08:00">08:00 AM</div>
+                        <div class="hora-slot" data-time="09:00">09:00 AM</div>
+                        <div class="hora-slot" data-time="10:00">10:00 AM</div>
+                        <div class="hora-slot" data-time="11:00">11:00 AM</div>
+                        <div class="hora-slot" data-time="12:00">12:00 PM</div>
+                        <div class="hora-slot" data-time="13:00">01:00 PM</div>
+                        <div class="hora-slot" data-time="14:00">02:00 PM</div>
+                        <div class="hora-slot" data-time="15:00">03:00 PM</div>
+                        <div class="hora-slot" data-time="16:00">04:00 PM</div>
+                        <div class="hora-slot" data-time="17:00">05:00 PM</div>
+                        <div class="hora-slot" data-time="18:00">06:00 PM</div>
+                        <div class="hora-slot" data-time="19:00">07:00 PM</div>
+                        <div class="hora-slot" data-time="20:00">08:00 PM</div>
+                        <div class="hora-slot" data-time="21:00">09:00 PM</div>
+                        <div class="hora-slot" data-time="22:00">10:00 PM</div>
+                        <div class="hora-slot" data-time="23:00">11:00 PM</div>
+                    </div>
+                </div>
+
                 <div id="panel-franjas-ocupadas" class="horarios-disponibilidad-box d-none">
                     <div class="agenda-title">
                         <i class="fa-solid fa-business-time"></i> Horarios ocupados para esta fecha:
                     </div>
-                    <div id="lista-badges-ocupados">
-                        </div>
+                    <div id="lista-badges-ocupados"></div>
                     <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 5px;">
                         * Arron Eventos requiere un margen de 5 horas entre celebraciones en la misma sede por logística y desinfección.
                     </span>
@@ -366,7 +443,8 @@
                     {% for servicio in servicios %}
                     <label class="servicio-item">
                         <span class="font-semibold text-slate-700" style="font-size: 0.85rem;">{{ servicio.nombre_servicio }} (<strong>${{ servicio.precio_servicio|floatformat:0|intcomma }}</strong>)</span>
-                        <input type="checkbox" name="servicios" value="{{ servicio.id }}" data-precio="{{ servicio.precio_servicio }}">
+                        <input type="checkbox" name="servicios" value="{{ servicio.id }}" data-precio="{{ servicio.precio_servicio }}"
+                            {% if servicio.id|stringformat:"i" in datos_enviados.servicios %}checked{% endif %}>
                     </label>
                     {% endfor %}
                 </div>
@@ -381,7 +459,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const inputFecha = document.getElementById('fecha');
-    const inputHora = document.getElementById('hora_inicio');
+    const inputHoraOculto = document.getElementById('hora_inicio');
     const inputAsistentes = document.getElementById('asistentes');
     const checkboxesServicios = document.querySelectorAll('input[name="servicios"]');
     const precioDisplay = document.getElementById('precio-display');
@@ -391,11 +469,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const alertaReserva = document.getElementById('alerta-reserva');
     const panelFranjas = document.getElementById('panel-franjas-ocupadas');
     const listaBadges = document.getElementById('lista-badges-ocupados');
+    const horaSlots = document.querySelectorAll('.hora-slot');
 
-    const precioBasePaquete = parseFloat("{{ paquete.precio }}") || 0;
+    const precioBasePaquete = parseFloat("{{ paquete.precio|stringformat:'.2f' }}") || 0;
     const capacidadBase = parseInt("{{ paquete.capacidad_base }}") || 1;
 
-    let ocupacionesDelDia = []; // Guardará las reservas existentes traídas por AJAX
+    let ocupacionesDelDia = []; 
 
     function mostrarError(mensaje) {
         alertaReserva.innerHTML = `
@@ -406,12 +485,33 @@ document.addEventListener('DOMContentLoaded', function () {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    // MANEJO E INTERACCIÓN DE LOS RECTÁNGULOS DE HORAS
+    horaSlots.forEach(slot => {
+        slot.addEventListener('click', function() {
+            if (this.classList.contains('ocupado')) return; // No hacer nada si está bloqueado
+
+            // Quitar clase previa al bloque anterior
+            horaSlots.forEach(s => s.classList.remove('selected'));
+            
+            // Marcar el actual como seleccionado e inyectar el valor al input hidden
+            this.classList.add('selected');
+            inputHoraOculto.value = this.dataset.time;
+        });
+    });
+
+    // Restaurar selección previa si la vista regresó por error de validación
+    if (inputHoraOculto.value) {
+        const slotPrevio = document.querySelector(`.hora-slot[data-time="${inputHoraOculto.value}"]`);
+        if (slotPrevio && !slotPrevio.classList.contains('ocupado')) {
+            slotPrevio.classList.add('selected');
+        }
+    }
+
     // CONSULTAR OCUPACIÓN POR AJAX
     function consultarOcupacionAgenda() {
         const fechaSeleccionada = inputFecha.value;
         if (!fechaSeleccionada) return;
 
-        // Llamada al endpoint asíncrono pasándole la fecha como parámetro
         fetch(`/operaciones/api/ocupacion-lugar/?fecha=${fechaSeleccionada}`)
             .then(response => response.json())
             .then(data => {
@@ -421,10 +521,12 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(err => console.error("Error cargando agenda:", err));
     }
 
+    // Bloquea los rectángulos de horas si coinciden con los horarios ocupados del backend
     function actualizarMapaDisponibilidad() {
         listaBadges.innerHTML = "";
         
-        // Limpiar avisos en las tarjetas de lugares
+        // Limpiar estados previos en horas y lugares
+        horaSlots.forEach(s => s.classList.remove('ocupado'));
         radioLugares.forEach(radio => {
             const card = document.getElementById(`card-lugar-${radio.value}`);
             if(card) {
@@ -443,7 +545,7 @@ document.addEventListener('DOMContentLoaded', function () {
         panelFranjas.classList.remove('d-none');
         
         ocupacionesDelDia.forEach(res => {
-            // 1. Renderizar badge de horario ocupado
+            // 1. Renderizar badge informativo
             const badge = document.createElement('span');
             badge.className = 'badge-horario-ocupado';
             badge.innerHTML = `<i class="fa-solid fa-door-closed"></i> ${res.lugar_nombre}: ${res.inicio} - ${res.fin}`;
@@ -457,12 +559,33 @@ document.addEventListener('DOMContentLoaded', function () {
                 statusLabel.classList.remove('d-none');
                 statusLabel.innerText = "⚠️ Reservado hoy";
             }
+
+            // 3. Cruzar horarios y deshabilitar los rectángulos de horas afectados
+            // Convertimos las horas "HH:MM" de la ocupación a minutos para comparar fácilmente
+            const [hInicio, mInicio] = res.inicio.split(':').map(Number);
+            const [hFin, mFin] = res.fin.split(':').map(Number);
+            const minutosInicioOcupado = hInicio * 60 + mInicio;
+            const minutosFinOcupado = hFin * 60 + mFin;
+
+            horaSlots.forEach(slot => {
+                const [sHora, sMinuto] = slot.dataset.time.split(':').map(Number);
+                const minutosSlot = sHora * 60 + sMinuto;
+
+                // Si el slot cae dentro del rango ocupado, lo marcamos y bloqueamos
+                if (minutosSlot >= minutosInicioOcupado && minutosSlot < minutosFinOcupado) {
+                    slot.classList.add('ocupado');
+                    // Si el usuario tenía seleccionado este slot, desmarcarlo
+                    if (slot.classList.contains('selected')) {
+                        slot.classList.remove('selected');
+                        inputHoraOculto.value = "";
+                    }
+                }
+            });
         });
     }
 
-    // Escuchadores para actualizar disponibilidad al cambiar fecha
     inputFecha.addEventListener('change', consultarOcupacionAgenda);
-    consultarOcupacionAgenda(); // Carga inicial
+    consultarOcupacionAgenda(); // Ejecución en carga inicial
 
     function evaluarCapacidadLugares() {
         let invitados = parseInt(inputAsistentes.value) || capacidadBase;
@@ -537,6 +660,12 @@ document.addEventListener('DOMContentLoaded', function () {
     formReserva.addEventListener('submit', function(e) {
         let invitados = parseInt(inputAsistentes.value) || 0;
         let lugarMarcado = document.querySelector('input[name="lugar_id"]:checked');
+
+        if (!inputHoraOculto.value) {
+            e.preventDefault();
+            mostrarError("Por favor selecciona un rectángulo de hora válido para el inicio de tu evento.");
+            return;
+        }
 
         if (invitados < capacidadBase) {
             e.preventDefault();

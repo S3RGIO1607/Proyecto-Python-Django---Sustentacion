@@ -333,14 +333,23 @@ def crear_reserva_cliente(request, paquete_id):
         asistentes_input = request.POST.get("asistentes")
         menu_id = request.POST.get("menu_id")
         lugar_id = request.POST.get("lugar_id")
+        # --- CAMBIO CLAVE: Capturamos los checkboxes marcados desde el inicio ---
+        servicios_extra_ids = request.POST.getlist("servicios") 
         
         # Estructura de persistencia por si ocurre un fallo
         contexto_error = {
-            "paquete": paquete, "servicios": servicios_disponibles,
-            "menus": menus, "lugares": lugares, "hoy": hoy,
+            "paquete": paquete, 
+            "servicios": servicios_disponibles,
+            "menus": menus, 
+            "lugares": lugares, 
+            "hoy": hoy,
             "datos_enviados": {
-                "fecha_evento": fecha_evento_str, "hora_inicio": hora_inicio_str,
-                "asistentes": asistentes_input, "menu_id": menu_id, "lugar_id": lugar_id
+                "fecha_evento": fecha_evento_str, 
+                "hora_inicio": hora_inicio_str,
+                "asistentes": asistentes_input, 
+                "menu_id": menu_id, 
+                "lugar_id": lugar_id,
+                "servicios": servicios_extra_ids # <-- Agregado para recordar la selección
             }
         }
 
@@ -403,8 +412,7 @@ def crear_reserva_cliente(request, paquete_id):
                 
                 reserva.guardar_configuracion_paquete()
 
-                # Servicios Extra
-                servicios_extra_ids = request.POST.getlist("servicios")
+                # Servicios Extra (usamos la variable que ya extrajimos arriba)
                 for s_id in servicios_extra_ids:
                     servicio = Servicio.objects.get(id=s_id, estado='A')
                     ReservaServicio.objects.create(
@@ -425,11 +433,9 @@ def crear_reserva_cliente(request, paquete_id):
             messages.success(request, "¡Tu reserva en Arron Eventos ha sido procesada con éxito!")
             return redirect("mis_reservas")
         
-        except ValidationError as e:  # <- Corregido el nombre de la excepción de Django
-            # Si el error viene de un campo específico o de clean() sin un campo asignado (_all_)
+        except ValidationError as e:
             if hasattr(e, 'message_dict'):
                 error_final = e.message_dict.get('_all_', [str(e)])[0]
-                # Si no está en _all_, extraemos el primer error del primer campo que falló
                 if error_final == str(e) and e.message_dict:
                     primer_campo = list(e.message_dict.keys())[0]
                     error_final = f"{primer_campo}: {e.message_dict[primer_campo][0]}"
@@ -440,13 +446,19 @@ def crear_reserva_cliente(request, paquete_id):
             return render(request, "Cliente/crear_reserva.html", contexto_error)
 
         except Exception as e:
-            # Para errores imprevistos del sistema
             contexto_error["error"] = f"Ocurrió un error inesperado al procesar la reserva: {str(e)}"
             return render(request, "Cliente/crear_reserva.html", contexto_error)
 
+    # --- CAMBIO COMPLEMENTARIO: Lista de servicios vacía por defecto en el GET ---
     return render(request, "Cliente/crear_reserva.html", {
-        "paquete": paquete, "servicios": servicios_disponibles,
-        "menus": menus, "lugares": lugares, "hoy": hoy
+        "paquete": paquete, 
+        "servicios": servicios_disponibles,
+        "menus": menus, 
+        "lugares": lugares, 
+        "hoy": hoy,
+        "datos_enviados": {
+            "servicios": [] 
+        }
     })
 
 def detalle_reserva(request, reserva_id):
@@ -1508,6 +1520,7 @@ def editar_lugar(request):
         capacidad_raw = request.POST.get('txt_capacidad_maxima', '').strip()
         precio_raw = request.POST.get('txt_precio_renta', '').strip()
         estado = request.POST.get('txt_estado')
+        novedad = request.POST.get('txt_novedad', '').strip()
 
         # Control de existencia de la locación
         try:
@@ -1516,12 +1529,16 @@ def editar_lugar(request):
             messages.error(request, "La locación que intenta editar no existe en la base de datos.")
             return redirect('gestionar_catalogos')
 
+        # Guardamos el estado original antes de "hidratar" para la validación de cambios
+        estado_original = lugar.estado
+
         # Hidratamos el objeto de manera temporal para retener los datos en el front en caso de error
         lugar.nombre = nombre
         lugar.direccion = direccion
         lugar.capacidad_maxima = capacidad_raw
         lugar.precio_renta = precio_raw
         lugar.estado = estado
+        lugar.novedad = novedad
 
         # 1. VALIDACIÓN: Nombre de la Sede (Alfanumérico de 3 a 60 caracteres)
         if not re.match(r'^[A-Za-záéíóúÁÉÍÓÚñÑ0-9\s]{3,60}$', nombre):
@@ -1553,10 +1570,38 @@ def editar_lugar(request):
             messages.error(request, "Error: El costo de renta mensual/diario debe ser un número entero mayor a cero.")
             return render(request, 'Lugar/editar.html', {'lugar': lugar})
 
+        # COMPUERTAS DE SEGURIDAD PARA INACTIVACIÓN (Estado cambia de "A" a "I")
+        if estado == "I" and estado_original == "A":
+            # 5. VALIDACIÓN: Validar que siempre quede al menos un lugar activo en el sistema
+            lugares_activos = Lugar.objects.filter(estado='A').count()
+            if lugares_activos <= 1:
+                messages.error(request, "Debe existir al menos una locación activa en el sistema.")
+                return render(request, 'Lugar/editar.html', {'lugar': lugar})
+
+            # 6. VALIDACIÓN: Validar que el lugar no tenga reservas activas antes de inactivarlo
+            tiene_reservas = ReservaEvento.objects.filter(
+                lugar=lugar,
+                estado__in=["Reservado", "Confirmado", "En Preparacion", "Evento Activo"]
+            ).exists()
+            if tiene_reservas:
+                messages.error(request, "No es posible inactivar esta locación porque tiene reservas activas o pendientes.")
+                return render(request, 'Lugar/editar.html', {'lugar': lugar})
+
+        # 7. VALIDACIÓN: Si el lugar queda inactivo, la novedad es obligatoria
+        if estado == "I" and not novedad:
+            messages.error(request, "Debe indicar la novedad o motivo por el cual la locación será inactivada.")
+            return render(request, 'Lugar/editar.html', {'lugar': lugar})
+
+        # Si vuelve a estar activo, se limpia la novedad
+        if estado == "A":
+            lugar.novedad = ""
+
         # Pasadas las compuertas de seguridad, se ejecuta el guardado definitivo
         lugar.save()
         messages.success(request, f"Locación '{nombre}' actualizada correctamente.")
-        
+                
+        return redirect('gestionar_catalogos')
+    
     return redirect('gestionar_catalogos')
 
 def eliminar_lugar(request, id):
@@ -1580,14 +1625,35 @@ def habilitar_lugar(request, id):
     return redirect('gestionar_catalogos')
 
 
-def cambiar_estado_catalogo(request, tipo, id): 
-    if tipo == 'servicio': obj = Servicio.objects.get(id=id) 
-    elif tipo == 'menu': obj = MenuComida.objects.get(id=id) 
-    elif tipo == 'lugar': obj = Lugar.objects.get(id=id) 
-    else: return redirect('dashboard_admin') 
-    # Lógica de cambio de estado 
-    obj.estado = 'I' if obj.estado == 'A' else 'A' 
-    obj.save() 
-    # Redirigir a la página anterior 
-    
+def cambiar_estado_catalogo(request, tipo, id):
+
+    if tipo == 'servicio':
+        obj = Servicio.objects.get(id=id)
+
+    elif tipo == 'menu':
+        obj = MenuComida.objects.get(id=id)
+
+    elif tipo == 'lugar':
+        obj = Lugar.objects.get(id=id)
+
+        # Validar que siempre exista al menos un lugar activo
+        if obj.estado == 'A':
+            lugares_activos = Lugar.objects.filter(estado='A').count()
+
+            if lugares_activos == 1:
+                messages.error(
+                    request,
+                    "Debe existir al menos una locación activa en el sistema."
+                )
+                return redirect(request.META.get('HTTP_REFERER', 'dashboard_admin'))
+
+    else:
+        return redirect('dashboard_admin')
+
+    # Cambiar estado
+    obj.estado = 'I' if obj.estado == 'A' else 'A'
+    obj.save()
+
+    messages.success(request, "Estado actualizado correctamente.")
+
     return redirect(request.META.get('HTTP_REFERER', 'dashboard_admin'))
